@@ -7,7 +7,8 @@
   const bases = new Map(), panels = new Map(), remembered = new Map();
   const classSelect = $('uxClass'), subjectSelect = $('uxSubject');
   const fieldFor = id => document.querySelector('textarea[data-save="ux-' + id + '-edits"]');
-  const viewKey = 'malu-ui-view';
+  const viewKey = 'malu-ui-view', panelKey = 'malu-ui-panels';
+  let panelMemory={};try { const p=JSON.parse(localStorage.getItem(panelKey)||'{}'); if(p && typeof p==='object' && !Array.isArray(p))panelMemory=p; }catch(e){}
   let current = null, realClass = '9ºA', undoAction = null, restoring = true;
   let editorState = null, editorDirty = false, printState = [];
   function el(tag, cls, text) { const n=document.createElement(tag); if(cls)n.className=cls; if(text != null)n.textContent=text; return n; }
@@ -51,8 +52,8 @@
     $('wkPrev').disabled=i<=0; $('wkNext').disabled=i<0 || i>=ids.length-1; $('wkProject').disabled=!c;
     $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
-    if(c)remembered.set(activeSection().id,c.id);
-    $('uxResume').textContent=c ? 'Sua aula · '+realClass+' · '+subjectSelect.selectedOptions[0].textContent+' · semana '+weekNumber(c) : '';
+    if(c){remembered.set(activeSection().id,c.id);const panel=panelMemory[activeSection().id];setPanel(c,['prepare','notebook','activity'].includes(panel)?panel:'prepare',false);}
+
     refreshMarks();toolbarHeight();saveView();
     if(focus && c) { c.querySelector('.week-head h3').focus({preventScroll:true});c.scrollIntoView({block:'start',behavior:'auto'}); }
   }
@@ -62,15 +63,15 @@
   $('wkProject').addEventListener('click',()=>{if(current)window.openProjection(current);});
   classSelect.addEventListener('change',()=>{
     const [s,t]=classSelect.value.split('|');realClass=t;const d=subjectSelect.value;
-    $('searchBox').value='';planner.setSelection(s,d);refresh(remembered.get(activeSection().id),false);
+    $('searchBox').value='';planner.setSelection(s,d);refresh(remembered.get(activeSection().id),true);
   });
   subjectSelect.addEventListener('change',()=>{
     $('searchBox').value='';planner.setSelection(planner.getSelection().s,subjectSelect.value);
-    refresh(remembered.get(activeSection().id),false);
+    refresh(remembered.get(activeSection().id),true);
   });
   document.addEventListener('malu:selection',()=>{if(!restoring)refresh(remembered.get(activeSection().id));});
   document.addEventListener('malu:search',()=>{if(!restoring)refresh();});
-  document.addEventListener('malu:projection',e=>{if(!restoring)refresh(e.detail.id);});
+  document.addEventListener('malu:projection',e=>{if(!restoring){refresh(e.detail.id);const card=$(e.detail.id);if(card)setPanel(card,e.detail.mode==='atividade'?'activity':'notebook');}});
   document.querySelectorAll('a.track-item').forEach(a=>a.addEventListener('click',e=>{
     e.preventDefault();const id=a.getAttribute('href').slice(1);showWeek(id,true);
   }));
@@ -86,18 +87,41 @@
     if(e.key==='p'||e.key==='P'){e.preventDefault();if(current)window.openProjection(current);}
   });
 
+
+  // Codes belong to the student notebook, independently of optional source visibility.
+  function notebookCurriculum(card,notebook) {
+    const info=window.MaluCurriculum.readCodes(card),texts=window.MaluCurriculum.matrizTextos();
+    const footer=el('div','student-curriculum');footer.setAttribute('role','note');footer.setAttribute('aria-label','BNCC e Matriz desta aula');footer.dataset.readonly='true';
+    for(const [key,label] of [['bncc','BNCC'],['matriz','Matriz SEDUC-GO']]) {
+      const row=el('div','student-code-row');row.dataset.codeKind=key;
+      row.appendChild(el('strong','student-code-label',label+':'));
+      const values=el('div','student-code-values');
+      if(!info[key].length)values.appendChild(el('span','student-code-missing','Não indicada neste planejamento.'));
+      for(const code of info[key]) {
+        if(key==='matriz' && texts[code]) {
+          const detail=el('details','student-skill'),summary=el('summary','student-code-chip',code);
+          summary.title='Ler a habilidade '+code;detail.append(summary,el('p','student-skill-text',texts[code]));values.appendChild(detail);
+        } else values.appendChild(el('span','student-code-chip',code));
+      }
+      row.appendChild(values);footer.appendChild(row);
+    }
+    notebook.appendChild(footer);
+  }
+
   // Preserve original nodes and stable note IDs. Screen panels only change presentation.
-  function setPanel(card,key) {
+  function setPanel(card,key,remember=true) {
     const set=panels.get(card.id); if(!set)return;
     for(const [k,p] of Object.entries(set)) {
       const active=k===key;p.classList.toggle('ux-panel-inactive',!active);
       const b=$(card.id+'-tab-'+k);b.setAttribute('aria-selected',String(active));b.tabIndex=active ? 0 : -1;
     }
     card.dataset.uxPanel=key;
+    if(remember){panelMemory[card.closest('section.discipline').id]=key;try{localStorage.setItem(panelKey,JSON.stringify(panelMemory));}catch(e){}}
   }
   function setupCard(card) {
     const notebook=card.querySelector('.wide.notebook'),activity=card.querySelector('.atv-aluno');
     if(!notebook || !activity)throw new Error('Aula sem caderno ou atividade: '+card.id);
+    notebookCurriculum(card,notebook);
     const head=card.querySelector('.week-head h3');head.tabIndex=-1;
     bases.set(card.id,{title:head.textContent,notebook:notebook.cloneNode(true),activity:activity.cloneNode(true)});
     const actions=el('div','ux-actions');actions.setAttribute('aria-label','Ações desta aula');
@@ -139,7 +163,7 @@
     if(notes)notes.querySelector('summary').textContent='Minhas anotações (não aparecem na projeção)';
     const teacher=set.prepare.querySelector('.prof-caderno > summary');
     if(teacher)teacher.textContent='Fundamentação e roteiro da professora';
-    card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare');
+    card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare',false);
   }
   document.body.classList.remove('mode-aula');
   for(const card of cards)setupCard(card);
@@ -186,6 +210,9 @@
   // One tap records this week's completion for the selected real class.
   function refreshMarks() {
     const data=window.__maluAulas.get();
+    const section=activeSection(),weeks=section ? [...section.querySelectorAll('article.week-card')] : [];
+    const done=weeks.filter(c=>!!data[c.id+'|'+realClass]).length;
+    $('uxResume').textContent=weeks.length ? 'Progresso de '+realClass+': '+done+' de '+weeks.length+' semanas dadas nesta disciplina' : '';
     for(const card of cards) {
       const date=data[card.id+'|'+realClass],button=card.querySelector('[data-ux-mark]');
       button.textContent=date ? 'Dada para '+realClass+' ✓' : 'Marcar como dada para '+realClass;
@@ -214,7 +241,7 @@
   function editingTargets(root) {
     const semantic='h1,h2,h3,h4,h5,h6,p,li,td,th,figcaption,.registro-titulo,.registro-node,.registro-conceito,.notebook-questions-title';
     const candidates=[...root.querySelectorAll('*')].filter(n=>{
-      if(n.closest('svg,script,style,[aria-hidden="true"]') || !n.textContent.trim())return false;
+      if(n.closest('svg,script,style,[aria-hidden="true"],[data-readonly]') || !n.textContent.trim())return false;
       return n.matches(semantic) || (!n.children.length && !n.matches('br,hr,input,button,textarea'));
     });
     return candidates.filter(n=>!candidates.some(other=>other!==n && other.contains(n)));
@@ -309,7 +336,8 @@
       nb.style.removeProperty('--fit'); nb.style.removeProperty('--fit-w');
       const old=nb.style.width; nb.style.width='690px';
       const height=nb.scrollHeight; nb.style.width=old;
-      const scale=height>990 ? Math.max(.6,990/height) : 1;
+      const footer=nb.querySelector('.student-curriculum'), footHeight=footer ? footer.offsetHeight : 0;
+      const scale=height>990 ? Math.max(.6,(990-footHeight)/Math.max(1,height-footHeight)) : 1;
       nb.style.setProperty('--fit',String(scale)); nb.style.setProperty('--fit-w',Math.round(690/scale)+'px');
     });
   });
