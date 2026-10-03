@@ -12,6 +12,80 @@
   let current = null, realClass = '9ºA', undoAction = null, restoring = true;
   let editorState = null, editorDirty = false, printState = [];
   function el(tag, cls, text) { const n=document.createElement(tag); if(cls)n.className=cls; if(text != null)n.textContent=text; return n; }
+
+  // Datas de referência alinhadas ao cronograma oficial SEDUC-GO 2026.
+  // A SEDUC publica eventos e avaliações; as seis semanas abaixo são a organização do app encaixada nesse cronograma.
+  const SEDUC_WEEK_RANGES = Object.freeze({
+    s9:['19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11','23 a 27/11'],
+    s1:['13 a 16/10','19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11'],
+    s2:['13 a 16/10','19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11'],
+    s3:['13 a 16/10','19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11']
+  });
+  function seducWeekRange(card) {
+    const series=card && card.id.split('-')[0], n=card ? Number(card.id.split('-semana-')[1]) : 0;
+    return (SEDUC_WEEK_RANGES[series] && SEDUC_WEEK_RANGES[series][n-1]) || '';
+  }
+  function addOfficialCalendar() {
+    for(const card of cards) {
+      const range=seducWeekRange(card), head=card.querySelector('.week-head');
+      if(range && head && !head.querySelector('.ux-week-date')) {
+        const badge=el('span','ux-week-date',range);
+        badge.title='Faixa de referência do planejamento, alinhada ao cronograma SEDUC-GO 2026';
+        head.querySelector('h3').before(badge);
+      }
+      const track=document.querySelector('a.track-item[href="#'+card.id+'"]');
+      if(range && track && !track.querySelector('.ux-track-date')) {
+        const date=el('div','ux-track-date',range);
+        const concepts=track.querySelector('.track-concepts');
+        if(concepts) concepts.after(date);
+      }
+    }
+
+    const grid=document.querySelector('#guia .guia-grid');
+    if(grid && !grid.querySelector('.ux-seduc-calendar')) {
+      const section=el('section','ux-seduc-calendar');
+      section.appendChild(el('h3',null,'Calendário oficial SEDUC-GO · 4º bimestre'));
+      section.appendChild(el('p',null,'Datas conferidas no Caderno Orientador da Avaliação Educacional 2026. As faixas das seis semanas do planejamento são referências organizadas a partir desse cronograma; o dia exato de cada aula depende do horário da turma.'));
+
+      const ef=el('div','ux-seduc-stage');
+      ef.appendChild(el('h4',null,'9º ano'));
+      const efList=el('ul');
+      for(const item of [
+        '19/10 · Produção de Texto — CEPI',
+        '30/11 · Bloco 5: História',
+        '01 a 04/12 · Blocos — SEDUC',
+        '07 a 11/12 · 2ª chamada e Intensificação/Recomposição',
+        '14 a 17/12 · Pré-Conselho de Classe',
+        '18/12 · Conselho de Classe'
+      ]) efList.appendChild(el('li',null,item));
+      ef.appendChild(efList);section.appendChild(ef);
+
+      const em=el('div','ux-seduc-stage');
+      em.appendChild(el('h4',null,'Ensino Médio'));
+      const emList=el('ul');
+      for(const item of [
+        '13/10 · Produção Textual — SEDUC',
+        '26/10 · Simulado Enem (1ª, 2ª e 3ª série)',
+        '09/11 · Bloco 2: Geografia / História',
+        '01 a 04/12 · Blocos — SEDUC',
+        '07/12 · Bloco 6: Biologia / Sociologia / Filosofia',
+        '07 a 11/12 · 2ª chamada e Intensificação/Recomposição',
+        '14 a 17/12 · Pré-Conselho de Classe',
+        '18/12 · Conselho de Classe'
+      ]) emList.appendChild(el('li',null,item));
+      em.appendChild(emList);section.appendChild(em);
+
+      const source=document.createElement('a');
+      source.href='https://goias.gov.br/educacao/wp-content/uploads/sites/40/2026/03/CADERNO-ORIENTADOR-AVALIACAO-EDUCACIONAL-2026.pdf';
+      source.target='_blank';source.rel='noopener';
+      source.textContent='Abrir Caderno Orientador oficial da SEDUC-GO';
+      section.appendChild(source);
+      grid.appendChild(section);
+    }
+
+    const old=[...document.querySelectorAll('#guia p')].find(p=>p.textContent.includes('O calendário escolar da SEDUC-GO não foi consultado'));
+    if(old) old.textContent='Calendário e cronograma SEDUC-GO 2026 conferidos e incorporados ao planejamento.';
+  }
   function feedback(message, undo) {
     $('uxFeedback').hidden=false; $('uxFeedbackText').textContent=message;
     if ($('uxEditor') && $('uxEditor').open && $('uxEditorMessage')) $('uxEditorMessage').textContent=message;
@@ -50,7 +124,8 @@
     }
     const i=ids.indexOf(current),c=current && $(current);
     $('wkPrev').disabled=i<=0; $('wkNext').disabled=i<0 || i>=ids.length-1; $('wkProject').disabled=!c;
-    $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass : 'Nenhuma aula encontrada';
+    const range=c ? seducWeekRange(c) : '';
+    $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass+(range?' · '+range:'') : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
     if(c){remembered.set(activeSection().id,c.id);const panel=panelMemory[activeSection().id];setPanel(c,['prepare','notebook','activity'].includes(panel)?panel:'prepare',false);}
 
@@ -166,6 +241,7 @@
     card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare',false);
   }
   document.body.classList.remove('mode-aula');
+  addOfficialCalendar();
   for(const card of cards)setupCard(card);
   // Keep each discipline's six-week learning track visible. It is primary navigation/context, not optional detail.
   document.querySelectorAll('.study-track').forEach(track=>track.removeAttribute('hidden'));
