@@ -112,3 +112,22 @@
 }
 
 .ux-ready .week-head h3,.ux-editable{overflow-wrap:anywhere}
+
+/* Student codes stay in the notebook, including when sources are turned off. */
+.wide.notebook .student-curriculum{position:relative;margin-top:20px;padding:12px 0 0;border-top:1px solid #aab7bd;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#33414a;font-size:calc(.875rem * var(--projection-scale,1));line-height:1.5;text-align:left}
+.student-code-row{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:baseline;margin:5px 0}
+.student-code-values{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline;flex:1;min-width:150px}
+.student-code-chip{display:inline-block;padding:3px 7px;background:#f1f5f6;border:1px solid #b7c5cb;border-radius:6px;color:#263840;font:inherit;overflow-wrap:anywhere}
+.student-skill{display:inline-block;max-width:100%;margin:0}
+.student-skill>summary{cursor:pointer;list-style:none}
+.student-skill>summary::-webkit-details-marker{display:none}
+.student-skill>summary::after{content:" ▾";font-size:.8em}
+.student-skill>summary:focus-visible{outline:3px solid #743642;outline-offset:2px}
+.wide.notebook .student-skill-text{font:inherit;line-height:1.5;color:#33414a;margin:8px 0 4px;max-width:65ch}
+.student-code-missing{color:#52636b}
+@media print{
+ .wide.notebook .student-curriculum{font-size:10pt!important;break-inside:avoid;zoom:calc(1 / var(--fit,1));width:calc(100% * var(--fit,1))}
+ .student-code-chip{background:#fff!important;color:#111!important;border-color:#aaa!important}
+ .student-skill>summary::after{content:""}
+ .student-skill-text{display:none!important}
+}
