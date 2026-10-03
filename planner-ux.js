@@ -159,7 +159,7 @@
   const launchButton=$('wkProject');
   launch.append(launchText);$('conteudo').prepend(launch);
   const shortcuts=el('nav','lesson-quick-nav');shortcuts.setAttribute('aria-label','Acesso direto à aula');
-  const prepareButton=el('button',null,'Preparar aula');prepareButton.id='wkPrepare';prepareButton.type='button';
+  const prepareButton=el('button',null,'Preparar / estudar');prepareButton.id='wkPrepare';prepareButton.type='button';
   prepareButton.addEventListener('click',()=>{
     const card=current && $(current);if(!card)return;
     setPanel(card,'prepare');
@@ -204,7 +204,7 @@
   projectionOptions.appendChild(optionButtons);
   $('projectionClose').before(projectionOptions);
   $('projectionMode').hidden=true;
-  document.querySelectorAll('[data-lesson-stage]').forEach(b=>b.addEventListener('click',()=>{projectionOptions.open=false;}));
+  document.querySelectorAll('[data-lesson-material]').forEach(b=>b.addEventListener('click',()=>{projectionOptions.open=false;}));
 
   // Codes belong to the student notebook, independently of optional source visibility.
   function notebookCurriculum(card,notebook) {

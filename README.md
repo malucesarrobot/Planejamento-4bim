@@ -47,12 +47,12 @@ Os códigos BNCC e da Matriz SEDUC-GO ficam no rodapé permanente de cada cadern
 
 A aba escolhida é mantida ao navegar pelas semanas e reabrir o aplicativo. O cabeçalho mostra o progresso da turma na disciplina. Os testes adicionais percorrem todas as 60 semanas na largura de um celular e verificam os códigos, edição anterior, impressão, abas e progresso.
 
-## Uso em sala com celular espelhado
+## Material de apoio para estudo e projeção
 
-“Iniciar aula” fica no topo e abre diretamente o Quadro da semana selecionada. A última turma, disciplina e semana são retomadas ao abrir o aplicativo. A tela de projeção oferece Pergunta inicial, Conteúdo, Quadro, Atividade e Fontes, além de Anterior/Próximo para seguir essa sequência. Os textos da abertura e do conteúdo são extraídos do planejamento existente; orientações privadas e respostas da professora ficam fora da projeção.
+Preparar / estudar abre a preparação com fundamentação e conteúdo curricular expandidos. Projetar quadro abre o caderno da semana selecionada. A última turma, disciplina e semana são retomadas ao abrir o aplicativo. Voltar da projeção mantém a aba da professora.
 
-Fontes abre uma tela com os links já cadastrados, sem depender dos QR codes nem de rolar até o fim do quadro. Os links abrem em outra aba; ao retornar à aba do planejamento, a aula permanece aberta. Ao alternar entre Quadro e Fontes, a posição de leitura do quadro é preservada. Ajustes reúne tamanho das letras, troca de semana e impressão. As fontes dependem de internet e da disponibilidade dos sites externos.
+Problematização, Conteúdo, Quadro, Atividade e Fontes são materiais independentes, escolhidos diretamente. Não há sequência, contagem de etapas ou obrigação de usar atividades. A troca de semana preserva o tipo de material escolhido. As seis semanas continuam acessíveis pelo seletor e pelos botões de semana.
 
-A projeção distingue “Semana N de 6” de “Etapa N de 5”. A seleção e os botões de semana ficam sempre visíveis. Ao concluir Fontes, Próxima semana inicia a pergunta inicial da semana seguinte; o botão só fica desabilitado no fim da sexta semana.
+Fontes oferece os links já cadastrados, sem depender dos QR codes nem de rolar até o fim do quadro. Os links abrem em outra aba; ao retornar, a aula permanece aberta. Alternar entre Quadro e Fontes preserva a posição de leitura. Ajustes reúne tamanho das letras, referências no rodapé e impressão. As fontes dependem de internet e da disponibilidade dos sites externos.
 
-Preparar aula e Iniciar aula são os dois acessos diretos na barra compacta. Preparar aula abre a preparação com fundamentação e conteúdo curricular expandidos. A projeção não troca mais a aba da professora ao voltar. No celular, a navegação completa e as ações de edição/impressão rolam com a página, mantendo a área de leitura livre.
+No celular, somente os dois acessos diretos ficam fixos; a navegação completa e as ações de edição/impressão rolam com a página. A fundamentação e as respostas da professora não entram na projeção dos materiais dos alunos.

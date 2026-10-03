@@ -91,7 +91,7 @@ try {
   await card.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
   await card.getByRole('button',{name:'Projetar',exact:true}).click();
   assert.match(await page.locator('#projectionPage').textContent(),/Texto alterado com <img/);
-  await page.locator('[data-lesson-stage=atividade]').click();
+  await page.locator('[data-lesson-material=atividade]').click();
   assert.match(await page.locator('#projectionPage').textContent(),/Texto-base alterado/);
   await page.locator('#projectionClose').click();
   await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('body.ux-ready');

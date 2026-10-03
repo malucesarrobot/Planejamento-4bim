@@ -148,13 +148,9 @@
 .lesson-launch h2{margin:4px 0;font-size:1.4rem;line-height:1.35}
 .lesson-launch p{color:#52616a;font-size:.9rem}
 .lesson-launch button,#wkProject{min-height:48px;border-radius:12px;background:#273843;color:white;padding:12px 20px;font-size:1rem;white-space:nowrap}
-.lesson-stages{display:flex;gap:6px;flex:none;padding:8px 12px;background:#fff;border-bottom:1px solid #d4dbe0;overflow-x:auto}
-.lesson-stages button{min-height:44px;flex:1;white-space:nowrap;border-radius:10px}
-.lesson-stages button[aria-pressed="true"]{background:#273843;color:#fff;border-color:#273843}
-.lesson-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;background:#f4f3ef;flex:none}
-.lesson-controls button{min-height:44px;border-radius:10px}
-.lesson-controls button:disabled{opacity:.4;cursor:not-allowed}
-#lessonPosition{font-size:.8rem;text-align:center;color:#52616a}
+.lesson-materials{display:flex;gap:6px;flex:none;padding:8px 12px;background:#fff;border-bottom:1px solid #d4dbe0;overflow-x:auto}
+.lesson-materials button{min-height:44px;flex:1;white-space:nowrap;border-radius:10px}
+.lesson-materials button[aria-pressed="true"]{background:#273843;color:#fff;border-color:#273843}
 .lesson-reading{padding:24px;background:#fff;border-radius:14px;font-size:calc(1.3rem * var(--projection-scale));line-height:1.65}
 .lesson-reading h2{margin:0 0 18px;font-size:1.3em}
 .lesson-reading section{padding:0;border:0}
@@ -164,14 +160,14 @@
 .lesson-options{position:relative}
 .lesson-options summary{cursor:pointer;padding:10px;border:1px solid #c9d2da;border-radius:9px;font-size:.8rem;font-weight:750;min-height:44px}
 .lesson-options>div{position:absolute;right:0;top:100%;width:230px;padding:12px;border:1px solid #c9d2da;border-radius:12px;background:#fff;box-shadow:0 8px 24px #0002;display:flex;gap:8px;flex-wrap:wrap}
-@media(max-width:760px){.ux-ready .hero{padding:16px 18px}.ux-ready .hero h1{font-size:1.6rem}.ux-ready .hero p{display:none}.lesson-launch{padding:14px;gap:12px;flex-direction:column;align-items:stretch}.lesson-launch h2{font-size:1.15rem}.lesson-launch button{width:100%}.lesson-stages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}.lesson-stages button{min-width:0;white-space:normal;padding:8px 6px;font-size:.78rem}.projection-heading{min-width:0}.projection-heading strong{font-size:.85rem}.projection-kicker{font-size:.65rem}.lesson-reading{padding:16px}.projection-toolbar{flex-wrap:nowrap}.projection-actions{flex-wrap:nowrap}.projection-close{min-height:44px}#wkProject{width:100%}}
-@media print{.lesson-launch,.lesson-stages,.lesson-controls,.lesson-options{display:none!important}}
+@media(max-width:760px){.ux-ready .hero{padding:16px 18px}.ux-ready .hero h1{font-size:1.6rem}.ux-ready .hero p{display:none}.lesson-launch{padding:14px;gap:12px;flex-direction:column;align-items:stretch}.lesson-launch h2{font-size:1.15rem}.lesson-launch button{width:100%}.lesson-materials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}.lesson-materials button{min-width:0;white-space:normal;padding:8px 6px;font-size:.78rem}.projection-heading{min-width:0}.projection-heading strong{font-size:.85rem}.projection-kicker{font-size:.65rem}.lesson-reading{padding:16px}.projection-toolbar{flex-wrap:nowrap}.projection-actions{flex-wrap:nowrap}.projection-close{min-height:44px}#wkProject{width:100%}}
+@media print{.lesson-launch,.lesson-materials,.lesson-options{display:none!important}}
 
 .lesson-week-nav{display:flex;align-items:center;justify-content:center;gap:8px;flex:none;padding:7px 12px;background:#fff;border-bottom:1px solid #d4dbe0}
 .lesson-week-nav button,.lesson-week-nav select{min-height:44px;min-width:0;border:1px solid #c9d2da;border-radius:10px;background:#fff;padding:8px 10px;font:750 .85rem/1.3 Verdana,Arial,sans-serif;color:#273843}
 .lesson-week-nav select{flex:1;max-width:260px;text-align:center}
 .lesson-week-nav button:disabled{opacity:.4;cursor:not-allowed}
-@media(max-width:760px){.lesson-controls{flex-wrap:wrap}.lesson-controls button{font-size:.8rem;padding:8px}.lesson-controls #lessonPosition{order:3;flex-basis:100%;font-size:.75rem}.lesson-week-nav{padding:6px;gap:5px}.lesson-week-nav button,.lesson-week-nav select{font-size:.76rem;padding:8px 6px}}
+@media(max-width:760px){.lesson-week-nav{padding:6px;gap:5px}.lesson-week-nav button,.lesson-week-nav select{font-size:.76rem;padding:8px 6px}}
 @media print{.lesson-week-nav{display:none!important}}
 
 /* Preparação acessível sem recolher a fundamentação atrás de menus. */
