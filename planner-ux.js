@@ -167,9 +167,8 @@
   }
   document.body.classList.remove('mode-aula');
   for(const card of cards)setupCard(card);
-  document.querySelectorAll('.study-track').forEach(track=>{
-    const d=el('details','ux-overview');d.appendChild(el('summary',null,'Ver as seis semanas do bimestre'));track.before(d);d.appendChild(track);
-  });
+  // Keep each discipline's six-week learning track visible. It is primary navigation/context, not optional detail.
+  document.querySelectorAll('.study-track').forEach(track=>track.removeAttribute('hidden'));
 
   // Restore title, notebook and activity from text-only patches. No saved HTML is executed.
   function readEdits(id) { return C.parseEdits(fieldFor(id).value); }
