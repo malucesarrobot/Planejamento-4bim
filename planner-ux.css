@@ -13,6 +13,9 @@
 .ux-seduc-stage{margin-top:12px}
 .ux-seduc-stage h4{margin-bottom:4px}
 .ux-seduc-stage ul{margin:4px 0 10px 20px}
+.ux-review-reserve{margin:12px 0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#f7f4ec}
+.ux-review-reserve h4{margin:0 0 4px;color:#273843}
+.ux-review-reserve p{margin:0}
 .ux-seduc-calendar a{display:inline-block;margin-top:4px;font-weight:750}
 .ux-week-number[aria-pressed="true"],.ux-tabs [aria-selected="true"],.ux-editor-tabs [aria-pressed="true"]{background:#273843;color:#fff;border-color:#273843}
 .ux-primary{background:#273843;color:#fff;border-color:#273843}
