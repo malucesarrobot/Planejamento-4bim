@@ -135,7 +135,7 @@
       b.addEventListener('click',()=>showWeek(c.id,true));choices.appendChild(b);
     }
     const i=ids.indexOf(current),c=current && $(current);
-    $('wkPrev').disabled=i<=0; $('wkNext').disabled=i<0 || i>=ids.length-1; $('wkProject').disabled=!c;
+    $('wkPrev').disabled=i<=0; $('wkNext').disabled=i<0 || i>=ids.length-1; $('wkProject').disabled=!c;if($('wkPrepare'))$('wkPrepare').disabled=!c;
     const range=c ? seducWeekRange(c) : '';
     $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass+(range?' · '+range:'') : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
@@ -156,8 +156,18 @@
   launch.setAttribute('aria-label','Começar a aula');
   const launchText=el('div');
   launchText.append(el('p',null,'Pronto para projetar'),el('h2',null,''),el('p','lesson-launch-context',''));
-  const launchButton=el('button','ux-primary','Iniciar aula ▷');launchButton.type='button';launchButton.addEventListener('click',startLesson);
-  launch.append(launchText,launchButton);$('conteudo').prepend(launch);
+  const launchButton=$('wkProject');
+  launch.append(launchText);$('conteudo').prepend(launch);
+  const shortcuts=el('nav','lesson-quick-nav');shortcuts.setAttribute('aria-label','Acesso direto à aula');
+  const prepareButton=el('button',null,'Preparar aula');prepareButton.id='wkPrepare';prepareButton.type='button';
+  prepareButton.addEventListener('click',()=>{
+    const card=current && $(current);if(!card)return;
+    setPanel(card,'prepare');
+    card.querySelectorAll('.prof-caderno,.ux-curriculum').forEach(d=>d.open=true);
+    card.scrollIntoView({block:'start',behavior:'auto'});
+    card.querySelector('.week-head h3').focus({preventScroll:true});
+  });
+  shortcuts.append(prepareButton,launchButton);$('navShell').parentElement.after(shortcuts);
 
   classSelect.addEventListener('change',()=>{
     const [s,t]=classSelect.value.split('|');realClass=t;const d=subjectSelect.value;
@@ -169,7 +179,7 @@
   });
   document.addEventListener('malu:selection',()=>{if(!restoring)refresh(remembered.get(activeSection().id));});
   document.addEventListener('malu:search',()=>{if(!restoring)refresh();});
-  document.addEventListener('malu:projection',e=>{if(!restoring){refresh(e.detail.id);const card=$(e.detail.id);if(card)setPanel(card,e.detail.mode==='atividade'?'activity':'notebook');}});
+  document.addEventListener('malu:projection',e=>{if(!restoring)refresh(e.detail.id);});
   document.querySelectorAll('a.track-item').forEach(a=>a.addEventListener('click',e=>{
     e.preventDefault();const id=a.getAttribute('href').slice(1);showWeek(id,true);
   }));
@@ -270,7 +280,8 @@
     const notes=set.prepare.querySelector('.build');
     if(notes)notes.querySelector('summary').textContent='Minhas anotações (não aparecem na projeção)';
     const teacher=set.prepare.querySelector('.prof-caderno > summary');
-    if(teacher)teacher.textContent='Fundamentação e roteiro da professora';
+    if(teacher){teacher.textContent='Fundamentação e roteiro da professora';teacher.parentElement.open=true;}
+    const curriculum=set.prepare.querySelector('.ux-curriculum');if(curriculum)curriculum.open=true;
     card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare',false);
   }
   document.body.classList.remove('mode-aula');

@@ -12,6 +12,12 @@ try{
   await page.route('https://fonts.gstatic.com/**',r=>r.abort());
   await page.goto('http://127.0.0.1:'+server.address().port);
   await page.waitForSelector('body.ux-ready');
+  await page.locator('article.week-card:visible').getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
+  await page.locator('#wkPrepare').click();
+  assert.equal(await page.locator('article.week-card:visible').getAttribute('data-ux-panel'),'prepare');
+  assert.equal(await page.locator('article.week-card:visible .prof-caderno').getAttribute('open'),'');
+  assert.equal(await page.locator('article.week-card:visible .prof-panel').isVisible(),true);
+  assert.ok((await page.locator('.lesson-quick-nav').boundingBox()).height<90);
   await page.locator('#wkProject').click();
   assert.equal(await page.locator('[data-lesson-stage=caderno]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
@@ -52,6 +58,9 @@ try{
   assert.equal(await page.locator('#lessonNext').isDisabled(),false);
   await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/mobile-classroom-sources.png'});
   await page.locator('#projectionClose').click();
+  assert.equal(await page.locator('article.week-card:visible').getAttribute('data-ux-panel'),'prepare');
+  await page.locator('#wkPrepare').click();
+  await page.screenshot({path:'test-results/mobile-teacher-preparation.png'});
   await page.locator('#uxClass').selectOption('s3|3ªB');await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#uxWeekChoices button').nth(2).click();
   await page.reload();await page.waitForSelector('body.ux-ready');await page.locator('#wkProject').click();
   assert.match(await page.locator('#projectionTitle').textContent(),/\S/);

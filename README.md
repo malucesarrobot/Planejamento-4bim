@@ -54,3 +54,5 @@ A aba escolhida é mantida ao navegar pelas semanas e reabrir o aplicativo. O ca
 Fontes abre uma tela com os links já cadastrados, sem depender dos QR codes nem de rolar até o fim do quadro. Os links abrem em outra aba; ao retornar à aba do planejamento, a aula permanece aberta. Ao alternar entre Quadro e Fontes, a posição de leitura do quadro é preservada. Ajustes reúne tamanho das letras, troca de semana e impressão. As fontes dependem de internet e da disponibilidade dos sites externos.
 
 A projeção distingue “Semana N de 6” de “Etapa N de 5”. A seleção e os botões de semana ficam sempre visíveis. Ao concluir Fontes, Próxima semana inicia a pergunta inicial da semana seguinte; o botão só fica desabilitado no fim da sexta semana.
+
+Preparar aula e Iniciar aula são os dois acessos diretos na barra compacta. Preparar aula abre a preparação com fundamentação e conteúdo curricular expandidos. A projeção não troca mais a aba da professora ao voltar. No celular, a navegação completa e as ações de edição/impressão rolam com a página, mantendo a área de leitura livre.

@@ -161,7 +161,8 @@ try {
   assert.equal(await page.locator('#searchBox').isVisible(),true);
   assert.equal(await card.getByRole('button',{name:'Projetar',exact:true}).isVisible(),true);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
-  const box=await card.locator('.ux-actions').boundingBox();assert.ok(box.y+box.height<=845);
+  const box=await page.locator('.lesson-quick-nav').boundingBox();assert.ok(box.y>=0 && box.y+box.height<=845);
+  assert.equal(await card.locator('.ux-actions').evaluate(n=>getComputedStyle(n).position),'static');
   await page.screenshot({path:'test-results/mobile.png',fullPage:true});
   await card.getByRole('button',{name:'Editar aula',exact:true}).click();
   assert.equal(await page.locator('#uxEditorSave').isVisible(),true);
