@@ -203,6 +203,20 @@ try {
   console.log('PASS edits made during network requests are sent and newer local edits survive clock differences');
 
 
+
+  await tools();await page.locator('#syncBtn').click();
+  const sameCode=await page.locator('#syncCode').inputValue();
+  await page.locator('#syncOff').click();await page.locator('#syncClose').click();
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#uxEditTitle').fill('Edição feita com sincronização desligada');
+  await page.locator('#uxEditorSave').click();
+  await tools();await page.locator('#syncBtn').click();
+  await page.locator('#syncCode').fill(sameCode);await page.locator('#syncConnect').click();
+  await waitFor(()=>remote.notes['ux-'+chosen+'-edits'].v.includes('Edição feita com sincronização desligada'));
+  assert.equal(await card.locator('.week-head h3').textContent(),'Edição feita com sincronização desligada');
+  await page.locator('#syncClose').click();
+  console.log('PASS edits while disconnected survive reconnect and reach the other device');
+
   assert.deepEqual(errors,[],'No uncaught page errors');
   console.log('PASS browser regression suite');
 } finally {await browser.close();await new Promise(r=>server.close(r));}

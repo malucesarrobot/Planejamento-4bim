@@ -5389,17 +5389,16 @@ body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:
   function schedulePush() { if (!cfg) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushPending, 2500); }
 
   document.addEventListener('input', e => {
-    const ta = e.target; if (applying || !cfg || !ta || !ta.matches || !ta.matches('textarea[data-save]')) return;
+    const ta = e.target; if (applying || !ta || !ta.matches || !ta.matches('textarea[data-save]')) return;
     lastInput = Date.now(); const id = ta.dataset.save; meta.n[id] = Math.max(lastInput, (meta.n[id] || 0) + 1); pendN.add(id); saveMeta(); schedulePush();
   }, true);
   document.addEventListener('malu:notes-restored', e => {
-    if (!cfg) return;
     const ids = new Set((e.detail || {}).ids || []), now = Date.now();
     fields().forEach(ta => { if (ids.has(ta.dataset.save)) { meta.n[ta.dataset.save] = Math.max(now, (meta.n[ta.dataset.save] || 0) + 1); pendN.add(ta.dataset.save); } });
     saveMeta(); schedulePush();
   });
   document.addEventListener('malu:aula', e => {
-    if (!cfg) return; const d = e.detail || {}; meta.a[d.key] = { t: Math.max(Date.now(), meta.a[d.key] ? meta.a[d.key].t + 1 : 0), del: !d.date }; pendA.add(d.key); saveMeta(); schedulePush();
+    const d = e.detail || {}; meta.a[d.key] = { t: Math.max(Date.now(), meta.a[d.key] ? meta.a[d.key].t + 1 : 0), del: !d.date }; pendA.add(d.key); saveMeta(); schedulePush();
   });
 
   function startPolling() {

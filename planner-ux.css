@@ -110,3 +110,5 @@
  body.ux-print-prepare .ux-curriculum{border:0}
  body.ux-print-prepare .ux-curriculum>summary{display:none}
 }
+
+.ux-ready .week-head h3,.ux-editable{overflow-wrap:anywhere}
