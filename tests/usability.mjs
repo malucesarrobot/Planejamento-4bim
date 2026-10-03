@@ -41,7 +41,7 @@ await page.addInitScript(()=>{
 });
 async function visibleCards(){return page.locator('article.week-card:visible').count();}
 async function currentId(){return page.locator('article.week-card:visible').getAttribute('id');}
-async function waitFor(predicate){for(let i=0;i<40;i++){if(await predicate())return;await new Promise(r=>setTimeout(r,50));}throw new Error('Condition did not become true');}
+async function waitFor(predicate){for(let i=0;i<120;i++){if(await predicate())return;await new Promise(r=>setTimeout(r,50));}throw new Error('Condition did not become true');}
 async function tools(){if(await page.locator('#navTools').getAttribute('open')===null)await page.locator('#navTools > summary').click();}
 try {
   await page.goto(base,{waitUntil:'domcontentloaded'});
@@ -164,11 +164,20 @@ try {
   await page.locator('#uxEditorCancel').click();
   console.log('PASS mobile controls, no horizontal overflow and editor access');
 
-  let unavailable=false;
+  let unavailable=false, patchGate=null, patchStarted=false; const patches=[];
   const remoteEdit={version:1,title:'Título recebido de outro aparelho',notebook:{},activity:{}};
   const remote={notes:{['ux-'+chosen+'-edits']:{v:JSON.stringify(remoteEdit),t:Date.now()+100000}},aulas:{}};
   await page.route('https://planejamento-4bim-default-rtdb.firebaseio.com/**',async route=>{
     if(unavailable)return route.abort();
+    if(route.request().method()==='PATCH') {
+      const body=route.request().postDataJSON();patches.push(body);patchStarted=true;
+      if(patchGate)await patchGate;
+      for(const [path,value] of Object.entries(body)) {
+        const bits=path.split('/');let node=remote;
+        for(const bit of bits.slice(0,-1))node=node[bit] || (node[bit]={});
+        node[bits.at(-1)]=value;
+      }
+    }
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(route.request().method()==='GET'?remote:{})});
   });
   await tools();await page.locator('#syncBtn').click();await page.locator('#syncGen').click();await page.locator('#syncConnect').click();
@@ -178,6 +187,21 @@ try {
   assert.match(await page.locator('#uxStorage').textContent(),/aguardando sincronização/);
   await page.locator('#syncClose').click();
   console.log('PASS mocked cross-device updates and offline status (no production database writes)');
+  unavailable=false;
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#uxEditTitle').fill('Primeira edição durante envio');
+  await page.locator('#uxEditorSave').click();
+  let release;patchStarted=false;patchGate=new Promise(r=>release=r);
+  const syncing=page.evaluate(()=>window.MaluSync.syncNow());
+  await waitFor(()=>patchStarted);
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#uxEditTitle').fill('Segunda edição durante envio');
+  await page.locator('#uxEditorSave').click();
+  release();patchGate=null;await syncing;
+  await waitFor(()=>patches.some(p=>Object.values(p).some(v=>typeof v.v==='string' && v.v.includes('Segunda edição durante envio'))));
+  assert.equal(await card.locator('.week-head h3').textContent(),'Segunda edição durante envio');
+  console.log('PASS edits made during network requests are sent and newer local edits survive clock differences');
+
 
   assert.deepEqual(errors,[],'No uncaught page errors');
   console.log('PASS browser regression suite');

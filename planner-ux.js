@@ -303,7 +303,18 @@
     }
   }
   printDialog.querySelectorAll('[data-print-kind]').forEach(b=>b.addEventListener('click',()=>executePrint(b.dataset.printKind,$('uxPrintScope').value)));
+  window.addEventListener('beforeprint',()=>{
+    if (!document.body.classList.contains('ux-print-notebooks')) return;
+    document.querySelectorAll('.ux-print-selected .wide.notebook').forEach(nb=>{
+      nb.style.removeProperty('--fit'); nb.style.removeProperty('--fit-w');
+      const old=nb.style.width; nb.style.width='690px';
+      const height=nb.scrollHeight; nb.style.width=old;
+      const scale=height>990 ? Math.max(.6,990/height) : 1;
+      nb.style.setProperty('--fit',String(scale)); nb.style.setProperty('--fit-w',Math.round(690/scale)+'px');
+    });
+  });
   window.addEventListener('afterprint',()=>{
+    document.querySelectorAll('.wide.notebook').forEach(nb=>{nb.style.removeProperty('--fit');nb.style.removeProperty('--fit-w');});
     document.body.classList.remove('ux-print-activity','ux-print-notebook','ux-print-prepare','ux-print-notebooks','print-atv');
     for(const {c,inactive,filtered} of printState){c.classList.toggle('ux-inactive',inactive);c.classList.toggle('hidden',filtered);c.classList.remove('ux-print-selected');}
     printState=[];document.querySelectorAll('[data-ux-print-opened]').forEach(d=>{d.open=false;delete d.dataset.uxPrintOpened;});

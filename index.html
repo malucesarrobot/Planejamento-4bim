@@ -5344,6 +5344,7 @@ body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:
     if (!cfg || busy) return;
     busy = true; setStatus('Sincronizando…');
     try {
+      const snapshotN = Object.fromEntries(Object.entries(meta.n)), snapshotA = Object.fromEntries(Object.entries(meta.a).map(([k,v]) => [k,v.t]));
       const remote = (await http('GET')) || {};
       const rn = remote.notes || {}, ra = flatA(remote.aulas);
       const upd = {}; let pulled = 0, pushed = 0; const now = Date.now();
@@ -5365,20 +5366,23 @@ body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:
       });
       if (chA && api) api.set(nl);
       if (Object.keys(upd).length) await http('PATCH', upd);
-      pendN.clear(); pendA.clear(); saveMeta(); lastOk = hhmm(); lastErr = '';
+      pendN.forEach(id => { if (meta.n[id] === snapshotN[id]) pendN.delete(id); });
+      pendA.forEach(k => { if (meta.a[k] && meta.a[k].t === snapshotA[k]) pendA.delete(k); });
+      if (pendN.size || pendA.size) schedulePush();
+      saveMeta(); lastOk = hhmm(); lastErr = '';
       setStatus('Sincronizado às ' + lastOk + (pulled || pushed ? ' · recebidos ' + pulled + ', enviados ' + pushed : ''), 'ok');
     } catch (e) { lastErr = 'Sem sincronizar: ' + (e && e.message ? e.message : 'falha de conexão'); setStatus(lastErr, 'err'); }
     finally { busy = false; }
   }
   async function pushPending() {
     if (!cfg) return; if (busy) { schedulePush(); return; }
-    const upd = {};
-    pendN.forEach(id => { const ta = document.querySelector('textarea[data-save="' + id + '"]'); if (ta && meta.n[id] != null) upd['notes/' + id] = { v: ta.value, t: meta.n[id] }; });
+    const upd = {}, snapshotN = {}, snapshotA = {};
+    pendN.forEach(id => { const ta = document.querySelector('textarea[data-save="' + id + '"]'); if (ta && meta.n[id] != null) { snapshotN[id] = meta.n[id]; upd['notes/' + id] = { v: ta.value, t: meta.n[id] }; } });
     const api = window.__maluAulas, local = api ? api.get() : {};
-    pendA.forEach(k => { const m = meta.a[k]; if (m) upd['aulas/' + aPath(k)] = { d: local[k] || '', t: m.t }; });
+    pendA.forEach(k => { const m = meta.a[k]; if (m) { snapshotA[k] = m.t; upd['aulas/' + aPath(k)] = { d: local[k] || '', t: m.t }; } });
     if (!Object.keys(upd).length) return;
     busy = true;
-    try { await http('PATCH', upd); pendN.clear(); pendA.clear(); lastOk = hhmm(); lastErr = ''; setStatus('Sincronizado às ' + lastOk, 'ok'); }
+    try { await http('PATCH', upd); pendN.forEach(id => { if (meta.n[id] === snapshotN[id]) pendN.delete(id); }); pendA.forEach(k => { if (meta.a[k] && meta.a[k].t === snapshotA[k]) pendA.delete(k); }); if (pendN.size || pendA.size) schedulePush(); lastOk = hhmm(); lastErr = ''; setStatus('Sincronizado às ' + lastOk, 'ok'); }
     catch (e) { lastErr = 'Sem sincronizar: ' + (e && e.message ? e.message : 'falha de conexão') + ' · tentarei de novo'; setStatus(lastErr, 'err'); }
     finally { busy = false; }
   }
@@ -5386,16 +5390,16 @@ body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:
 
   document.addEventListener('input', e => {
     const ta = e.target; if (applying || !cfg || !ta || !ta.matches || !ta.matches('textarea[data-save]')) return;
-    lastInput = Date.now(); const id = ta.dataset.save; meta.n[id] = lastInput; pendN.add(id); saveMeta(); schedulePush();
+    lastInput = Date.now(); const id = ta.dataset.save; meta.n[id] = Math.max(lastInput, (meta.n[id] || 0) + 1); pendN.add(id); saveMeta(); schedulePush();
   }, true);
   document.addEventListener('malu:notes-restored', e => {
     if (!cfg) return;
     const ids = new Set((e.detail || {}).ids || []), now = Date.now();
-    fields().forEach(ta => { if (ids.has(ta.dataset.save)) { meta.n[ta.dataset.save] = now; pendN.add(ta.dataset.save); } });
+    fields().forEach(ta => { if (ids.has(ta.dataset.save)) { meta.n[ta.dataset.save] = Math.max(now, (meta.n[ta.dataset.save] || 0) + 1); pendN.add(ta.dataset.save); } });
     saveMeta(); schedulePush();
   });
   document.addEventListener('malu:aula', e => {
-    if (!cfg) return; const d = e.detail || {}; meta.a[d.key] = { t: Date.now(), del: !d.date }; pendA.add(d.key); saveMeta(); schedulePush();
+    if (!cfg) return; const d = e.detail || {}; meta.a[d.key] = { t: Math.max(Date.now(), meta.a[d.key] ? meta.a[d.key].t + 1 : 0), del: !d.date }; pendA.add(d.key); saveMeta(); schedulePush();
   });
 
   function startPolling() {
