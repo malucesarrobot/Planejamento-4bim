@@ -1,0 +1,184 @@
+import assert from 'node:assert/strict';
+import {readFile, mkdir, writeFile} from 'node:fs/promises';
+import http from 'node:http';
+import vm from 'node:vm';
+import { chromium } from 'playwright';
+
+const sandbox={};vm.createContext(sandbox);vm.runInContext(await readFile('planner-core.js','utf8'),sandbox);
+const core=sandbox.MaluPlannerCore;
+assert.equal(core.chooseWeek(['w1','w2'],'w2'),'w2');
+assert.equal(core.chooseWeek(['w1','w2'],'missing'),'w1');
+assert.equal(core.chooseWeek([],'w2'),null);
+assert.equal(core.dateBR('2026-10-03'),'03/10/2026');
+assert.equal(core.dateLocal(new Date(2026,9,3)),'2026-10-03');
+assert.throws(()=>core.parseEdits('{"version":1,"title":null,"notebook":{"__proto__":"x"},"activity":{}}'));
+assert.throws(()=>core.parseEdits('{"version":1,"title":null,"notebook":[],"activity":{}}'));
+assert.equal(core.parseEdits('').title,null);
+console.log('PASS helpers: week selection, dates, edit validation');
+
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webmanifest':'application/manifest+json','.png':'image/png'};
+const server=http.createServer(async(req,res)=>{
+  try{
+    const pathname=new URL(req.url,'http://localhost').pathname;
+    if(pathname.includes('..')){res.writeHead(400);return res.end();}
+    const file=pathname==='/'?'index.html':decodeURIComponent(pathname.slice(1));
+    const content=await readFile(file);const ext=file.slice(file.lastIndexOf('.'));
+    res.writeHead(200,{'Content-Type':types[ext]||'application/octet-stream'});res.end(content);
+  }catch(e){res.writeHead(404);res.end('Not found');}
+});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const base='http://127.0.0.1:'+server.address().port;
+await mkdir('test-results',{recursive:true});
+const browser=await chromium.launch({headless:true});
+const ctx=await browser.newContext({viewport:{width:1280,height:900},acceptDownloads:true});
+const page=await ctx.newPage();const errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.route('https://fonts.googleapis.com/**',r=>r.abort());
+await page.route('https://fonts.gstatic.com/**',r=>r.abort());
+await page.addInitScript(()=>{
+  window.print=()=>{window.__printCount=(window.__printCount||0)+1;};
+  if(!localStorage.getItem('malu-s9-historia-w1-obs'))localStorage.setItem('malu-s9-historia-w1-obs','Anotação anterior preservada.');
+});
+async function visibleCards(){return page.locator('article.week-card:visible').count();}
+async function currentId(){return page.locator('article.week-card:visible').getAttribute('id');}
+async function waitFor(predicate){for(let i=0;i<40;i++){if(await predicate())return;await new Promise(r=>setTimeout(r,50));}throw new Error('Condition did not become true');}
+async function tools(){if(await page.locator('#navTools').getAttribute('open')===null)await page.locator('#navTools > summary').click();}
+try {
+  await page.goto(base,{waitUntil:'domcontentloaded'});
+  await page.waitForSelector('body.ux-ready');
+  assert.equal(await visibleCards(),1);
+  assert.equal(await page.locator('article.week-card').count(),60);
+  assert.equal(await page.locator('textarea[data-save]').count(),451);
+  assert.equal(await page.locator('textarea[data-save="s9-historia-w1-obs"]').inputValue(),'Anotação anterior preservada.');
+  console.log('PASS initial view and all legacy note fields preserved');
+  await page.screenshot({path:'test-results/desktop.png',fullPage:true});
+
+  await page.locator('#uxWeekChoices button').last().click();
+  assert.equal(await currentId(),'s9-historia-semana-6');
+  await page.locator('#wkPrev').click();assert.equal(await currentId(),'s9-historia-semana-5');
+  await page.locator('#wkNext').click();assert.equal(await currentId(),'s9-historia-semana-6');
+  await page.locator('#uxClass').selectOption('s3|3ªB');
+  await page.locator('#uxSubject').selectOption('filosofia');
+  assert.equal(await visibleCards(),1);assert.match(await currentId(),/^s3-filosofia/);
+  assert.equal(await page.locator('#uxClass').inputValue(),'s3|3ªB');
+  console.log('PASS week navigation and real class selection');
+
+  const chosen=await currentId();
+  let card=page.locator('#'+chosen);
+  await card.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
+  assert.equal(await card.locator('.wide.notebook').isVisible(),true);
+  assert.equal(await card.locator('.lide-box').isVisible(),false);
+  await card.getByRole('tab',{name:'Atividade',exact:true}).click();
+  assert.equal(await card.locator('.atv-aluno').isVisible(),true);
+  assert.equal(await card.locator('.atv-prof').isVisible(),false);
+  console.log('PASS content tabs and teacher answers initially collapsed');
+
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#uxEditTitle').fill('Aula exclusiva de teste');
+  const edit=page.locator('#uxEditorPreview [contenteditable]').first();
+  await edit.fill('Texto alterado com <img src=x onerror=alert(1)> como texto.');
+  await page.locator('#uxEditActivity').click();
+  await page.locator('#uxEditorPreview .atv-texto').fill('Texto-base alterado para a atividade.');
+  await page.locator('#uxEditorSave').click();
+  assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
+  assert.equal(await card.locator('.atv-texto').textContent(),'Texto-base alterado para a atividade.');
+  assert.equal(await card.locator('.wide.notebook img').count(),0);
+  await card.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
+  await card.getByRole('button',{name:'Projetar',exact:true}).click();
+  assert.match(await page.locator('#projectionPage').textContent(),/Texto alterado com <img/);
+  await page.locator('#projectionMode').click();
+  assert.match(await page.locator('#projectionPage').textContent(),/Texto-base alterado/);
+  await page.locator('#projectionClose').click();
+  await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('body.ux-ready');
+  assert.equal(await currentId(),chosen);card=page.locator('#'+chosen);
+  assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
+  console.log('PASS safe editing of both panels, projection and reload persistence');
+
+  await page.locator('#uxWeekChoices button').last().click();
+  // A title found in a hidden week must still be searchable.
+  await page.locator('#searchBox').fill('Aula exclusiva de teste');
+  assert.equal(await visibleCards(),1);assert.equal(await currentId(),chosen);
+  await page.locator('#searchBox').fill('termo inexistente 999999');
+  assert.equal(await visibleCards(),0);assert.equal(await page.locator('#uxEmpty').isVisible(),true);
+  await page.locator('#clearSearchBtn').click();assert.equal(await visibleCards(),1);
+  await page.locator('#uxWeekChoices button').filter({hasText:String(Number(chosen.split('-semana-')[1]))}).click();
+  card=page.locator('#'+chosen);
+  console.log('PASS search includes hidden weeks and handles empty results');
+
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#uxEditTitle').fill('Alteração cancelada');
+  page.once('dialog',d=>d.accept());await page.locator('#uxEditorCancel').click();
+  assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
+  const mark=card.locator('[data-ux-mark]');
+  await mark.click();assert.match(await mark.textContent(),/Dada para 3ªB/);
+  assert.match(await card.locator('[data-ux-date]').textContent(),/^\d{2}\/\d{2}\/\d{4}$/);
+  await page.locator('#uxUndo').click();assert.match(await mark.textContent(),/Marcar como dada para 3ªB/);
+  await mark.click();
+  console.log('PASS cancel, class-specific completion and undo');
+
+  await tools();
+  const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Baixar cópia de segurança',exact:true}).click();
+  const download=await downloadPromise;await download.saveAs('test-results/backup.json');
+  const backup=JSON.parse(await readFile('test-results/backup.json','utf8'));
+  assert.equal(backup.fieldCount,451);
+  assert.equal(backup.notes['s9-historia-w1-obs'],'Anotação anterior preservada.');
+  assert.ok(backup.notes['ux-'+chosen+'-edits']);
+  assert.ok(backup.aulasDadas[chosen+'|3ªB']);
+  await page.locator('#navTools > summary').click();
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  page.once('dialog',d=>d.accept());await page.locator('#uxRestoreOriginal').click();
+  assert.notEqual(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
+  await tools();await page.locator('#importFile').setInputFiles('test-results/backup.json');
+  await waitFor(async()=>await card.locator('.week-head h3').textContent()==='Aula exclusiva de teste');
+  assert.equal(await page.locator('textarea[data-save="s9-historia-w1-obs"]').inputValue(),'Anotação anterior preservada.');
+  await page.locator('#navTools > summary').click();
+  console.log('PASS backup export, restore original and import with legacy notes intact');
+
+  await card.getByRole('button',{name:'Imprimir',exact:true}).click();
+  await page.locator('#uxPrintScope').selectOption('discipline');
+  await page.getByRole('button',{name:'Caderno dos alunos',exact:true}).click();
+  await page.emulateMedia({media:'print'});
+  assert.equal(await page.locator('.week-card .wide.notebook:visible').count(),6);
+  assert.equal(await page.locator('.week-card .atv-prof:visible').count(),0);
+  assert.equal(await page.locator('.week-card .prof-panel:visible').count(),0);
+  await page.pdf({path:'test-results/cadernos.pdf',format:'A4',printBackground:true});
+  await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
+  await page.emulateMedia({media:'screen'});assert.equal(await visibleCards(),1);
+  await card.getByRole('button',{name:'Imprimir',exact:true}).click();
+  await page.locator('#uxPrintScope').selectOption('all');
+  await page.getByRole('button',{name:'Atividade dos alunos',exact:true}).click();
+  assert.equal(await page.locator('#atvPrint .atv-aluno').count(),60);
+  await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
+  assert.equal(await visibleCards(),1);
+  console.log('PASS printing includes all selected weeks and excludes teacher answers');
+
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.locator('#searchBox').isVisible(),true);
+  assert.equal(await card.getByRole('button',{name:'Projetar',exact:true}).isVisible(),true);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+  const box=await card.locator('.ux-actions').boundingBox();assert.ok(box.y+box.height<=845);
+  await page.screenshot({path:'test-results/mobile.png',fullPage:true});
+  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  assert.equal(await page.locator('#uxEditorSave').isVisible(),true);
+  await page.screenshot({path:'test-results/mobile-editor.png'});
+  await page.locator('#uxEditorCancel').click();
+  console.log('PASS mobile controls, no horizontal overflow and editor access');
+
+  let unavailable=false;
+  const remoteEdit={version:1,title:'Título recebido de outro aparelho',notebook:{},activity:{}};
+  const remote={notes:{['ux-'+chosen+'-edits']:{v:JSON.stringify(remoteEdit),t:Date.now()+100000}},aulas:{}};
+  await page.route('https://planejamento-4bim-default-rtdb.firebaseio.com/**',async route=>{
+    if(unavailable)return route.abort();
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(route.request().method()==='GET'?remote:{})});
+  });
+  await tools();await page.locator('#syncBtn').click();await page.locator('#syncGen').click();await page.locator('#syncConnect').click();
+  await waitFor(async()=>await card.locator('.week-head h3').textContent()==='Título recebido de outro aparelho');
+  await waitFor(async()=>/Sincronizado/.test(await page.locator('#uxStorage').textContent()));
+  unavailable=true;await page.evaluate(()=>window.MaluSync.syncNow());
+  assert.match(await page.locator('#uxStorage').textContent(),/aguardando sincronização/);
+  await page.locator('#syncClose').click();
+  console.log('PASS mocked cross-device updates and offline status (no production database writes)');
+
+  assert.deepEqual(errors,[],'No uncaught page errors');
+  console.log('PASS browser regression suite');
+} finally {await browser.close();await new Promise(r=>server.close(r));}
