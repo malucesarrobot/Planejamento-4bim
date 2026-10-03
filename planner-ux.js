@@ -81,10 +81,16 @@
       ]) emList.appendChild(el('li',null,item));
       em.appendChild(emList);section.appendChild(em);
 
+      const calendarSource=document.createElement('a');
+      calendarSource.href='https://goias.gov.br/educacao/wp-content/uploads/sites/40/2026/02/DIRETRIZES-PEDAGOGICAS-2026.pdf';
+      calendarSource.target='_blank';calendarSource.rel='noopener';
+      calendarSource.textContent='Abrir Calendário Escolar 2026 — SEDUC-GO';
+      section.appendChild(calendarSource);
+      section.appendChild(document.createTextNode(' · '));
       const source=document.createElement('a');
       source.href='https://goias.gov.br/educacao/wp-content/uploads/sites/40/2026/03/CADERNO-ORIENTADOR-AVALIACAO-EDUCACIONAL-2026.pdf';
       source.target='_blank';source.rel='noopener';
-      source.textContent='Abrir Caderno Orientador oficial da SEDUC-GO';
+      source.textContent='Abrir Caderno Orientador de Avaliação 2026';
       section.appendChild(source);
       grid.appendChild(section);
     }
