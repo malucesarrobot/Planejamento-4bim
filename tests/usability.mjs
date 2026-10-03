@@ -51,7 +51,10 @@ try {
   assert.equal(await page.locator('textarea[data-save]').count(),451);
   assert.equal(await page.locator('textarea[data-save="s9-historia-w1-obs"]').inputValue(),'Anotação anterior preservada.');
   assert.equal(await page.locator('.study-track:visible').count(),1);
-  console.log('PASS initial view, visible learning track and all legacy note fields preserved');
+  assert.equal(await page.locator('article.week-card:visible .ux-week-date').textContent(),'19 a 23/10');
+  assert.match(await page.locator('#wkLabel').textContent(),/19 a 23\/10/);
+  assert.match(await page.locator('#guia').textContent(),/Calendário oficial SEDUC-GO/);
+  console.log('PASS initial view, official SEDUC-GO dates, visible learning track and all legacy note fields preserved');
   await page.screenshot({path:'test-results/desktop.png',fullPage:true});
 
   await page.locator('#uxWeekChoices button').last().click();
