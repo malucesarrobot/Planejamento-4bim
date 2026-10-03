@@ -35,7 +35,9 @@ try {
     const expected={bncc:[],matriz:[]};
     for(const section of c.querySelectorAll('.plan-grid > .meta-curric')){
       const key=/BNCC/.test(section.querySelector('h4').textContent)?'bncc':'matriz';
-      const text=section.querySelector('.code').textContent.split(' — ')[0];
+      const heading=section.querySelector('h4').textContent;
+      const codeNode=section.querySelector('.code');
+      const text=(codeNode?codeNode.textContent:section.textContent.slice(heading.length)).split(' — ')[0];
       expected[key]=[...new Set(text.match(/GO-[A-Z0-9-]+|EM13CHS\d+|EF\d{2}HI\d+/g)||[])];
     }
     const actual={};
