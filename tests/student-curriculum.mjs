@@ -50,7 +50,9 @@ try {
   let c=await card();
   await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
   await c.getByRole('button',{name:'Projetar',exact:true}).click();
+  await page.locator('.lesson-options > summary').click();
   await page.locator('#projectionRefs').click();
+  await page.locator('.lesson-options > summary').click();
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
   assert.equal(await page.locator('#projectionPage .projection-refs').isVisible(),false);
   assert.match(await page.locator('#projectionPage .student-curriculum').textContent(),/GO-EF09HI22-C/);

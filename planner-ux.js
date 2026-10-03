@@ -139,6 +139,9 @@
     const range=c ? seducWeekRange(c) : '';
     $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass+(range?' · '+range:'') : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
+    launch.querySelector('h2').textContent=c ? weekTitle(c) : 'Nenhuma aula selecionada';
+    launch.querySelector('.lesson-launch-context').textContent=c ? realClass+' · '+subjectSelect.selectedOptions[0].textContent+' · Semana '+weekNumber(c)+(range?' · '+range:'') : 'Escolha a turma e a disciplina ou limpe a busca.';
+    launchButton.disabled=!c;
     if(c){remembered.set(activeSection().id,c.id);const panel=panelMemory[activeSection().id];setPanel(c,['prepare','notebook','activity'].includes(panel)?panel:'prepare',false);}
 
     refreshMarks();toolbarHeight();saveView();
@@ -147,7 +150,15 @@
   function showWeek(id, focus) { refresh(id,focus); }
   $('wkPrev').addEventListener('click',()=>{const list=matches(),i=list.findIndex(c=>c.id===current);if(i>0)showWeek(list[i-1].id,true);});
   $('wkNext').addEventListener('click',()=>{const list=matches(),i=list.findIndex(c=>c.id===current);if(i>=0 && i<list.length-1)showWeek(list[i+1].id,true);});
-  $('wkProject').addEventListener('click',()=>{if(current)window.openProjection(current);});
+  function startLesson() { if(current)window.openProjection(current); }
+  $('wkProject').addEventListener('click',startLesson);
+  const launch=el('section','lesson-launch');
+  launch.setAttribute('aria-label','Começar a aula');
+  const launchText=el('div');
+  launchText.append(el('p',null,'Pronto para projetar'),el('h2',null,''),el('p','lesson-launch-context',''));
+  const launchButton=el('button','ux-primary','Iniciar aula ▷');launchButton.type='button';launchButton.addEventListener('click',startLesson);
+  launch.append(launchText,launchButton);$('conteudo').prepend(launch);
+
   classSelect.addEventListener('change',()=>{
     const [s,t]=classSelect.value.split('|');realClass=t;const d=subjectSelect.value;
     $('searchBox').value='';planner.setSelection(s,d);refresh(remembered.get(activeSection().id),true);
@@ -174,6 +185,16 @@
     if(e.key==='p'||e.key==='P'){e.preventDefault();if(current)window.openProjection(current);}
   });
 
+
+  // Only teaching controls stay prominent; occasional adjustments are grouped.
+  const projectionOptions=el('details','lesson-options');
+  projectionOptions.appendChild(el('summary',null,'Ajustes'));
+  const optionButtons=el('div');
+  for(const id of ['projectionPrev','projectionNext','projectionSmaller','projectionLarger','projectionPrint','projectionRefs'])optionButtons.appendChild($(id));
+  projectionOptions.appendChild(optionButtons);
+  $('projectionClose').before(projectionOptions);
+  $('projectionMode').hidden=true;
+  document.querySelectorAll('[data-lesson-stage]').forEach(b=>b.addEventListener('click',()=>{projectionOptions.open=false;}));
 
   // Codes belong to the student notebook, independently of optional source visibility.
   function notebookCurriculum(card,notebook) {

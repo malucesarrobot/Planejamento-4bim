@@ -46,3 +46,9 @@ A suíte verifica navegação, turma real, abas, edição segura, projeção, pe
 Os códigos BNCC e da Matriz SEDUC-GO ficam no rodapé permanente de cada caderno dos alunos, incluindo projeção e impressão. A opção Fontes e QR codes controla apenas as referências adicionais. Códigos não preenchidos no planejamento são sinalizados sem acrescentar habilidades por suposição. O texto de uma habilidade da Matriz pode ser aberto pelo código quando já consta do dicionário do aplicativo.
 
 A aba escolhida é mantida ao navegar pelas semanas e reabrir o aplicativo. O cabeçalho mostra o progresso da turma na disciplina. Os testes adicionais percorrem todas as 60 semanas na largura de um celular e verificam os códigos, edição anterior, impressão, abas e progresso.
+
+## Uso em sala com celular espelhado
+
+“Iniciar aula” fica no topo e abre diretamente o Quadro da semana selecionada. A última turma, disciplina e semana são retomadas ao abrir o aplicativo. A tela de projeção oferece Pergunta inicial, Conteúdo, Quadro, Atividade e Fontes, além de Anterior/Próximo para seguir essa sequência. Os textos da abertura e do conteúdo são extraídos do planejamento existente; orientações privadas e respostas da professora ficam fora da projeção.
+
+Fontes abre uma tela com os links já cadastrados, sem depender dos QR codes nem de rolar até o fim do quadro. Os links abrem em outra aba; ao retornar à aba do planejamento, a aula permanece aberta. Ao alternar entre Quadro e Fontes, a posição de leitura do quadro é preservada. Ajustes reúne tamanho das letras, troca de semana e impressão. As fontes dependem de internet e da disponibilidade dos sites externos.
