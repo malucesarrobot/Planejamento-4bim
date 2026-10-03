@@ -16,10 +16,12 @@
   // Datas de referência alinhadas ao cronograma oficial SEDUC-GO 2026.
   // A SEDUC publica eventos e avaliações; as seis semanas abaixo são a organização do app encaixada nesse cronograma.
   const SEDUC_WEEK_RANGES = Object.freeze({
-    s9:['19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11','23 a 27/11'],
-    s1:['13 a 16/10','19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11'],
-    s2:['13 a 16/10','19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11'],
-    s3:['13 a 16/10','19 a 23/10','26 a 30/10','03 a 06/11','09 a 13/11','16 a 19/11']
+    // Seis períodos pedagógicos distribuídos pelos dias letivos de 01/10 a 27/11.
+    // Assim, 30/11 a 18/12 fica livre para recomposição, recuperação e revisões.
+    s9:['01 a 09/10','13 a 20/10','21 a 29/10','30/10 a 09/11','10 a 17/11','18 a 27/11'],
+    s1:['01 a 09/10','13 a 20/10','21 a 29/10','30/10 a 09/11','10 a 17/11','18 a 27/11'],
+    s2:['01 a 09/10','13 a 20/10','21 a 29/10','30/10 a 09/11','10 a 17/11','18 a 27/11'],
+    s3:['01 a 09/10','13 a 20/10','21 a 29/10','30/10 a 09/11','10 a 17/11','18 a 27/11']
   });
   function seducWeekRange(card) {
     const series=card && card.id.split('-')[0], n=card ? Number(card.id.split('-semana-')[1]) : 0;
@@ -30,7 +32,7 @@
       const range=seducWeekRange(card), head=card.querySelector('.week-head');
       if(range && head && !head.querySelector('.ux-week-date')) {
         const badge=el('span','ux-week-date',range);
-        badge.title='Faixa de referência do planejamento, alinhada ao cronograma SEDUC-GO 2026';
+        badge.title='Período previsto para esta unidade do planejamento, considerando os dias letivos SEDUC-GO 2026';
         head.querySelector('h3').before(badge);
       }
       const track=document.querySelector('a.track-item[href="#'+card.id+'"]');
@@ -45,7 +47,11 @@
     if(grid && !grid.querySelector('.ux-seduc-calendar')) {
       const section=el('section','ux-seduc-calendar');
       section.appendChild(el('h3',null,'Calendário oficial SEDUC-GO · 4º bimestre'));
-      section.appendChild(el('p',null,'Datas conferidas no Caderno Orientador da Avaliação Educacional 2026. As faixas das seis semanas do planejamento são referências organizadas a partir desse cronograma; o dia exato de cada aula depende do horário da turma.'));
+      section.appendChild(el('p',null,'O planejamento de conteúdo começa na primeira semana letiva de outubro e termina em 27/11. As seis semanas do app foram distribuídas pelos dias letivos desse período; o dia exato de cada aula depende do horário da turma.'));
+      const reserve=el('div','ux-review-reserve');
+      reserve.appendChild(el('h4',null,'30/11 a 18/12 · período reservado pela professora'));
+      reserve.appendChild(el('p',null,'Recomposição das aprendizagens, recuperação, revisão dos conteúdos do bimestre e revisão para vestibulares. Esse período também coincide com avaliações finais, 2ª chamada, intensificação/recomposição, Pré-Conselho e Conselho de Classe previstos no cronograma da rede.'));
+      section.appendChild(reserve);
 
       const ef=el('div','ux-seduc-stage');
       ef.appendChild(el('h4',null,'9º ano'));
