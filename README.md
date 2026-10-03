@@ -52,3 +52,5 @@ A aba escolhida é mantida ao navegar pelas semanas e reabrir o aplicativo. O ca
 “Iniciar aula” fica no topo e abre diretamente o Quadro da semana selecionada. A última turma, disciplina e semana são retomadas ao abrir o aplicativo. A tela de projeção oferece Pergunta inicial, Conteúdo, Quadro, Atividade e Fontes, além de Anterior/Próximo para seguir essa sequência. Os textos da abertura e do conteúdo são extraídos do planejamento existente; orientações privadas e respostas da professora ficam fora da projeção.
 
 Fontes abre uma tela com os links já cadastrados, sem depender dos QR codes nem de rolar até o fim do quadro. Os links abrem em outra aba; ao retornar à aba do planejamento, a aula permanece aberta. Ao alternar entre Quadro e Fontes, a posição de leitura do quadro é preservada. Ajustes reúne tamanho das letras, troca de semana e impressão. As fontes dependem de internet e da disponibilidade dos sites externos.
+
+A projeção distingue “Semana N de 6” de “Etapa N de 5”. A seleção e os botões de semana ficam sempre visíveis. Ao concluir Fontes, Próxima semana inicia a pergunta inicial da semana seguinte; o botão só fica desabilitado no fim da sexta semana.

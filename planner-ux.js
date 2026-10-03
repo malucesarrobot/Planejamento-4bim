@@ -190,7 +190,7 @@
   const projectionOptions=el('details','lesson-options');
   projectionOptions.appendChild(el('summary',null,'Ajustes'));
   const optionButtons=el('div');
-  for(const id of ['projectionPrev','projectionNext','projectionSmaller','projectionLarger','projectionPrint','projectionRefs'])optionButtons.appendChild($(id));
+  for(const id of ['projectionSmaller','projectionLarger','projectionPrint','projectionRefs'])optionButtons.appendChild($(id));
   projectionOptions.appendChild(optionButtons);
   $('projectionClose').before(projectionOptions);
   $('projectionMode').hidden=true;
