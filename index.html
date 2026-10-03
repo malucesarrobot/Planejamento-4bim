@@ -1460,17 +1460,22 @@ body.is-sync{overflow:hidden}
 </style><style id="print-cadernos">
 /* Imprimir caderno da disciplina: só o título de cada semana e o bloco "No caderno" */
 @media print{
-body.print-scope-cadernos .series-head,body.print-scope-cadernos .prof-references,body.print-scope-cadernos .notice{display:none!important}
-body.print-scope-cadernos section.discipline>:not(.discipline-title):not(.week-card){display:none!important}
+body.print-scope-cadernos .hero,body.print-scope-cadernos .series-head,body.print-scope-cadernos .prof-references,body.print-scope-cadernos .notice,body.print-scope-cadernos .discipline-title,body.print-scope-cadernos .week-head{display:none!important}
+body.print-scope-cadernos main{padding:0!important}
+body.print-scope-cadernos footer{display:none!important}
+body.print-scope-cadernos,body.print-scope-cadernos main,body.print-scope-cadernos section.series,body.print-scope-cadernos section.discipline,body.print-scope-cadernos .week-card,body.print-scope-cadernos .plan-grid{background:#fff!important}
+body.print-scope-cadernos section.series,body.print-scope-cadernos section.discipline{margin:0!important;padding:0!important}
+body.print-scope-cadernos section.discipline>:not(.week-card){display:none!important}
 body.print-scope-cadernos .discipline-title a{display:none!important}
 body.print-scope-cadernos .week-card>:not(.week-head):not(.plan-grid){display:none!important}
 body.print-scope-cadernos .week-card:has(.notebook.empty){display:none!important}
 body.print-scope-cadernos .plan-grid{display:block!important}
 body.print-scope-cadernos .plan-grid>:not(.notebook){display:none!important}
 body.print-scope-cadernos .week-head button{display:none!important}
-body.print-scope-cadernos .week-card{border:0!important;margin:0 0 6mm!important;break-inside:auto!important}
-body.print-scope-cadernos .week-head{padding:0 0 2mm!important;border-bottom:1px solid #999!important;break-after:avoid}
-body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:auto!important}
+body.print-scope-cadernos .week-card{border:0!important;border-radius:0!important;margin:0!important;padding:0!important;box-shadow:none!important;break-before:page;break-inside:avoid}
+body.print-scope-cadernos .print-first-caderno{break-before:auto}
+body.print-scope-cadernos .plan-grid{border:0!important;padding:0!important;margin:0!important}
+body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:avoid;margin:0!important;zoom:var(--fit,1);width:var(--fit-w,auto)}
 }
 </style></head><body id="top"><a class="skip-link" href="#conteudo">Ir para o conteúdo</a><!-- Revisão de 30/09/2026: ver "Guia desta versão" no topo da página. --><header class="hero"><div><div class="kicker">Planejamento pedagógico · 4º bimestre · 2026</div><h1>Ciências Humanas<br/>9º ano + Ensino Médio</h1><p>História · Filosofia · Sociologia</p></div></header>
 <nav aria-label="Navegação rápida" class="toolbar"><div class="nav-shell" id="navShell">
@@ -5020,6 +5025,8 @@ body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:
     seriesSections.forEach(s=>s.classList.remove('print-selected-series'));
     disciplineSections.forEach(s=>s.classList.remove('print-selected-discipline'));
     view.classList.remove('projection-printing');
+    document.querySelectorAll('.print-first-caderno').forEach(n=>n.classList.remove('print-first-caderno'));
+    document.querySelectorAll('.wide.notebook').forEach(n=>{n.style.removeProperty('--fit');n.style.removeProperty('--fit-w');});
     printMode=null;
   }
   window.addEventListener('afterprint',cleanupPrint);
@@ -5040,7 +5047,22 @@ body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:
       if (activeSeries) activeSeries.classList.add('print-selected-series');
       if (activeDiscipline) activeDiscipline.classList.add('print-selected-discipline');
       document.body.classList.add('print-scope-disciplina');
-      if (mode==='cadernos') document.body.classList.add('print-scope-cadernos');
+      if (mode==='cadernos') {
+        document.body.classList.add('print-scope-cadernos');
+        // Uma semana por folha: mede cada caderno na largura útil de uma A4 (~690px) e reduz o que passar da altura útil (~1000px)
+        const W=690, H=1000;
+        let first=true;
+        (activeDiscipline ? [...activeDiscipline.querySelectorAll('.week-card')] : []).forEach(card=>{
+          const nb=card.querySelector('.wide.notebook:not(.empty)');
+          if (!nb || card.hidden) return;
+          if (first) { card.classList.add('print-first-caderno'); first=false; }
+          // a medida é feita com o estilo de tela; impresso, o caderno ocupa ~80–100% dessa altura (medido nas 59 semanas)
+          const old=nb.style.width; nb.style.width=W+'px';
+          const est=nb.scrollHeight*.9; nb.style.width=old;
+          const z=est>H ? Math.max(.6,H/est) : 1;
+          if (z<1) { nb.style.setProperty('--fit',z.toFixed(3)); nb.style.setProperty('--fit-w',Math.round(W/z)+'px'); }
+        });
+      }
     }
     window.print();
   };
