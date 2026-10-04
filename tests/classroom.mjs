@@ -12,6 +12,14 @@ try{
   await page.route('https://fonts.gstatic.com/**',r=>r.abort());
   await page.goto('http://127.0.0.1:'+server.address().port);
   await page.waitForSelector('body.ux-ready');
+  for(const width of [320,390,430]){
+    await page.setViewportSize({width,height:844});
+    const boxes=await page.locator('#uxWeekChoices button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right};}));
+    assert.ok(boxes.every(b=>Math.abs(b.y-boxes[0].y)<1 && b.x>=0 && b.right<=width),'six weeks must stay in one row at '+width);
+    assert.ok((await page.locator('.weekbar').boundingBox()).height<130,'compact week navigation');
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:'test-results/mobile-navigation-compact.png'});
   assert.equal(await page.locator('.lesson-launch').count(),0);
   assert.equal(await page.locator('#uxResume').isVisible(),false);
   assert.equal(await page.locator('#uxStorage').isVisible(),false);

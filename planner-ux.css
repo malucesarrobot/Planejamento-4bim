@@ -187,3 +187,13 @@ body.ux-ready .study-track{scroll-margin-top:70px;margin-top:20px}
 body.ux-ready #navTools .ux-resume{font-size:.85rem;font-weight:600;margin:0 0 8px}
 body.ux-ready #navTools .ux-storage{margin:0 0 8px}
 body.ux-ready main>.ux-search-count[hidden]{display:none!important}
+
+/* A grade impede que as semanas sejam comprimidas em uma coluna. */
+@media screen and (max-width:760px){
+ body.ux-ready .weekbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:8px 10px;align-items:center}
+ body.ux-ready .weekbar #wkPrev,body.ux-ready .weekbar #wkNext{display:none}
+ body.ux-ready .weekbar .ux-week-choices{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;width:100%;min-width:0}
+ body.ux-ready .weekbar .ux-week-number{min-width:0;min-height:44px;padding:6px;font-size:1rem}
+ body.ux-ready .weekbar .wk-label{min-width:0;font-size:.78rem;line-height:1.4}
+ body.ux-ready .weekbar #wkTrack{font-size:.75rem;padding:8px}
+}

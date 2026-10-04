@@ -89,7 +89,7 @@ try {
   assert.equal(await card.locator('.atv-texto').textContent(),'Texto-base alterado para a atividade.');
   assert.equal(await card.locator('.wide.notebook img').count(),0);
   await card.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
-  await card.getByRole('button',{name:'Projetar',exact:true}).click();
+  await page.locator('#wkProject').click();
   assert.match(await page.locator('#projectionPage').textContent(),/Texto alterado com <img/);
   await page.locator('[data-lesson-material=atividade]').click();
   assert.match(await page.locator('#projectionPage').textContent(),/Texto-base alterado/);
@@ -159,7 +159,7 @@ try {
 
   await page.setViewportSize({width:390,height:844});
   assert.equal(await page.locator('#searchBox').isVisible(),true);
-  assert.equal(await card.getByRole('button',{name:'Projetar',exact:true}).isVisible(),true);
+  assert.equal(await page.locator('#wkProject').isVisible(),true);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
   const box=await page.locator('.lesson-quick-nav').boundingBox();assert.ok(box.y>=0 && box.y+box.height<=845);
   assert.equal(await card.locator('.ux-actions').evaluate(n=>getComputedStyle(n).position),'static');

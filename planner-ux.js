@@ -235,16 +235,12 @@
     const head=card.querySelector('.week-head h3');head.tabIndex=-1;
     bases.set(card.id,{title:head.textContent,notebook:notebook.cloneNode(true),activity:activity.cloneNode(true)});
     const actions=el('div','ux-actions');actions.setAttribute('aria-label','Ações desta aula');
-    const project=el('button','ux-primary','Projetar');project.type='button';project.addEventListener('click',()=>{
-      const panel=card.dataset.uxPanel;
-      if(panel==='activity')window.openProjectionAtv(card.id);else window.openProjection(card.id);
-    });
     const edit=el('button',null,'Editar aula');edit.type='button';edit.addEventListener('click',()=>openEditor(card.id));
     const print=el('button',null,'Imprimir');print.type='button';print.addEventListener('click',()=>openPrint(card.id));
     const done=el('button','ux-mark','Marcar como dada');done.type='button';done.dataset.uxMark=card.id;
     done.addEventListener('click',()=>markGiven(card.id));
     const date=el('span','ux-given-date');date.dataset.uxDate=card.id;
-    actions.append(project,edit,print,done,date);card.querySelector('.week-head').after(actions);
+    actions.append(edit,print,done,date);card.querySelector('.week-head').after(actions);
     const tabs=el('div','ux-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Conteúdo da aula');
     const set={};
     for(const [key,label] of [['prepare','Preparar aula'],['notebook','Caderno dos alunos'],['activity','Atividade']]) {

@@ -49,7 +49,7 @@ try {
 
   let c=await card();
   await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
-  await c.getByRole('button',{name:'Projetar',exact:true}).click();
+  await page.locator('#wkProject').click();
   await page.locator('.lesson-options > summary').click();
   await page.locator('#projectionRefs').click();
   await page.locator('.lesson-options > summary').click();
