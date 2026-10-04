@@ -165,3 +165,34 @@ body.ux-ready .lesson-options>summary{min-height:44px;padding:8px}
 .ux-bibliography p{margin:6px 0}
 @media(max-width:760px){body.ux-ready .projection-heading{display:none}body.ux-ready .projection-toolbar{justify-content:space-between}body.ux-ready .lesson-week-nav select{width:82px}body.ux-ready .lesson-options>summary{font-size:.75rem;padding:8px 6px}body.ux-ready .projection-close{font-size:.75rem}body.ux-ready .lesson-materials button{font-size:.78rem}}
 @media print{.projection-view .lesson-week-nav{display:none!important}}
+
+/* Seleção direta e identificação visual das áreas da professora. */
+@media screen{
+body.ux-ready .nav-shell{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:8px 16px;gap:10px;align-items:center}
+.ux-direct-selectors{grid-column:1;grid-row:1;display:grid;gap:4px;min-width:0;max-width:650px}
+body.ux-ready #navTools{grid-column:2;grid-row:1;margin:0;align-self:start}
+.ux-choice-row{display:flex;align-items:center;gap:8px;min-width:0}
+.ux-choice-label{width:66px;flex:0 0 auto;font-size:.72rem;color:#627168;font-weight:600}
+.ux-segments{display:flex;gap:4px;flex:1;min-width:0}
+body.ux-ready .ux-segments button{flex:1;min-width:0;min-height:40px;padding:5px 8px;border:1px solid #dce4de;border-radius:7px;background:#f7f9f5;color:#3c5848;font-size:.82rem;white-space:nowrap}
+body.ux-ready .ux-segments button[aria-pressed=true]{background:#245c49;border-color:#245c49;color:#fff}
+body.ux-ready .ux-segments button:disabled{opacity:.38;cursor:not-allowed}
+body.ux-ready .ux-glossary{background:#eef3f7;border-color:#d8e2e9;border-left:4px solid #718b9d}
+body.ux-ready .ux-study{background:#f6f3ec;border-color:#e6ddce;border-left:4px solid #a18a66;padding:18px;border-radius:10px}
+body.ux-ready .ux-study-sources{border-left:3px solid #718b9d;padding-left:14px;background:#f0f4f7;border-radius:0 8px 8px 0}
+body.ux-ready .gancho{border-left:4px solid #a57638!important;background:#fbf6ed!important}
+body.ux-ready .projection-refs{border-left:3px solid #718b9d;padding-left:12px}
+.ux-track-icon{display:inline-flex;vertical-align:middle;margin-right:5px}
+.ux-print-route{display:inline-block;min-height:36px;padding:7px 10px;margin-bottom:14px;border:1px solid #dce4de;border-radius:8px;background:#fff;color:#245c49;font:600 .8rem system-ui}
+.ux-print-note-space{display:none}
+@media(max-width:760px){body.ux-ready .nav-shell{padding:8px 10px;gap:6px}.ux-choice-label{display:none}body.ux-ready .ux-segments button{padding:5px 6px;font-size:.76rem}body.ux-ready #navTools>summary{max-width:64px;font-size:.7rem;padding:7px;line-height:1.4;text-align:center}}
+}
+.ux-board-model dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:0}
+.ux-board-model .ux-board-concept{border:1px solid #cddbd3;border-top:4px solid #56826c;border-radius:9px;overflow:hidden;background:#fff}
+.ux-board-model .ux-board-concept dt{border:0;background:#eef4f0;padding:14px;font-weight:700}
+.ux-board-model .ux-board-concept dd{border:0;background:#fff;padding:14px}
+.ux-board-caption{font-size:.86em;color:#587062;margin-bottom:18px}
+@media(max-width:700px){.ux-board-model dl{grid-template-columns:1fr}.ux-board-model .ux-board-concept dt{padding-bottom:10px}.ux-board-model .ux-board-concept dd{padding-top:10px}}
+@media print{.ux-direct-selectors,.ux-print-route{display:none!important}body.ux-print-prepare .ux-print-note-space{display:block;min-height:4cm;margin-top:18px;border:1px solid #ccc;padding:10px;break-inside:avoid}body.ux-print-prepare .ux-study{background:#fff;border:0}body.ux-print-prepare p,body.ux-print-prepare li{orphans:3;widows:3}body.ux-print-prepare h4,body.ux-print-prepare h5{break-after:avoid}}
+
+@media screen and (max-width:760px){body.ux-ready .nav-shell{display:block;position:relative}.ux-direct-selectors{max-width:none;width:100%}.ux-choice-row:first-child{padding-right:72px}body.ux-ready #navTools{position:absolute;top:8px;right:10px}}

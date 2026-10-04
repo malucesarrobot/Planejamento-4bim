@@ -99,3 +99,8 @@ Complementos editoriais: as 18 semanas da 3ª série, 12 da 2ª e 7 da 1ª traze
 Na projeção, semana, ajustes e retorno ficam numa faixa compacta. Os materiais ficam em uma linha com rolagem horizontal no celular. O quadro ocupa a maior parte da altura, sem exibir preparação docente. Exames separa questões objetivas/discursivas de temas de redação já cobrados; 32 semanas têm temas de redação relacionados, com vínculo direto ou tangencial justificado.
 
 As 60 preparações incluem Bibliografia e repertório da semana, com recorte de estudo, leitura comentada e indicações opcionais de filmes, vídeos, entrevistas, acervos e jornais quando pertinentes. O bloco acompanha as cópias para professores e fica fora das cópias de alunos e da projeção. Idioma, acesso e limitações de catálogos e acervos são explicitados.
+
+
+## Seletores diretos e apoio visual
+
+Série e disciplina são escolhidas em duas linhas de botões compactos, com opção ativa destacada e indisponibilidade de Filosofia/Sociologia no 9º ano. A seleção usa o estado anterior e preserva os mesmos salvamentos. Glossário e aprofundamento mantêm-se abertos com fundos distintos; pergunta e fontes têm sinalização lateral. O esquema organiza os conceitos em blocos, sem inserir setas causais. Imprimir roteiro da semana / PDF imprime a preparação da semana selecionada com espaço de anotações e sem os controles de navegação. O PDF é salvo pelo diálogo de impressão do navegador.

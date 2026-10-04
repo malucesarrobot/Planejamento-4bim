@@ -13,6 +13,22 @@
   let editorState = null, editorDirty = false, printState = [];
   function el(tag, cls, text) { const n=document.createElement(tag); if(cls)n.className=cls; if(text != null)n.textContent=text; return n; }
 
+  // Direct selection keeps the original select values as a compatibility bridge.
+  const selectorRows=el('div','ux-direct-selectors');
+  const directGroups=[];
+  for(const [select,label,shortLabels] of [[seriesSelect,'Série',{s9:'9º',s1:'1ª',s2:'2ª',s3:'3ª'}],[subjectSelect,'Disciplina',{}]]){
+    select.closest('label').classList.add('ux-sr');select.setAttribute('aria-hidden','true');select.tabIndex=-1;
+    const row=el('div','ux-choice-row');row.setAttribute('role','group');row.setAttribute('aria-label',label);
+    row.appendChild(el('span','ux-choice-label',label));
+    const group=el('div','ux-segments');
+    for(const opt of select.options){
+      const b=el('button',null,shortLabels[opt.value]||opt.textContent);b.type='button';b.dataset.choice=opt.value;b.setAttribute('aria-label',opt.textContent);
+      b.addEventListener('click',()=>{select.value=opt.value;select.dispatchEvent(new Event('change',{bubbles:true}));});group.appendChild(b);
+    }
+    row.appendChild(group);selectorRows.appendChild(row);directGroups.push({select,group});
+  }
+  $('navShell').prepend(selectorRows);
+  function paintSelectors(){for(const {select,group} of directGroups)for(const b of group.querySelectorAll('button')){b.setAttribute('aria-pressed',String(b.dataset.choice===select.value));b.disabled=!![...select.options].find(o=>o.value===b.dataset.choice)?.disabled;}}
   // Datas de referência alinhadas ao cronograma oficial SEDUC-GO 2026.
   // A SEDUC publica eventos e avaliações; as seis semanas abaixo são a organização do app encaixada nesse cronograma.
   const SEDUC_WEEK_RANGES = Object.freeze({
@@ -36,6 +52,7 @@
         head.querySelector('h3').before(badge);
       }
       const track=document.querySelector('a.track-item[href="#'+card.id+'"]');
+      if(track && !track.querySelector('.ux-track-icon')) {const icon=el('span','ux-track-icon');icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h13v18H6zM6 7h-3m3 5h-3m3 5h-3M9 8h7m-7 4h7m-7 4h5"/></svg>';track.querySelector('.track-resource .mode')?.prepend(icon);}
       if(range && track && !track.querySelector('.ux-track-date')) {
         const date=el('div','ux-track-date',range);
         const concepts=track.querySelector('.track-concepts');
@@ -120,6 +137,7 @@
     seriesSelect.value=v.s;
     subjectSelect.value=v.d;
     for(const opt of subjectSelect.options)opt.disabled=v.s==='s9' && opt.value!=='historia';
+    paintSelectors();
   }
   function refresh(preferred, focus) {
     rememberSeries();
@@ -278,6 +296,8 @@
     if(teacher){teacher.textContent='Fundamentação e roteiro da professora';teacher.parentElement.open=true;}
     const curriculum=set.prepare.querySelector('.ux-curriculum');if(curriculum)curriculum.open=true;
     if(glossary){const teacherBlock=set.prepare.querySelector('.prof-caderno');if(teacherBlock)teacherBlock.before(glossary);else set.prepare.prepend(glossary);}
+    const printRoute=el('button','ux-print-route','Imprimir roteiro da semana / PDF');printRoute.type='button';printRoute.addEventListener('click',()=>{printId=card.id;executePrint('prepare','week');});set.prepare.prepend(printRoute);
+    const noteSpace=el('section','ux-print-note-space');noteSpace.appendChild(el('h4',null,'Anotações para a aula'));set.prepare.appendChild(noteSpace);
     card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare',false);
   }
   document.body.classList.remove('mode-aula');

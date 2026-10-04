@@ -7,9 +7,9 @@
   function board(card) {
     const lesson=window.MaluStudyData?.lessons[card.id];if(!lesson)return null;
     const wrap=node('section',null,'ux-board-model');
-    wrap.appendChild(node('h3','Esquema de conceitos'));
+    wrap.appendChild(node('h3','Esquema sugerido para o quadro'));wrap.appendChild(node('p','Esquema de conceitos · leia cada bloco e compare os sentidos.','ux-board-caption'));
     const list=node('dl');
-    for(const [term,meaning] of lesson.terms.slice(0,3)){list.append(node('dt',term),node('dd',meaning));}
+    for(const [term,meaning] of lesson.terms.slice(0,3)){const concept=node('div',null,'ux-board-concept');concept.append(node('dt',term),node('dd',meaning));list.appendChild(concept);}
     wrap.appendChild(list);
     const q=window.MaluEditorialData?.questions[card.id];if(q)wrap.appendChild(node('p',q.question,'ux-board-question'));
     return wrap;
