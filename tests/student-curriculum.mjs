@@ -60,7 +60,7 @@ try {
   assert.equal(await page.locator('#projectionPage .student-skill-text').first().isVisible(),true);
   await page.screenshot({path:'test-results/mobile-codes-projection.png'});
   await page.locator('#projectionClose').click();
-  await page.locator('#wkNext').click();c=await card();
+  await page.locator('#uxWeekChoices button').nth(1).click();c=await card();
   assert.equal(await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).getAttribute('aria-selected'),'true');
   await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('body.ux-ready');c=await card();
   assert.equal(await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).getAttribute('aria-selected'),'true');
