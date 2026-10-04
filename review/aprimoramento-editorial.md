@@ -21,3 +21,14 @@ Todas as 18 semanas da 3ª série recebem uma seleção curta. Nas demais série
 ## Integridade
 
 Complementos ficam fora dos campos editáveis e não mudam os caminhos usados para restaurar edições. Cópias portáteis continuam extraídas da base publicada, sem ler anotações, marcas, edições particulares ou configuração de sincronização. Alunos recebem esquema conceitual, quadro, atividade, fontes e relações documentadas com exames, incluindo treino autoral opcional. O bloco aparece no Caderno dos alunos, na projeção em Exames e nas cópias compartilhadas. Respostas docentes e orientações de preparação permanecem exclusivas do professor. Cópias já baixadas precisam ser geradas novamente.
+
+
+## Quadro, redação e bibliografia — complemento de 04/10/2026
+
+Projeção compacta em duas faixas: semana/ajustes/retorno e materiais em linha horizontal. Conferida a proporção de tela útil em 320, 390, 430 e 1280 pixels de largura.
+
+32 semanas recebem propostas de redação do catálogo original de 2016–2025. Cada vínculo explica a coincidência ou aproximação; não se atribuem autores à proposta de redação sem citação explícita. O catálogo de 59 ocorrências permanece inalterado.
+
+60 preparações recebem bibliografia comentada com recorte de leitura; 48 têm também repertório complementar. As fontes conceituais da revisão anterior são reutilizadas com sua proveniência. Novos repertórios conferidos em páginas institucionais: Casa de Cinema de Porto Alegre (Ilha das Flores, ficha e roteiro); IMS (Cabra marcado para morrer, ficha); Memorial da Resistência (vídeos com acessibilidade); TV Câmara (Anna Maria Rattes, 20/08/2008); Itaú Cultural (Ocupação Ailton Krenak, 2025; entrevista com Marcia Alves, 13/06/2020; Isolamento em imagens, 22/04/2020); UNESCO (História Geral da África e recurso audiovisual); BNDigital (Hemeroteca).
+
+A página da BNDigital avisava indisponibilidade em 04/10/2026 e oferecia o Acervo Digital como alternativa; isso consta das indicações. Buscas em jornais são sugestões de pesquisa, não matérias já localizadas. Catálogos não prometem streaming; fontes editoriais não equivalem à leitura integral de livros. A bibliografia acompanha a preparação e a cópia do professor, sem entrar na projeção ou no arquivo dos alunos.

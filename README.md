@@ -92,3 +92,10 @@ O gerador lê uma cópia imutável do conteúdo publicado, capturada antes da re
 Um exemplo de versão para professor reúne História da 3ª série e Filosofia da 1ª série em `compartilhar/professor-historia-3-filosofia-1.html`. O seletor permite gerar outros recortes, inclusive apenas uma turma.
 
 Complementos editoriais: as 18 semanas da 3ª série, 12 da 2ª e 7 da 1ª trazem questões efetivamente cobradas nas edições 2016–2025, com banca, caderno, localização e fonte oficial na preparação e no Caderno dos alunos. O acesso Exames também está na projeção e nas cópias compartilhadas para ambos os públicos. Correspondência direta e aproximação são distinguidas. Todas as semanas oferecem perguntas difíceis docentes e esquemas projetáveis. Consulte `review/aprimoramento-editorial.md` para o alcance das fontes e das correspondências.
+
+
+## Quadro prioritário e repertório por semana
+
+Na projeção, semana, ajustes e retorno ficam numa faixa compacta. Os materiais ficam em uma linha com rolagem horizontal no celular. O quadro ocupa a maior parte da altura, sem exibir preparação docente. Exames separa questões objetivas/discursivas de temas de redação já cobrados; 32 semanas têm temas de redação relacionados, com vínculo direto ou tangencial justificado.
+
+As 60 preparações incluem Bibliografia e repertório da semana, com recorte de estudo, leitura comentada e indicações opcionais de filmes, vídeos, entrevistas, acervos e jornais quando pertinentes. O bloco acompanha as cópias para professores e fica fora das cópias de alunos e da projeção. Idioma, acesso e limitações de catálogos e acervos são explicitados.

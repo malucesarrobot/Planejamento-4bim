@@ -42,7 +42,7 @@ try{
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
   for(const stage of ['pergunta','conteudo','caderno','atividade','fontes']){
     const b=page.locator('[data-lesson-material='+stage+']');
-    const box=await b.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=391,'stage outside mobile viewport');
+    await b.scrollIntoViewIfNeeded();const box=await b.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=391,'stage outside mobile viewport');
     await b.click();assert.equal(await b.getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#projectionPage .atv-prof').count(),0);
     assert.equal(await page.locator('#projectionPage textarea').count(),0);

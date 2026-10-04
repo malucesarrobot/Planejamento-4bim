@@ -93,7 +93,8 @@
   document.querySelectorAll('[data-lesson-material]').forEach(b=>b.addEventListener('click',()=>changeMaterial(b.dataset.lessonMaterial)));
   const weekSelect=el('select');weekSelect.id='projectionWeek';weekSelect.setAttribute('aria-label','Semana da aula');
   const weekNav=el('nav','lesson-week-nav');weekNav.setAttribute('aria-label','Escolher semana da aula');
-  weekNav.append(prevBtn,weekSelect,nextBtn);view.querySelector('.projection-toolbar').after(weekNav);
+  prevBtn.textContent='←';nextBtn.textContent='→';prevBtn.setAttribute('aria-label','Semana anterior');nextBtn.setAttribute('aria-label','Próxima semana');
+  weekNav.append(prevBtn,weekSelect,nextBtn);view.querySelector('.projection-toolbar').prepend(weekNav);
   weekSelect.addEventListener('change',()=>renderCard(weekSelect.value));
   function studentMaterial(card, kind) {
     const wrap=el('section','lesson-reading');
@@ -110,7 +111,7 @@
     b.textContent = mode === 'atividade' ? 'Ver quadro' : 'Atividade';
     document.querySelectorAll('[data-lesson-material]').forEach(n=>n.setAttribute('aria-pressed',String(n.dataset.lessonMaterial===mode)));
     const card=document.getElementById(currentId),cards=getCards(card);
-    weekSelect.replaceChildren(...cards.map((c,i)=>{const opt=el('option',null,'Semana '+(i+1)+' de '+cards.length);opt.value=c.id;return opt;}));
+    weekSelect.replaceChildren(...cards.map((c,i)=>{const opt=el('option',null,'S'+(i+1)+' / '+cards.length);opt.setAttribute('aria-label','Semana '+(i+1)+' de '+cards.length);opt.value=c.id;return opt;}));
     weekSelect.value=currentId;
     view.classList.toggle('lesson-sources',mode==='fontes');
   }

@@ -19,7 +19,11 @@
     const wrap=node('section',null,'ux-exam-connections');wrap.appendChild(node('h4','Questões já cobradas · 2016–2025'));
     wrap.appendChild(node('p',lesson.theme,'ux-exam-theme'));
     wrap.appendChild(node('p','Direta: o conteúdo cobrado coincide com a aula. Aproximação: permite comparação ou aprofundamento. O ano é a edição do exame. A numeração depende do caderno indicado.','ux-editorial-note'));
-    for(const c of lesson.connections){
+    const groups=[['Questões objetivas e discursivas',lesson.connections.filter(c=>data.occurrences[c.ref].tipo!=='Redação')],['Temas de redação já cobrados',lesson.connections.filter(c=>data.occurrences[c.ref].tipo==='Redação')]];
+    for(const [heading,connections] of groups){
+     if(!connections.length)continue;
+     wrap.appendChild(node('h4',heading));
+     for(const c of connections){
       const r=data.occurrences[c.ref],item=node('article',null,'ux-exam-item');item.dataset.examRef=c.ref;
       item.appendChild(node('h5',r.exame+' · '+r.ano));
       item.appendChild(node('p',r.tema,'ux-exam-theme'));
@@ -29,8 +33,25 @@
       if(r.nota)paragraphs(item,r.nota);
       link(item,'Abrir prova ou publicação oficial ↗',r.fonte);wrap.appendChild(item);
     }
+    }
     if(lesson.exercise){const exercise=node('aside',null,'ux-exam-practice');exercise.appendChild(node('h5','Treino autoral opcional'));paragraphs(exercise,lesson.exercise);wrap.appendChild(exercise);}
     wrap.appendChild(node('p',data.researchScope+' Um tema de redação não comprova que a prova exigiu o filósofo desta aula.','ux-editorial-note'));
+    return wrap;
+  }
+  function bibliography(card) {
+    const lesson=window.MaluBibliographyData?.lessons[card.id];if(!lesson)return null;
+    const wrap=node('section',null,'ux-bibliography');wrap.appendChild(node('h4','Bibliografia e repertório da semana'));
+    wrap.appendChild(node('p',lesson.focus));
+    const list=node('ul');
+    for(const entry of lesson.entries){
+      const source=entry.source?window.MaluBibliographyData.sources[entry.source]:null;
+      const [title,url,note]=source||window.MaluStudyData.sources[entry.ref];
+      const li=node('li');link(li,title,url);paragraphs(li,entry.use);
+      paragraphs(li,note);
+      if(!source&&/classics.mit.edu|plato.stanford.edu|openstax.org|web.mit.edu|sites.duke.edu/.test(url))li.appendChild(node('p','Texto em inglês; leitura de apoio para a professora.','ux-editorial-note'));
+      list.appendChild(li);
+    }
+    wrap.appendChild(list);wrap.appendChild(node('p','As indicações são opcionais. Os links identificam texto, catálogo ou acervo; não prometem filme completo gratuito. Antes de levar um trecho à turma, confira contexto, linguagem, duração e adequação.','ux-editorial-note'));
     return wrap;
   }
   function editorial(card,section,lesson) {
@@ -86,6 +107,7 @@
     }
     if(notes.children.length>1)refs.after(notes);
     editorial(card,section,lesson);
+    const reading=bibliography(card);if(reading)section.appendChild(reading);
   }
-  window.MaluStudy={attach,board,exams};
+  window.MaluStudy={attach,board,exams,bibliography};
 })();

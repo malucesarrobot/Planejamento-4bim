@@ -144,3 +144,24 @@
 .ux-board-model dt{font-weight:700;background:#f3f6ef}
 .ux-board-question{margin:20px 0 0;padding:14px;border-left:3px solid #245c49;background:#f3f6ef;font-weight:600}
 @media(max-width:600px){.ux-board-model{padding:14px}.ux-board-model dl{display:block}.ux-board-model dt{padding-bottom:5px;border-bottom:0}.ux-board-model dd{padding-top:6px}.ux-exam-connections ul{padding-left:20px}}
+
+/* O quadro recebe a maior parte da tela; comandos em duas faixas compactas. */
+body.ux-ready .projection-toolbar{padding:4px 8px;gap:8px;flex-wrap:nowrap}
+body.ux-ready .projection-heading{min-width:0;overflow:hidden}
+body.ux-ready .projection-heading strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.ux-ready .projection-kicker{display:none}
+body.ux-ready .lesson-week-nav{border:0;padding:0;gap:3px;flex:0 0 auto;background:transparent}
+body.ux-ready .lesson-week-nav select{width:112px;font-size:.78rem;padding:4px}
+body.ux-ready .lesson-week-nav button{width:36px;min-width:36px;padding:4px}
+body.ux-ready .lesson-materials{display:flex;flex-wrap:nowrap;padding:3px 6px;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+body.ux-ready .lesson-materials button{flex:0 0 auto;min-height:40px;padding:6px 10px;font-size:.8rem;white-space:nowrap}
+body.ux-ready .projection-scroll{padding-top:6px}
+body.ux-ready .projection-actions{gap:4px}
+body.ux-ready .projection-actions .projection-close{min-height:44px;padding:6px 9px}
+body.ux-ready .lesson-options>summary{min-height:44px;padding:8px}
+.ux-bibliography{margin:22px 0 0;padding:18px;background:#f6f8f2;border:1px solid #dce5dd;border-radius:8px}
+.ux-bibliography li{margin:16px 0;line-height:1.55}
+.ux-bibliography a{overflow-wrap:anywhere}
+.ux-bibliography p{margin:6px 0}
+@media(max-width:760px){body.ux-ready .projection-heading{display:none}body.ux-ready .projection-toolbar{justify-content:space-between}body.ux-ready .lesson-week-nav select{width:82px}body.ux-ready .lesson-options>summary{font-size:.75rem;padding:8px 6px}body.ux-ready .projection-close{font-size:.75rem}body.ux-ready .lesson-materials button{font-size:.78rem}}
+@media print{.projection-view .lesson-week-nav{display:none!important}}
