@@ -203,3 +203,81 @@ body.ux-ready .weekbar{align-items:center}
 body.ux-ready .weekbar #wkProject{min-height:40px;width:auto;padding:7px 10px;font-size:.8rem;margin:0}
 body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7rem;white-space:nowrap}
 @media(max-width:760px){.ux-week-context{grid-column:1;grid-row:2;gap:3px}.ux-week-context .wk-label{flex:1;font-size:.7rem!important}.ux-week-context #wkTrack{flex:none}body.ux-ready .weekbar #wkProject{grid-column:2;grid-row:2}}
+
+/* Caderno vivo: formas suaves e acentos de cor para orientar a leitura. */
+@media screen {
+  body.ux-ready {
+    --line:#e4dfd6; --ink:#303638; --muted:#666b6a;
+    --ui-accent:#67508c; --ui-soft:#f0eaf8;
+    background-color:#faf8f2!important;
+    background-image:radial-gradient(#d8d2c54d .7px,transparent .7px)!important;
+    background-size:18px 18px!important;
+  }
+  body.ux-ready .hero {
+    position:relative;isolation:isolate;overflow:hidden;
+    background:#eee7dc!important;color:#343c38!important;
+    border-bottom:1px solid #ded6c8;padding:22px 24px!important;
+  }
+  body.ux-ready .hero>div {position:relative;z-index:1;}
+  body.ux-ready .hero::before,body.ux-ready .hero::after {content:"";position:absolute;pointer-events:none;z-index:0;}
+  body.ux-ready .hero::before {right:7%;top:19px;width:72px;height:72px;background:#b7cbbb;transform:rotate(-13deg);border-radius:22px 22px 22px 5px;opacity:.65;}
+  body.ux-ready .hero::after {right:3%;top:48px;width:44px;height:44px;border:2px solid #9e89b7;border-radius:50%;opacity:.65;}
+  body.ux-ready .hero h1 {font:750 clamp(1.45rem,3vw,1.95rem)/1.2 ui-rounded,"Trebuchet MS",system-ui,sans-serif!important;letter-spacing:-.04em!important;color:#354339!important;}
+  body.ux-ready .hero .kicker {color:#665c51!important;font-size:.7rem;letter-spacing:.06em;}
+  body.ux-ready .hero p {color:#625a6a!important;font-size:.85rem;margin-top:8px;}
+  body.ux-ready .toolbar,body.ux-ready .weekbar {background:#fffdf9!important;}
+  body.ux-ready .ux-choice-label {color:#64615c;}
+  body.ux-ready .ux-segments button {background:#f5f2ec;border-color:transparent;border-radius:11px;color:#555b57;}
+  body.ux-ready .ux-segments button[aria-pressed="true"] {background:#e9e0f3;color:#513a73;border-color:#cdbce2;box-shadow:none;}
+  body.ux-ready .ux-segments [data-choice=historia][aria-pressed="true"] {background:#fae6d9;color:#854727;border-color:#e5bfa5;}
+  body.ux-ready .ux-segments [data-choice=sociologia][aria-pressed="true"] {background:#e1eee3;color:#365d43;border-color:#b5ceb9;}
+  body.ux-ready .ux-week-number {background:#f0ede6;color:#625e56;border-radius:50% 50% 12px 12px;}
+  body.ux-ready .ux-week-number[aria-pressed="true"] {background:#67508c;border-color:#67508c;box-shadow:0 3px 0 #ddd2eb;}
+  body.ux-ready #wkProject {background:#456953;border-color:#456953;border-radius:12px;}
+  body.ux-ready .week-card {border-color:#e2ded5;border-radius:22px;box-shadow:0 8px 26px #473a2710;}
+  body.ux-ready .week-head {background:#f4f0f8;border-bottom:1px solid #e7dff0;border-radius:22px 22px 0 0;}
+  body.ux-ready .week-head h3 {font:750 1.2rem/1.4 ui-rounded,"Trebuchet MS",system-ui,sans-serif!important;color:#423650!important;letter-spacing:-.02em!important;}
+  body.ux-ready .week-head .ux-week-date {background:#fffaf0!important;color:#685640!important;border-radius:8px!important;}
+  body.ux-ready .ux-tabs {background:#f5f2eb;border-color:#ece5d9;border-radius:14px;}
+  body.ux-ready .ux-tabs button {color:#665d6b;border-radius:10px;}
+  body.ux-ready .ux-tabs button[aria-selected="true"] {background:#fff;color:#573a7a;border-color:#d5c5e5;box-shadow:0 2px 5px #67508c0d;}
+  body.ux-ready .ux-actions button {background:#faf7f0;color:#585e58;border-color:#e8e2d7;border-radius:10px;}
+  body.ux-ready .lide-box {border-left-color:#ae98c7!important;}
+  body.ux-ready .gancho {background:#fff6e1!important;border-color:#ead9af!important;border-radius:16px 16px 16px 4px!important;}
+  body.ux-ready .gancho .gq {color:#6e512c!important;}
+  body.ux-ready .prof-seal,body.ux-ready .prof-caderno[open]>.prof-seal {background:#e8eee3;color:#3d5946;border-radius:14px;}
+  body.ux-ready .ux-study {background:#f4f0f8;border-color:#e6dcef;border-radius:14px;}
+  body.ux-ready .ux-glossary {background:#f5f1e7;border-color:#e6dfcd;border-radius:14px;}
+  body.ux-ready .ux-bibliography {background:#edf4ec;border-color:#d5e3d2;border-radius:14px;}
+  body.ux-ready .ux-bibliography h4 {color:#3b6146;}
+  body.ux-ready .ux-exam-item {background:#fbf9f5;border:1px solid #e6e1d7;border-radius:14px;padding:14px;margin:10px 0;}
+  body.ux-ready .ux-exam-theme {color:#53426a;}
+  body.ux-ready .ux-exam-item h5 {margin:0 0 8px;color:#655b71;font-size:.88rem;}
+  body.ux-ready .ux-exam-context summary {cursor:pointer;min-height:36px;display:list-item;padding:7px 0;color:#625273;}
+  body.ux-ready .study-track {background:#fffdf8;border-radius:20px;}
+  body.ux-ready .study-track h3 {font:750 1.3rem/1.35 ui-rounded,"Trebuchet MS",system-ui,sans-serif!important;color:#423650;}
+  body.ux-ready .track-item {background:#f6f2fa;border-color:#e4dbea;border-left-color:#aa92c4;border-radius:14px;}
+  body.ux-ready .track-num {background:#e8ddf2;color:#594172;border-radius:10px;}
+  body.ux-ready .ux-board-model .ux-board-concept {border-radius:14px;border-color:#d8e2d6;}
+  body.ux-ready .ux-board-model .ux-board-concept:nth-child(2) {border-color:#ded3eb;}
+  body.ux-ready .ux-board-model .ux-board-concept:nth-child(2) dt {background:#f1ebf8;color:#574072;}
+  body.ux-ready .ux-board-model .ux-board-concept:nth-child(3) {border-color:#e9dcc0;}
+  body.ux-ready .ux-board-model .ux-board-concept:nth-child(3) dt {background:#faf1dc;color:#725a31;}
+  body.ux-ready .tools-menu>summary {background:#fffdf9;border-color:#ded8cc;border-radius:10px;}
+  @media(max-width:760px) {
+    body.ux-ready .hero {padding:16px!important;}
+    body.ux-ready .hero::before {right:15px;top:18px;width:38px;height:38px;opacity:.35;border-radius:12px 12px 12px 3px;}
+    body.ux-ready .hero::after {right:7px;top:45px;width:22px;height:22px;opacity:.35;}
+    body.ux-ready .hero h1 {max-width:290px;font-size:1.4rem!important;}
+    body.ux-ready .week-head h3 {font-size:1.12rem!important;}
+  }
+  @media(hover:hover) {body.ux-ready .ux-segments button:not(:disabled):hover {border-color:#ad99c6;}body.ux-ready .ux-tabs button:hover {background:#fffaf5;}}
+}
+@media screen {
+  body.ux-ready .week-head h3,body.ux-ready .ux-glossary h4,body.ux-ready .prof-panel h4 {text-transform:none!important;letter-spacing:-.015em!important;}
+  body.ux-ready .ux-study {border-left-color:#ad93c7;}
+  body.ux-ready .ux-glossary h4 {font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif!important;color:#64513c;}
+  body.ux-ready .week-head>span:first-child {background:#e8dff1!important;color:#634783!important;}
+  body.ux-ready .gancho .rot {color:#7d622e!important;}
+  body.ux-ready .ux-study-sources {background:#eef3f0;border-left-color:#87a58d;}
+}
