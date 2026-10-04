@@ -90,3 +90,5 @@ Em Mais opções → Compartilhar material, selecione Professor ou Alunos, as co
 O gerador lê uma cópia imutável do conteúdo publicado, capturada antes da restauração dos dados pessoais. Não exporta localStorage, edições pessoais, anotações, marcações, backups nem configuração/código de sincronização. O HTML gerado não usa armazenamento, Firebase ou APIs do planejamento; alterações feitas numa cópia não afetam o original. Abrir o conteúdo dispensa conexão; consultar links externos de fontes requer internet. Mudanças futuras no planejamento exigem gerar uma nova cópia.
 
 Um exemplo de versão para professor reúne História da 3ª série e Filosofia da 1ª série em `compartilhar/professor-historia-3-filosofia-1.html`. O seletor permite gerar outros recortes, inclusive apenas uma turma.
+
+Complementos editoriais: as 18 semanas da 3ª série trazem conexões documentadas com Enem, FUVEST e PISM na preparação. Todas as semanas oferecem perguntas difíceis docentes e esquemas projetáveis. Consulte `review/aprimoramento-editorial.md` para o alcance das fontes e das correspondências.
