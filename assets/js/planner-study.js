@@ -16,14 +16,21 @@
   }
   function exams(card) {
     const data=window.MaluEditorialData,lesson=data?.exams[card.id];if(!lesson)return null;
-    const wrap=node('section',null,'ux-exam-connections');wrap.appendChild(node('h4','Enem, vestibulares e avaliações seriadas'));
+    const wrap=node('section',null,'ux-exam-connections');wrap.appendChild(node('h4','Questões já cobradas · 2016–2025'));
     wrap.appendChild(node('p',lesson.theme,'ux-exam-theme'));
-    wrap.appendChild(node('p','Aproximação transversal: '+lesson.tangent));
-    wrap.appendChild(node('p','Direta: o tema coincide com o programa ou habilidade. Tangencial: a aula oferece uma lente para um tema próximo. São correspondências editoriais, não uma lista de questões já cobradas nem previsão de prova.','ux-editorial-note'));
-    const used=new Set();
-    for(const c of lesson.connections){const item=node('article',null,'ux-exam-item');item.appendChild(node('h5',c.exam+' · relação '+c.relation.toLowerCase()));paragraphs(item,c.topic);item.appendChild(node('p',c.scope,'ux-editorial-note'));wrap.appendChild(item);used.add(c.ref);}
-    const exercise=node('aside',null,'ux-exam-practice');exercise.appendChild(node('h5','Treino autoral opcional'));paragraphs(exercise,lesson.exercise);wrap.appendChild(exercise);
-    const refs=node('ul');for(const key of used){const [label,url,note]=data.sources[key],li=node('li');link(li,label,url);li.appendChild(node('p',note));refs.appendChild(li);}wrap.appendChild(refs);
+    wrap.appendChild(node('p','Direta: o conteúdo cobrado coincide com a aula. Aproximação: permite comparação ou aprofundamento. O ano é a edição do exame. A numeração depende do caderno indicado.','ux-editorial-note'));
+    paragraphs(wrap,lesson.connections[0].why);
+    for(const c of lesson.connections){
+      const r=data.occurrences[c.ref],item=node('article',null,'ux-exam-item');item.dataset.examRef=c.ref;
+      item.appendChild(node('h5',r.exame+' · '+r.ano));
+      item.appendChild(node('p',r.tema,'ux-exam-theme'));
+      item.appendChild(node('p','Banca: '+r.banca+' · '+r.localizacao+' · '+r.caderno,'ux-editorial-note'));
+      item.appendChild(node('p',c.relation==='Direta'?'Conteúdo diretamente relacionado':'Aproximação com esta aula','ux-exam-relation'));
+      if(r.nota)paragraphs(item,r.nota);
+      link(item,'Abrir prova ou publicação oficial ↗',r.fonte);wrap.appendChild(item);
+    }
+    if(lesson.exercise){const exercise=node('aside',null,'ux-exam-practice');exercise.appendChild(node('h5','Treino autoral opcional'));paragraphs(exercise,lesson.exercise);wrap.appendChild(exercise);}
+    wrap.appendChild(node('p',data.researchScope+' Um tema de redação não comprova que a prova exigiu o filósofo desta aula.','ux-editorial-note'));
     return wrap;
   }
   function editorial(card,section,lesson) {

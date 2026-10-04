@@ -6,19 +6,17 @@
 - Leitura semiótica e confronto de fontes: autoria, contexto, composição e limite da evidência. Orientações específicas para Ilha das Flores e registro corporal de Krenak.
 - Tempo de 45 minutos como possibilidade ajustável; aplicação de documentos escolares apenas onde há pertinência conceitual; melhor objeção como critério opcional da síntese.
 - Nota epistemológica em Mais opções → Sobre o material.
-- Todas as 18 semanas da 3ª série: tema direto, conexão transversal, correspondências Enem/FUVEST/PISM, exercício autoral e links oficiais. Direta designa coincidência temática; tangencial designa uso de uma lente próxima. Não se afirma ocorrência, frequência ou previsão de questões.
+- Questões efetivamente cobradas: 18 semanas da 3ª série, 12 da 2ª e 7 da 1ª. O bloco mostra tema, banca, edição, caderno, número e fonte oficial; explica a relação com a aula.
 
-## Verificação documental
+## Verificação documental — questões 2016–2025
 
-Enem: matriz oficial do Inep; CH e LC são explicitamente separadas. O endpoint PDF apresentou erro 502 ao download; a indexação oficial permitiu conferir os trechos e habilidades. Não se atribuem autores específicos à matriz.
+A seleção de 59 registros está preservada em `review/exames-2016-2025.json`. Inclui os dez temas anuais de redação do Enem regular; questões objetivas e discursivas de Enem, FUVEST/USP e COPS/UEL; itens do PAS/UnB (Cebraspe); e questões do PISM/UFJF (COPESE). Os PDFs oficiais e a publicação oficial da UEL foram consultados na pesquisa de 04/10/2026. Os links do catálogo levam aos documentos específicos, não apenas a programas de vestibular.
 
-FUVEST: Programa 2027, PDF oficial obtido e convertido em texto para leitura. Filosofia, pp. 30–32; Sociologia, pp. 46–52; conexões com História e Geografia. Autores das aulas podem servir de aprofundamento sem serem nominalmente obrigatórios.
+Direta significa coincidência entre conteúdo efetivamente cobrado e conteúdo da aula. Tangencial é a comparação proposta pela professora; não é evidência de que a prova cobrou o autor da aula. Jonas, Quijano e Krenak não têm cobrança nominal confirmada nesta seleção. Kopenawa, Txai Suruí e Krenak não são tratados como um mesmo autor. Benjamin e Adorno/Horkheimer não são teorias intercambiáveis. No Enem 2019, questão 44, o comando é de função da linguagem; a circulação digital da arte é somente contexto. No Enem 2018, questão 23, o protesto é contexto de um comando de linguagem.
 
-PISM: conteúdo programático da UFJF, PDF de maio de 2025, ligado pela página oficial PISM 2027. Módulo III: História pp. 38–39; Sociologia pp. 41–45; Filosofia p. 46; Geografia pp. 21–23. Estética e autores não listados são tratados como aproximações, não equivalências.
+O ano identifica a edição. Enem 2020 impresso: aplicação em janeiro de 2021. PISM 2025: aplicação em dezembro de 2024. BRICS/PAS 2023: a composição citada se refere ao ano da prova. A seleção não é um levantamento exaustivo nem permite inferir frequência nacional ou prever temas futuros.
 
-PAS: presença explícita de Necropolítica na página histórica PAS 3 – 2022, objetos 1 e 2. O bloco identifica a edição e não a apresenta como lista vigente do subprograma do candidato. Conferência da edição aplicável permanece necessária.
-
-Não se incorporou como referência vigente o antigo SAS/UEG: os resultados encontrados misturam acervo histórico e processos atuais. Evita-se imputar ao candidato um programa sem edição verificada.
+Todas as 18 semanas da 3ª série recebem uma seleção curta. Nas demais séries, entram apenas correspondências úteis. Semanas sem vínculo suficientemente sustentado pela pesquisa não recebem um bloco vazio nem uma questão artificialmente associada. A ausência de bloco não significa que seu conteúdo jamais foi cobrado.
 
 ## Integridade
 
