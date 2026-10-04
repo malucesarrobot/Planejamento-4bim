@@ -66,10 +66,10 @@ try {
   assert.equal(await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).getAttribute('aria-selected'),'true');
   console.log('PASS codes remain when sources are hidden, skill disclosure works, and chosen panel survives week navigation and reload');
 
-  const groups=[['s9|9ºA',['historia']],['s1|1ªA',['historia','filosofia','sociologia']],['s2|2ªA',['historia','filosofia','sociologia']],['s3|3ªB',['historia','filosofia','sociologia']]];
+  const groups=[['s9',['historia']],['s1',['historia','filosofia','sociologia']],['s2',['historia','filosofia','sociologia']],['s3',['historia','filosofia','sociologia']]];
   let checked=0;
   for(const [classValue,subjects] of groups){
-    await page.locator('#uxClass').selectOption(classValue);
+    await page.locator('#uxSeries').selectOption(classValue);
     for(const subject of subjects){
       await page.locator('#uxSubject').selectOption(subject);
       for(let i=0;i<6;i++){
@@ -100,7 +100,7 @@ try {
   assert.equal(await page.locator('#uxEditorPreview .student-curriculum').isVisible(),true);
   await page.locator('#uxEditorCancel').click();
 
-  const mark=c.locator('[data-ux-mark]');await mark.click();
+  const mark=c.getByRole('checkbox',{name:'3ªB',exact:true});await mark.check();
   assert.match(await page.locator('#uxResume').textContent(),/1 de 6 semanas dadas/);
   await page.locator('#uxUndo').click();
   assert.match(await page.locator('#uxResume').textContent(),/0 de 6 semanas dadas/);

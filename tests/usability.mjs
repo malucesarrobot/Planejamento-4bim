@@ -37,6 +37,11 @@ await page.route('https://fonts.googleapis.com/**',r=>r.abort());
 await page.route('https://fonts.gstatic.com/**',r=>r.abort());
 await page.addInitScript(()=>{
   window.print=()=>{window.__printCount=(window.__printCount||0)+1;};
+  if(!localStorage.getItem('malu-test-seeded')) {
+    localStorage.setItem('malu-aulas-dadas',JSON.stringify({'s9-historia-semana-1|9ºC':'2026-10-02'}));
+    localStorage.setItem('malu-ui-view',JSON.stringify({s:'s9',d:'historia',w:'s9-historia-semana-1',t:'9ºC'}));
+    localStorage.setItem('malu-test-seeded','1');
+  }
   if(!localStorage.getItem('malu-s9-historia-w1-obs'))localStorage.setItem('malu-s9-historia-w1-obs','Anotação anterior preservada.');
 });
 async function visibleCards(){return page.locator('article.week-card:visible').count();}
@@ -47,6 +52,8 @@ try {
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('body.ux-ready');
   assert.equal(await visibleCards(),1);
+  assert.equal(await page.getByRole('checkbox',{name:'9ºC',exact:true}).first().isChecked(),true);
+  assert.equal(await page.getByRole('checkbox',{name:'9ºA',exact:true}).first().isChecked(),false);
   assert.equal(await page.locator('article.week-card').count(),60);
   assert.equal(await page.locator('textarea[data-save]').count(),451);
   assert.equal(await page.locator('textarea[data-save="s9-historia-w1-obs"]').inputValue(),'Anotação anterior preservada.');
@@ -62,11 +69,11 @@ try {
   assert.equal(await currentId(),'s9-historia-semana-6');
   await page.locator('#wkPrev').click();assert.equal(await currentId(),'s9-historia-semana-5');
   await page.locator('#wkNext').click();assert.equal(await currentId(),'s9-historia-semana-6');
-  await page.locator('#uxClass').selectOption('s3|3ªB');
+  await page.locator('#uxSeries').selectOption('s3');
   await page.locator('#uxSubject').selectOption('filosofia');
   assert.equal(await visibleCards(),1);assert.match(await currentId(),/^s3-filosofia/);
-  assert.equal(await page.locator('#uxClass').inputValue(),'s3|3ªB');
-  console.log('PASS week navigation and real class selection');
+  assert.equal(await page.locator('#uxSeries').inputValue(),'s3');
+  console.log('PASS week navigation and series selection');
 
   const chosen=await currentId();
   let card=page.locator('#'+chosen);
@@ -99,27 +106,28 @@ try {
   assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
   console.log('PASS safe editing of both panels, projection and reload persistence');
 
-  await page.locator('#uxWeekChoices button').last().click();
-  // A title found in a hidden week must still be searchable.
-  await page.locator('#searchBox').fill('Aula exclusiva de teste');
-  assert.equal(await visibleCards(),1);assert.equal(await currentId(),chosen);
-  await page.locator('#searchBox').fill('termo inexistente 999999');
-  assert.equal(await visibleCards(),0);assert.equal(await page.locator('#uxEmpty').isVisible(),true);
-  await page.locator('#clearSearchBtn').click();assert.equal(await visibleCards(),1);
-  await page.locator('#uxWeekChoices button').filter({hasText:String(Number(chosen.split('-semana-')[1]))}).click();
-  card=page.locator('#'+chosen);
-  console.log('PASS search includes hidden weeks and handles empty results');
+  assert.equal(await page.locator('#searchBox').count(),0);
+  assert.equal(await page.locator('#clearSearchBtn').count(),0);
+  assert.equal(await page.locator('#uxSeries option').count(),4);
+  console.log('PASS compact series selection and search removed');
 
   await card.getByRole('button',{name:'Editar aula',exact:true}).click();
   await page.locator('#uxEditTitle').fill('Alteração cancelada');
   page.once('dialog',d=>d.accept());await page.locator('#uxEditorCancel').click();
   assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
-  const mark=card.locator('[data-ux-mark]');
-  await mark.click();assert.match(await mark.textContent(),/Dada para 3ªB/);
-  assert.match(await card.locator('[data-ux-date]').textContent(),/^\d{2}\/\d{2}\/\d{4}$/);
-  await page.locator('#uxUndo').click();assert.match(await mark.textContent(),/Marcar como dada para 3ªB/);
-  await mark.click();
-  console.log('PASS cancel, class-specific completion and undo');
+  const mark=card.getByRole('checkbox',{name:'3ªB',exact:true});
+  const other=card.getByRole('checkbox',{name:'3ªA',exact:true});
+  await mark.check();assert.equal(await mark.isChecked(),true);
+  assert.match(await mark.getAttribute('title'),/^Aplicado em \d{2}\/\d{2}\/\d{4}$/);
+  assert.equal(await other.isChecked(),false);
+  await page.locator('#uxUndo').click();assert.equal(await mark.isChecked(),false);
+  await mark.check();await other.check();await mark.uncheck();
+  assert.equal(await other.isChecked(),true);
+  await page.locator('#uxUndo').click();assert.equal(await mark.isChecked(),true);
+  await page.reload();await page.waitForSelector('body.ux-ready');
+  assert.equal(await page.locator('#uxSeries').inputValue(),'s3');
+  assert.equal(await mark.isChecked(),true);assert.equal(await other.isChecked(),true);
+  console.log('PASS cancel, independent class checkboxes, undo and persisted completion');
 
   await tools();
   const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Baixar cópia de segurança',exact:true}).click();
@@ -158,7 +166,7 @@ try {
   console.log('PASS printing includes all selected weeks and excludes teacher answers');
 
   await page.setViewportSize({width:390,height:844});
-  assert.equal(await page.locator('#searchBox').isVisible(),true);
+  assert.equal(await page.locator('#searchBox').count(),0);
   assert.equal(await page.locator('#wkProject').isVisible(),true);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
   const box=await page.locator('.lesson-quick-nav').boundingBox();assert.ok(box.y>=0 && box.y+box.height<=845);

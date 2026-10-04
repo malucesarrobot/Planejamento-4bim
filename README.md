@@ -4,7 +4,7 @@ Aplicativo estático de Ciências Humanas: História do 9º ano e História, Fil
 
 ## Uso
 
-1. Escolha a turma e a disciplina.
+1. Escolha a série e a disciplina.
 2. Selecione a semana.
 3. Use Preparar aula, Caderno dos alunos ou Atividade.
 4. Preparar / estudar e Projetar quadro ficam nos acessos diretos. Editar aula, Imprimir e Marcar como dada ficam na aula.
@@ -26,7 +26,7 @@ Mais opções oferece progresso de todas as turmas, cópia de segurança, sincro
 - `assets/js/activity-print.js`: impressão de atividades.
 - `assets/js/sync.js`: sincronização opcional entre aparelhos.
 - `planner-core.js`: validação de edições de texto e seleção de semanas.
-- `planner-ux.js`: navegação por turma e semana, abas, edição, marcações e impressão.
+- `planner-ux.js`: navegação por série e semana, abas, edição, marcações e impressão.
 - `planner-ux.css`: apresentação para computador, celular e impressão.
 - `planner-theme.css`: acabamento visual da interface em tela, sem modificar o caderno pedagógico nem a impressão.
 - `manifest.webmanifest` e `icones/`: metadados e ícones de instalação. Não há service worker; instalação não garante funcionamento offline.
@@ -49,7 +49,7 @@ npx playwright install --with-deps chromium
 npm test
 ```
 
-A suíte verifica navegação, turma real, abas, edição segura, projeção, persistência, cancelamento, desfazer, busca em semanas ocultas, backups, impressão e largura de celular. Firebase é simulado nos testes; eles não escrevem no banco de produção. O workflow gera capturas de tela, PDF e backup de teste em artefato temporário. A sincronização real entre dois aparelhos precisa ser verificada com dados de teste e configuração válida.
+A suíte verifica navegação, seleção por série, abas, edição segura, projeção, persistência, cancelamento, desfazer, marcações independentes por turma, backups, impressão e largura de celular. Firebase é simulado nos testes; eles não escrevem no banco de produção. O workflow gera capturas de tela, PDF e backup de teste em artefato temporário. A sincronização real entre dois aparelhos precisa ser verificada com dados de teste e configuração válida.
 
 ## Segunda rodada de usabilidade
 
@@ -59,7 +59,7 @@ A aba escolhida é mantida ao navegar pelas semanas e reabrir o aplicativo. O ca
 
 ## Material de apoio para estudo e projeção
 
-Preparar / estudar abre a preparação com fundamentação e conteúdo curricular expandidos. Projetar quadro abre o caderno da semana selecionada. A última turma, disciplina e semana são retomadas ao abrir o aplicativo. Voltar da projeção mantém a aba da professora.
+Preparar / estudar abre a preparação com fundamentação e conteúdo curricular expandidos. Projetar quadro abre o caderno da semana selecionada. A última série, disciplina e semana são retomadas ao abrir o aplicativo. Voltar da projeção mantém a aba da professora.
 
 Problematização, Conteúdo, Quadro, Atividade e Fontes são materiais independentes, escolhidos diretamente. Não há sequência, contagem de etapas ou obrigação de usar atividades. A troca de semana preserva o tipo de material escolhido. As seis semanas continuam acessíveis pelo seletor e pelos botões de semana.
 
@@ -74,3 +74,7 @@ A área principal começa na aula selecionada. O cartão redundante “Pronto pa
 O HTML principal passou de 1.217.289 para 59.664 bytes. Os textos foram extraídos integralmente, sem alterar IDs, chaves de salvamento, links, desenhos ou a estrutura usada pelas edições. Os scripts clássicos mantêm a ordem e o ponto de inicialização anteriores; os estilos mantêm sua ordem de aplicação.
 
 Esta etapa separa conteúdo, estilos e funções sem acrescentar telas ou cliques. Todo o conteúdo ainda é montado na abertura para manter busca, backups, sincronização e impressão de conjuntos disponíveis. Não é lazy loading: o volume total transferido e o DOM não diminuem por essa extração. Os arquivos separados podem ser reutilizados pelo cache HTTP do navegador, conforme as respostas da hospedagem. Não foi acrescentada garantia de acesso offline.
+
+## Seleção por série e aplicação por turma
+
+O topo oferece somente Série e Disciplina, sem campo de busca. Cada aula traz caixas de seleção com os nomes das turmas da série. Marcar ou desmarcar uma turma conserva os registros das demais e usa as mesmas chaves de aula e turma dos backups anteriores. A data registrada continua disponível no título da caixa e no painel Progresso das turmas. A série, disciplina e semana anteriores continuam sendo retomadas, inclusive a partir da preferência antiga que incluía a turma.

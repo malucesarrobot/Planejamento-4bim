@@ -80,7 +80,7 @@ try{
   assert.equal(await page.locator('article.week-card:visible').getAttribute('data-ux-panel'),'prepare');
   await page.locator('#wkPrepare').click();
   await page.screenshot({path:'test-results/mobile-teacher-preparation.png'});
-  await page.locator('#uxClass').selectOption('s3|3ªB');await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#uxWeekChoices button').nth(2).click();
+  await page.locator('#uxSeries').selectOption('s3');await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#uxWeekChoices button').nth(2).click();
   await page.reload();await page.waitForSelector('body.ux-ready');await page.locator('#wkProject').click();
   assert.match(await page.locator('#projectionTitle').textContent(),/\S/);
   assert.equal(await page.locator('article.week-card:not(.ux-inactive):not(.hidden)').getAttribute('id'),'s3-filosofia-semana-3');

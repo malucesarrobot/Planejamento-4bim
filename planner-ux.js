@@ -5,11 +5,11 @@
   const $ = id => document.getElementById(id);
   const cards = [...document.querySelectorAll('article.week-card')];
   const bases = new Map(), panels = new Map(), remembered = new Map();
-  const classSelect = $('uxClass'), subjectSelect = $('uxSubject');
+  const seriesSelect = $('uxSeries'), subjectSelect = $('uxSubject');
   const fieldFor = id => document.querySelector('textarea[data-save="ux-' + id + '-edits"]');
   const viewKey = 'malu-ui-view', panelKey = 'malu-ui-panels';
   let panelMemory={};try { const p=JSON.parse(localStorage.getItem(panelKey)||'{}'); if(p && typeof p==='object' && !Array.isArray(p))panelMemory=p; }catch(e){}
-  let current = null, realClass = '9ºA', undoAction = null, restoring = true;
+  let current = null, undoAction = null, restoring = true;
   let editorState = null, editorDirty = false, printState = [];
   function el(tag, cls, text) { const n=document.createElement(tag); if(cls)n.className=cls; if(text != null)n.textContent=text; return n; }
 
@@ -112,18 +112,17 @@
   function saveView() {
     if(restoring)return;
     const v=planner.getSelection();
-    try{localStorage.setItem(viewKey,JSON.stringify({s:v.s,d:v.d,w:current,t:realClass}));}catch(e){}
+    try{localStorage.setItem(viewKey,JSON.stringify({s:v.s,d:v.d,w:current}));}catch(e){}
   }
   function toolbarHeight() { document.documentElement.style.setProperty('--toolbar-h', $('navShell').parentElement.offsetHeight+'px'); }
-  function rememberClass() {
+  function rememberSeries() {
     const v=planner.getSelection();
-    if(!C.CLASSES[v.s].includes(realClass))realClass=C.CLASSES[v.s][0];
-    classSelect.value=v.s+'|'+realClass;
+    seriesSelect.value=v.s;
     subjectSelect.value=v.d;
     for(const opt of subjectSelect.options)opt.disabled=v.s==='s9' && opt.value!=='historia';
   }
   function refresh(preferred, focus) {
-    rememberClass();
+    rememberSeries();
     const eligible=matches(), ids=eligible.map(c=>c.id);
     current=C.chooseWeek(ids,preferred || current);
     for(const c of cards)c.classList.toggle('ux-inactive',c.id!==current);
@@ -137,9 +136,9 @@
     const i=ids.indexOf(current),c=current && $(current);
     $('wkPrev').disabled=i<=0; $('wkNext').disabled=i<0 || i>=ids.length-1; $('wkProject').disabled=!c;if($('wkPrepare'))$('wkPrepare').disabled=!c;
     const range=c ? seducWeekRange(c) : '';
-    $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass+(range?' · '+range:'') : 'Nenhuma aula encontrada';
+    $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+seriesSelect.selectedOptions[0].textContent+(range?' · '+range:'') : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
-    $('searchCount').hidden=!$('searchBox').value.trim();
+    $('searchCount').hidden=true;
     if(c){remembered.set(activeSection().id,c.id);const panel=panelMemory[activeSection().id];setPanel(c,['prepare','notebook','activity'].includes(panel)?panel:'prepare',false);}
 
     refreshMarks();toolbarHeight();saveView();
@@ -161,12 +160,12 @@
   });
   shortcuts.append(prepareButton,$('wkProject'));$('navShell').parentElement.after(shortcuts);
 
-  classSelect.addEventListener('change',()=>{
-    const [s,t]=classSelect.value.split('|');realClass=t;const d=subjectSelect.value;
-    $('searchBox').value='';planner.setSelection(s,d);refresh(remembered.get(activeSection().id),true);
+  seriesSelect.addEventListener('change',()=>{
+    const s=seriesSelect.value,d=subjectSelect.value;
+    planner.setSelection(s,d);refresh(remembered.get(activeSection().id),true);
   });
   subjectSelect.addEventListener('change',()=>{
-    $('searchBox').value='';planner.setSelection(planner.getSelection().s,subjectSelect.value);
+    planner.setSelection(planner.getSelection().s,subjectSelect.value);
     refresh(remembered.get(activeSection().id),true);
   });
   document.addEventListener('malu:selection',()=>{if(!restoring)refresh(remembered.get(activeSection().id));});
@@ -179,7 +178,7 @@
     const id=location.hash.slice(1),card=$(id);
     if(!card || !card.matches('article.week-card'))return;
     const m=id.match(/^(s9|s1|s2|s3)-(historia|filosofia|sociologia)-/);
-    if(m){$('searchBox').value='';planner.setSelection(m[1],m[2]);showWeek(id,true);}
+    if(m){planner.setSelection(m[1],m[2]);showWeek(id,true);}
   });
   document.addEventListener('keydown',e=>{
     if(e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]') || document.body.classList.contains('is-projecting') || document.body.classList.contains('is-aulas') || document.body.classList.contains('is-sync'))return;
@@ -237,10 +236,14 @@
     const actions=el('div','ux-actions');actions.setAttribute('aria-label','Ações desta aula');
     const edit=el('button',null,'Editar aula');edit.type='button';edit.addEventListener('click',()=>openEditor(card.id));
     const print=el('button',null,'Imprimir');print.type='button';print.addEventListener('click',()=>openPrint(card.id));
-    const done=el('button','ux-mark','Marcar como dada');done.type='button';done.dataset.uxMark=card.id;
-    done.addEventListener('click',()=>markGiven(card.id));
-    const date=el('span','ux-given-date');date.dataset.uxDate=card.id;
-    actions.append(edit,print,done,date);card.querySelector('.week-head').after(actions);
+    const checks=el('div','ux-class-checks');checks.setAttribute('role','group');checks.setAttribute('aria-label','Aplicado às turmas');
+    for(const turma of C.CLASSES[card.id.split('-')[0]]) {
+      const label=el('label','ux-class-check');
+      const check=el('input');check.type='checkbox';check.dataset.uxMark=card.id;check.dataset.uxClass=turma;
+      check.addEventListener('change',()=>markGiven(card.id,turma,check.checked));
+      label.append(check,document.createTextNode(turma));checks.appendChild(label);
+    }
+    actions.append(edit,print,checks);card.querySelector('.week-head').after(actions);
     const tabs=el('div','ux-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Conteúdo da aula');
     const set={};
     for(const [key,label] of [['prepare','Preparar aula'],['notebook','Caderno dos alunos'],['activity','Atividade']]) {
@@ -324,17 +327,16 @@
     cards.forEach(c=>applyCardEdits(c.id));planner.updateSearch();refresh();
   });
 
-  // One tap records this week's completion for the selected real class.
+  // Each class retains its existing week|class record independently of navigation.
   function refreshMarks() {
     const data=window.__maluAulas.get();
     const section=activeSection(),weeks=section ? [...section.querySelectorAll('article.week-card')] : [];
-    const done=weeks.filter(c=>!!data[c.id+'|'+realClass]).length;
-    $('uxResume').textContent=weeks.length ? 'Progresso de '+realClass+': '+done+' de '+weeks.length+' semanas dadas nesta disciplina' : '';
-    for(const card of cards) {
-      const date=data[card.id+'|'+realClass],button=card.querySelector('[data-ux-mark]');
-      button.textContent=date ? 'Dada para '+realClass+' ✓' : 'Marcar como dada para '+realClass;
-      button.setAttribute('aria-pressed',String(!!date));
-      card.querySelector('[data-ux-date]').textContent=date ? C.dateBR(date) : '';
+    const classes=C.CLASSES[planner.getSelection().s];
+    $('uxResume').textContent=classes.map(turma=>turma+': '+weeks.filter(c=>!!data[c.id+'|'+turma]).length+' de '+weeks.length+' semanas dadas').join(' · ');
+    for(const check of document.querySelectorAll('input[data-ux-mark]')) {
+      const date=data[check.dataset.uxMark+'|'+check.dataset.uxClass];
+      check.checked=!!date;
+      check.title=date ? 'Aplicado em '+C.dateBR(date) : '';
     }
   }
   function setMark(key,date) {
@@ -342,10 +344,11 @@
     if(!window.__maluAulas.set(data)){feedback('Não foi possível salvar a marcação neste aparelho.');return false;}
     document.dispatchEvent(new CustomEvent('malu:aula',{detail:{key,date:date || null}}));refreshMarks();return true;
   }
-  function markGiven(id) {
-    const turma=realClass,key=id+'|'+turma,previous=window.__maluAulas.get()[key] || null;
-    const date=previous ? null : C.dateLocal(new Date());
-    if(setMark(key,date))feedback(date ? 'Semana marcada como dada para '+turma+'.' : 'Marcação retirada para '+turma+'.',()=>{setMark(key,previous);feedback('Marcação desfeita.');});
+  function markGiven(id,turma,checked) {
+    const key=id+'|'+turma,previous=window.__maluAulas.get()[key] || null;
+    const date=checked ? C.dateLocal(new Date()) : null;
+    if(!setMark(key,date)){refreshMarks();return;}
+    feedback(date ? 'Semana marcada como dada para '+turma+'.' : 'Marcação retirada para '+turma+'.',()=>{setMark(key,previous);feedback('Marcação desfeita.');});
   }
   document.addEventListener('malu:aula',refreshMarks);document.addEventListener('malu:aulas-updated',refreshMarks);
   $('aulasClose').addEventListener('click',refreshMarks);
@@ -491,7 +494,6 @@
   let saved=null;try{saved=JSON.parse(localStorage.getItem(viewKey)||'null');}catch(e){}
   const hash=location.hash.slice(1),hashCard=$(hash);
   if(saved && C.CLASSES[saved.s] && ['historia','filosofia','sociologia'].includes(saved.d) && !hash) {
-    realClass=C.CLASSES[saved.s].includes(saved.t) ? saved.t : C.CLASSES[saved.s][0];
     planner.setSelection(saved.s,saved.d);current=saved.w;
   } else if(hashCard && hashCard.matches('article.week-card'))current=hash;
   document.body.classList.add('ux-ready');restoring=false;planner.updateSearch();refresh(current);
