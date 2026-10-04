@@ -12,6 +12,17 @@ try{
   await page.route('https://fonts.gstatic.com/**',r=>r.abort());
   await page.goto('http://127.0.0.1:'+server.address().port);
   await page.waitForSelector('body.ux-ready');
+  assert.equal(await page.locator('.lesson-launch').count(),0);
+  assert.equal(await page.locator('#uxResume').isVisible(),false);
+  assert.equal(await page.locator('#uxStorage').isVisible(),false);
+  assert.equal(await page.locator('#searchCount').isVisible(),false);
+  assert.equal(await page.locator('#guia').isVisible(),false);
+  const lesson=await page.locator('article.week-card:visible').boundingBox(),track=await page.locator('.study-track:visible').boundingBox();
+  assert.ok(lesson.y<track.y,'lesson must precede the overview');
+  await page.locator('#wkTrack').click();
+  const trackBox=await page.locator('.study-track:visible').boundingBox();assert.ok(trackBox.y>=0 && trackBox.y<100);
+  await page.locator('#wkPrepare').click();
+  await page.screenshot({path:'test-results/mobile-lesson-first.png'});
   await page.locator('article.week-card:visible').getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
   await page.locator('#wkPrepare').click();
   assert.equal(await page.locator('article.week-card:visible').getAttribute('data-ux-panel'),'prepare');

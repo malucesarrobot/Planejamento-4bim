@@ -139,35 +139,27 @@
     const range=c ? seducWeekRange(c) : '';
     $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+realClass+(range?' · '+range:'') : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
-    launch.querySelector('h2').textContent=c ? weekTitle(c) : 'Nenhuma aula selecionada';
-    launch.querySelector('.lesson-launch-context').textContent=c ? realClass+' · '+subjectSelect.selectedOptions[0].textContent+' · Semana '+weekNumber(c)+(range?' · '+range:'') : 'Escolha a turma e a disciplina ou limpe a busca.';
-    launchButton.disabled=!c;
+    $('searchCount').hidden=!$('searchBox').value.trim();
     if(c){remembered.set(activeSection().id,c.id);const panel=panelMemory[activeSection().id];setPanel(c,['prepare','notebook','activity'].includes(panel)?panel:'prepare',false);}
 
     refreshMarks();toolbarHeight();saveView();
-    if(focus && c) { c.querySelector('.week-head h3').focus({preventScroll:true});c.scrollIntoView({block:'start',behavior:'auto'}); }
+    if(focus && c) { c.querySelector('.week-head h3').focus({preventScroll:true});c.scrollIntoView({block:'start',behavior:'instant'}); }
   }
   function showWeek(id, focus) { refresh(id,focus); }
   $('wkPrev').addEventListener('click',()=>{const list=matches(),i=list.findIndex(c=>c.id===current);if(i>0)showWeek(list[i-1].id,true);});
   $('wkNext').addEventListener('click',()=>{const list=matches(),i=list.findIndex(c=>c.id===current);if(i>=0 && i<list.length-1)showWeek(list[i+1].id,true);});
   function startLesson() { if(current)window.openProjection(current); }
   $('wkProject').addEventListener('click',startLesson);
-  const launch=el('section','lesson-launch');
-  launch.setAttribute('aria-label','Começar a aula');
-  const launchText=el('div');
-  launchText.append(el('p',null,'Pronto para projetar'),el('h2',null,''),el('p','lesson-launch-context',''));
-  const launchButton=$('wkProject');
-  launch.append(launchText);$('conteudo').prepend(launch);
   const shortcuts=el('nav','lesson-quick-nav');shortcuts.setAttribute('aria-label','Acesso direto à aula');
   const prepareButton=el('button',null,'Preparar / estudar');prepareButton.id='wkPrepare';prepareButton.type='button';
   prepareButton.addEventListener('click',()=>{
     const card=current && $(current);if(!card)return;
     setPanel(card,'prepare');
     card.querySelectorAll('.prof-caderno,.ux-curriculum').forEach(d=>d.open=true);
-    card.scrollIntoView({block:'start',behavior:'auto'});
+    card.scrollIntoView({block:'start',behavior:'instant'});
     card.querySelector('.week-head h3').focus({preventScroll:true});
   });
-  shortcuts.append(prepareButton,launchButton);$('navShell').parentElement.after(shortcuts);
+  shortcuts.append(prepareButton,$('wkProject'));$('navShell').parentElement.after(shortcuts);
 
   classSelect.addEventListener('change',()=>{
     const [s,t]=classSelect.value.split('|');realClass=t;const d=subjectSelect.value;
@@ -288,7 +280,17 @@
   addOfficialCalendar();
   for(const card of cards)setupCard(card);
   // Keep each discipline's six-week learning track visible. It is primary navigation/context, not optional detail.
-  document.querySelectorAll('.study-track').forEach(track=>track.removeAttribute('hidden'));
+  document.querySelectorAll('.study-track').forEach(track=>{
+    track.removeAttribute('hidden');
+    const section=track.closest('section.discipline'),last=section.querySelector('article.week-card:last-of-type');
+    if(last)last.after(track);
+  });
+  const trackButton=el('button',null,'Ver trilha');trackButton.id='wkTrack';trackButton.type='button';
+  trackButton.addEventListener('click',()=>{const track=activeSection()?.querySelector('.study-track');if(track){track.tabIndex=-1;track.scrollIntoView({block:'start',behavior:'instant'});track.focus({preventScroll:true});}});
+  $('wkLabel').after(trackButton);
+  const toolsPanel=$('navTools').querySelector('.tools-panel');
+  toolsPanel.prepend($('uxResume'),$('uxStorage'),$('guia'));
+
 
   // Restore title, notebook and activity from text-only patches. No saved HTML is executed.
   function readEdits(id) { return C.parseEdits(fieldFor(id).value); }

@@ -56,3 +56,5 @@ Problematização, Conteúdo, Quadro, Atividade e Fontes são materiais independ
 Fontes oferece os links já cadastrados, sem depender dos QR codes nem de rolar até o fim do quadro. Os links abrem em outra aba; ao retornar, a aula permanece aberta. Alternar entre Quadro e Fontes preserva a posição de leitura. Ajustes reúne tamanho das letras, referências no rodapé e impressão. As fontes dependem de internet e da disponibilidade dos sites externos.
 
 No celular, somente os dois acessos diretos ficam fixos; a navegação completa e as ações de edição/impressão rolam com a página. A fundamentação e as respostas da professora não entram na projeção dos materiais dos alunos.
+
+A área principal começa na aula selecionada. O cartão redundante “Pronto para projetar” foi removido; progresso, sincronização e ajuda ficam em Mais opções. A trilha continua visível após a aula, com acesso direto por Ver trilha. O resultado da busca aparece na área principal somente durante uma busca.
