@@ -1,4 +1,4 @@
-/* Glossários de preparação: definições do material e complementos didáticos de arte. */
+/* Glossários de preparação: conceitos aprofundados e vocabulário de apoio do material. */
 (function () {
   'use strict';
   const art = [
@@ -46,14 +46,16 @@
     for(const r of notebook.querySelectorAll('.registro-tabela tr')){const td=r.querySelectorAll('td');if(td.length===2 && terms.some(t=>norm(t)===norm(td[0].textContent)))add(td[0].textContent,td[1].textContent);}
     const special=card.id==='s3-filosofia-semana-1' ? art : card.id==='s3-filosofia-semana-2' ? [...art.filter(e=>['Arte','Fruição','Experiência estética','Interpretação','Cânone'].includes(e[0])),...society] : null;
     if(special){entries.clear();for(const e of special)add(...e);}
+    const reviewed=window.MaluStudyData?.lessons[card.id];
+    if(reviewed){const original=[...entries.values()];entries.clear();for(const e of reviewed.terms)add(...e);for(const e of original)if(!entries.has(norm(e[0])))add(...e);}
     if(!entries.size)return null;
     const box=node('section',null,'ux-glossary');box.setAttribute('aria-labelledby',card.id+'-glossary-title');
     const heading=node('h4','Glossário da aula');heading.id=card.id+'-glossary-title';box.appendChild(heading);
-    if(special)box.appendChild(node('p','Definições de trabalho para explicar em sala. Quando o sentido é de um autor, ele está identificado.','ux-glossary-intro'));
+    box.appendChild(node('p','Definições, critérios e distinções para preparar a explicação. Sentidos específicos de autores estão identificados; exemplos e limites são desenvolvidos na fundamentação abaixo.','ux-glossary-intro'));
     const list=node('dl');
     for(const [term,definition,example] of entries.values()) {
       list.appendChild(node('dt',term));const dd=node('dd');dd.appendChild(node('p',definition));
-      if(example)dd.appendChild(node('p','Exemplo: '+example,'ux-glossary-example'));list.appendChild(dd);
+      if(example)dd.appendChild(node('p','Exemplo didático: '+example,'ux-glossary-example'));list.appendChild(dd);
     }
     box.appendChild(list);
     if(special){const refs=node('details',null,'ux-glossary-sources');refs.appendChild(node('summary','Referências do glossário'));

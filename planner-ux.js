@@ -232,6 +232,7 @@
     if(!notebook || !activity)throw new Error('Aula sem caderno ou atividade: '+card.id);
     notebookCurriculum(card,notebook);
     const glossary=window.MaluGlossary.build(card,notebook);
+    window.MaluStudy.attach(card);
     const head=card.querySelector('.week-head h3');head.tabIndex=-1;
     bases.set(card.id,{title:head.textContent,notebook:notebook.cloneNode(true),activity:activity.cloneNode(true)});
     const actions=el('div','ux-actions');actions.setAttribute('aria-label','Ações desta aula');

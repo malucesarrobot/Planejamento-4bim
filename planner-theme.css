@@ -92,6 +92,16 @@
   body.ux-ready .ux-glossary-sources {margin-top:14px;font-size:.85rem;}
   body.ux-ready .ux-glossary-sources summary {cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;}
   body.ux-ready .ux-glossary-sources a {overflow-wrap:anywhere;}
+  body.ux-ready .ux-study {border-top:1px solid var(--line);margin:24px 0;padding-top:20px;}
+  body.ux-ready .ux-study h5 {font:700 .95rem/1.5 system-ui,sans-serif;margin:0 0 8px;color:#235c4b;}
+  body.ux-ready .ux-study-limit,body.ux-ready .ux-study-example {margin:20px 0;padding:16px;border-left:3px solid #809687;background:#f6f8f4;}
+  body.ux-ready .ux-study-example h5:not(:first-child) {margin-top:16px;}
+  body.ux-ready .ux-study-sources {margin-top:22px;}
+  body.ux-ready .ux-study-sources li {margin:0 0 12px;}
+  body.ux-ready .ux-study-sources a {overflow-wrap:anywhere;font-size:.95rem;}
+  body.ux-ready .ux-study-sources li p {font-size:.85rem;margin:4px 0;color:#52655a;}
+  body.ux-ready .ux-study-original {margin-top:20px;font-size:.85rem;}
+  body.ux-ready .ux-study-original>summary {min-height:44px;cursor:pointer;display:flex;align-items:center;}
   @media(max-width:760px) {
     body.ux-ready .hero {padding:18px 18px!important;}
     body.ux-ready .hero h1 {font-size:1.5rem!important;}
