@@ -81,4 +81,12 @@ O topo oferece somente Série e Disciplina, sem campo de busca. Cada aula traz c
 
 ## Glossários por aula
 
-A preparação de todas as 60 semanas tem um Glossário da aula expandido, reunindo definições já existentes no material. Em Estética e Filosofia da Arte e Arte e Sociedade, o glossário foi complementado com definições de trabalho, exemplos e referências consultáveis; os sentidos específicos de Kant e Benjamin são identificados. O componente fica na preparação da professora e não entra nas projeções nem na impressão do caderno dos alunos. O texto original dos cadernos e a estrutura usada pelas edições anteriores permanecem intactos. `assets/js/planner-glossary.js` reúne essa lógica e os complementos de arte.
+A preparação de todas as 60 semanas tem um Glossário da aula expandido, reunindo definições já existentes no material. Em Estética e Filosofia da Arte e Arte e Sociedade, o glossário foi complementado com definições de trabalho, exemplos e referências consultáveis; os sentidos específicos de Kant e Benjamin são identificados. O componente fica na preparação da professora e não entra nas projeções nem na impressão do caderno dos alunos. A revisão conceitual registra as correções pontuais dos textos e gabaritos; a estrutura usada pelas edições anteriores foi preservada. `assets/js/planner-glossary.js` reúne essa lógica e os complementos de arte.
+
+## Compartilhamento por público, série e disciplina
+
+Em Mais opções → Compartilhar material, selecione Professor ou Alunos, as combinações de série/disciplina e as turmas pertinentes. A exportação gera um HTML autônomo com seis semanas por disciplina selecionada e estilos e lógica incorporados. Para o professor, há preparação, quadro, atividades, respostas e fontes. Para alunos, há quadro com modo de projeção, atividades e fontes; a preparação e as respostas não são incluídas no arquivo.
+
+O gerador lê uma cópia imutável do conteúdo publicado, capturada antes da restauração dos dados pessoais. Não exporta localStorage, edições pessoais, anotações, marcações, backups nem configuração/código de sincronização. O HTML gerado não usa armazenamento, Firebase ou APIs do planejamento; alterações feitas numa cópia não afetam o original. Abrir o conteúdo dispensa conexão; consultar links externos de fontes requer internet. Mudanças futuras no planejamento exigem gerar uma nova cópia.
+
+Um exemplo de versão para professor reúne História da 3ª série e Filosofia da 1ª série em `compartilhar/professor-historia-3-filosofia-1.html`. O seletor permite gerar outros recortes, inclusive apenas uma turma.
