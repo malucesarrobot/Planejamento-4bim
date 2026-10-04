@@ -19,6 +19,7 @@ Mais opções oferece progresso de todas as turmas, cópia de segurança, sincro
 - `planner-core.js`: validação de edições de texto e seleção de semanas.
 - `planner-ux.js`: navegação por turma e semana, abas, edição, marcações e impressão.
 - `planner-ux.css`: apresentação para computador, celular e impressão.
+- `planner-theme.css`: acabamento visual da interface em tela, sem modificar o caderno pedagógico nem a impressão.
 - `manifest.webmanifest` e `icones/`: metadados e ícones de instalação. Não há service worker; instalação não garante funcionamento offline.
 - `Notas_de_revisao_4Bimestre.html`: histórico de revisão do conteúdo.
 - `Atividades_4Bimestre_para_impressao.pdf`: PDF estático anterior; as edições feitas no aplicativo aparecem na impressão do aplicativo, não nesse arquivo.
