@@ -19,13 +19,13 @@
     const wrap=node('section',null,'ux-exam-connections');wrap.appendChild(node('h4','Questões já cobradas · 2016–2025'));
     wrap.appendChild(node('p',lesson.theme,'ux-exam-theme'));
     wrap.appendChild(node('p','Direta: o conteúdo cobrado coincide com a aula. Aproximação: permite comparação ou aprofundamento. O ano é a edição do exame. A numeração depende do caderno indicado.','ux-editorial-note'));
-    paragraphs(wrap,lesson.connections[0].why);
     for(const c of lesson.connections){
       const r=data.occurrences[c.ref],item=node('article',null,'ux-exam-item');item.dataset.examRef=c.ref;
       item.appendChild(node('h5',r.exame+' · '+r.ano));
       item.appendChild(node('p',r.tema,'ux-exam-theme'));
       item.appendChild(node('p','Banca: '+r.banca+' · '+r.localizacao+' · '+r.caderno,'ux-editorial-note'));
       item.appendChild(node('p',c.relation==='Direta'?'Conteúdo diretamente relacionado':'Aproximação com esta aula','ux-exam-relation'));
+      paragraphs(item,c.why);
       if(r.nota)paragraphs(item,r.nota);
       link(item,'Abrir prova ou publicação oficial ↗',r.fonte);wrap.appendChild(item);
     }

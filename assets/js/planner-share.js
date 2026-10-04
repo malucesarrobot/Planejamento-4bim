@@ -26,7 +26,8 @@
       const lessons=[];
       for(const c of root.querySelectorAll('article.week-card'))if(c.id.startsWith(g.id+'-semana-')){
         const notebook=c.querySelector('.wide.notebook'),activity=c.querySelector('.atv-aluno');
-        const lesson={id:c.id,title:c.querySelector('.week-head h3').textContent.trim(),quadro:clean(notebook),esquema:clean(window.MaluStudy.board(c)),atividade:clean(activity),fontes:[]};
+        const exam=window.MaluStudy.exams(c);
+        const lesson={exames:exam?clean(exam):'<p>Não há questão vinculada a esta aula na seleção pesquisada de 2016–2025. Isso não significa que o conteúdo nunca tenha sido cobrado.</p>',id:c.id,title:c.querySelector('.week-head h3').textContent.trim(),quadro:clean(notebook),esquema:clean(window.MaluStudy.board(c)),atividade:clean(activity),fontes:[]};
         for(const f of JSON.parse(c.dataset.fontes||'[]'))if(/^https?:\/\//.test(f.u))lesson.fontes.push({t:f.t,u:f.u});
         if(kind==='professor') {
           const glossary=window.MaluGlossary.build(c,notebook);window.MaluStudy.attach(c);
@@ -51,7 +52,7 @@
       (function(){'use strict';const data=JSON.parse(document.getElementById('shareData').textContent),select=document.getElementById('shareGroup'),content=document.querySelector('.share-content'),weeks=document.querySelector('.share-weeks'),tabs=document.querySelector('.share-tabs');let index=0,material='quadro';
       document.title=data.title;document.getElementById('shareHeading').textContent=data.title;
       data.items.forEach((g,i)=>{const o=document.createElement('option');o.value=i;o.textContent=g.label;select.append(o);});
-      const materials=data.kind==='professor'?[['preparacao','Preparação'],['quadro','Quadro'],['esquema','Esquema'],['atividade','Atividades'],['fontes','Fontes']]:[['quadro','Quadro'],['esquema','Esquema'],['atividade','Atividades'],['fontes','Fontes']];
+      const materials=data.kind==='professor'?[['preparacao','Preparação'],['quadro','Quadro'],['esquema','Esquema'],['atividade','Atividades'],['exames','Exames'],['fontes','Fontes']]:[['quadro','Quadro'],['esquema','Esquema'],['atividade','Atividades'],['exames','Exames'],['fontes','Fontes']];
       materials.forEach(([key,label])=>{const b=document.createElement('button');b.type='button';b.dataset.material=key;b.textContent=label;b.setAttribute('role','tab');b.onclick=()=>{material=key;render();};tabs.append(b);});
       function render(){const g=data.items[Number(select.value)],lesson=g.lessons[index];document.getElementById('shareAudience').textContent=g.classes.join(' · ');document.querySelector('.share-title').textContent=lesson.title;content.replaceChildren();weeks.replaceChildren();g.lessons.forEach((l,i)=>{const b=document.createElement('button');b.textContent=i+1;b.setAttribute('aria-label','Semana '+(i+1));b.setAttribute('aria-pressed',String(i===index));b.onclick=()=>{index=i;render();window.scrollTo(0,0);};weeks.append(b);});
       tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.material===material)));

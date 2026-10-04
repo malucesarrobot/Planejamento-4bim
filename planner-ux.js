@@ -262,6 +262,8 @@
     });
     actions.after(tabs);
     set.notebook.appendChild(notebook);
+    const examConnections=window.MaluStudy.exams(card);
+    if(examConnections)set.notebook.appendChild(examConnections);
     const atv=card.querySelector('.atv-d'),body=atv.querySelector('.atv-body');
     const answer=body.querySelector('.atv-prof');
     if(answer){const d=el('details','ux-answer');d.appendChild(el('summary',null,'Orientações e respostas da professora'));d.appendChild(answer);body.appendChild(d);}

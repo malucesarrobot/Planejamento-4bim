@@ -20,4 +20,4 @@ Todas as 18 semanas da 3ª série recebem uma seleção curta. Nas demais série
 
 ## Integridade
 
-Complementos ficam fora dos campos editáveis e não mudam os caminhos usados para restaurar edições. Cópias portáteis continuam extraídas da base publicada, sem ler anotações, marcas, edições particulares ou configuração de sincronização. Alunos recebem somente o esquema conceitual, quadro, atividade e fontes; respostas docentes e análise de exames ficam na preparação do professor. Cópias já baixadas precisam ser geradas novamente.
+Complementos ficam fora dos campos editáveis e não mudam os caminhos usados para restaurar edições. Cópias portáteis continuam extraídas da base publicada, sem ler anotações, marcas, edições particulares ou configuração de sincronização. Alunos recebem esquema conceitual, quadro, atividade, fontes e relações documentadas com exames, incluindo treino autoral opcional. O bloco aparece no Caderno dos alunos, na projeção em Exames e nas cópias compartilhadas. Respostas docentes e orientações de preparação permanecem exclusivas do professor. Cópias já baixadas precisam ser geradas novamente.

@@ -197,3 +197,8 @@ body.ux-ready main>.ux-search-count[hidden]{display:none!important}
  body.ux-ready .weekbar .wk-label{min-width:0;font-size:.78rem;line-height:1.4}
  body.ux-ready .weekbar #wkTrack{font-size:.75rem;padding:8px}
 }
+
+/* Relações com provas fora dos campos editáveis do quadro. */
+.ux-panel>.ux-exam-connections,.projection-page>.ux-exam-connections{padding:18px;background:#fff;line-height:1.55;margin-top:16px}
+.ux-exam-connections a{overflow-wrap:anywhere}
+.ux-exam-connections .ux-exam-item{padding:14px 0;border-bottom:1px solid #dce5dd}

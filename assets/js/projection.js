@@ -122,7 +122,7 @@
     const subject = card.closest('section.discipline');
     const series = card.closest('section.series');
     const atvSrc = mode === 'atividade' ? card.querySelector('.atv-aluno') : null;
-    const clone = mode==='esquema' ? window.MaluStudy.board(card) : ['pergunta','conteudo'].includes(mode) ? studentMaterial(card,mode) : mode==='fontes' ? (buildRefs(card) || el('section','lesson-reading','Nenhuma fonte cadastrada para esta aula.')) : (atvSrc || notebook).cloneNode(true);
+    const clone = mode==='exames' ? (window.MaluStudy.exams(card) || el('section','lesson-reading','Não há questão vinculada a esta aula na seleção pesquisada de 2016–2025. Isso não significa que o conteúdo nunca tenha sido cobrado.')) : mode==='esquema' ? window.MaluStudy.board(card) : ['pergunta','conteudo'].includes(mode) ? studentMaterial(card,mode) : mode==='fontes' ? (buildRefs(card) || el('section','lesson-reading','Nenhuma fonte cadastrada para esta aula.')) : (atvSrc || notebook).cloneNode(true);
     page.className = `projection-page ${[...subject.classList].find(c => ['historia','filosofia','sociologia'].includes(c)) || ''}`;
     page.style.setProperty('--projection-scale',String(scale));
     page.replaceChildren(clone);
