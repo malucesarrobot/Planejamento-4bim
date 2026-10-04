@@ -7,7 +7,7 @@ Aplicativo estático de Ciências Humanas: História do 9º ano e História, Fil
 1. Escolha a turma e a disciplina.
 2. Selecione a semana.
 3. Use Preparar aula, Caderno dos alunos ou Atividade.
-4. Projetar, Editar aula, Imprimir e Marcar como dada ficam na aula. No celular, ficam na barra inferior.
+4. Preparar / estudar e Projetar quadro ficam nos acessos diretos. Editar aula, Imprimir e Marcar como dada ficam na aula.
 
 Editar aula salva alterações de texto no título, caderno e atividade. Minhas anotações mantém os campos anteriores separados da projeção. Restaurar original mantém as anotações; Desfazer permite recuperar a edição anterior na mesma sessão.
 
@@ -15,7 +15,16 @@ Mais opções oferece progresso de todas as turmas, cópia de segurança, sincro
 
 ## Arquivos
 
-- `index.html`: conteúdo pedagógico, armazenamento e projeção existentes.
+- `index.html`: estrutura da interface, seletores, janelas e dicionário curricular.
+- `assets/css/planner-base.css`: estilos originais de leitura, cadernos, projeção e impressão, na mesma ordem de aplicação.
+- `assets/js/dados-bimestre.js`: conteúdo pedagógico do bimestre, com o HTML original preservado em um objeto versionado.
+- `assets/js/planner-content.js`: montagem do conteúdo antes da inicialização das ferramentas.
+- `assets/js/storage-fallback.js` e `storage-backup.js`: disponibilidade de armazenamento, anotações e backups.
+- `assets/js/reading-preferences.js`: preferências de leitura.
+- `assets/js/projection.js`: projeção dos materiais dos alunos.
+- `assets/js/lesson-progress.js`: registro de aulas dadas.
+- `assets/js/activity-print.js`: impressão de atividades.
+- `assets/js/sync.js`: sincronização opcional entre aparelhos.
 - `planner-core.js`: validação de edições de texto e seleção de semanas.
 - `planner-ux.js`: navegação por turma e semana, abas, edição, marcações e impressão.
 - `planner-ux.css`: apresentação para computador, celular e impressão.
@@ -59,3 +68,9 @@ Fontes oferece os links já cadastrados, sem depender dos QR codes nem de rolar 
 No celular, somente os dois acessos diretos ficam fixos; a navegação completa e as ações de edição/impressão rolam com a página. A fundamentação e as respostas da professora não entram na projeção dos materiais dos alunos.
 
 A área principal começa na aula selecionada. O cartão redundante “Pronto para projetar” foi removido; progresso, sincronização e ajuda ficam em Mais opções. A trilha continua visível após a aula, com acesso direto por Ver trilha. O resultado da busca aparece na área principal somente durante uma busca.
+
+## Modularização interna
+
+O HTML principal passou de 1.217.289 para 59.664 bytes. Os textos foram extraídos integralmente, sem alterar IDs, chaves de salvamento, links, desenhos ou a estrutura usada pelas edições. Os scripts clássicos mantêm a ordem e o ponto de inicialização anteriores; os estilos mantêm sua ordem de aplicação.
+
+Esta etapa separa conteúdo, estilos e funções sem acrescentar telas ou cliques. Todo o conteúdo ainda é montado na abertura para manter busca, backups, sincronização e impressão de conjuntos disponíveis. Não é lazy loading: o volume total transferido e o DOM não diminuem por essa extração. Os arquivos separados podem ser reutilizados pelo cache HTTP do navegador, conforme as respostas da hospedagem. Não foi acrescentada garantia de acesso offline.

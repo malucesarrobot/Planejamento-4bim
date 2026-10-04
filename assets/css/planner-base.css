@@ -1,0 +1,1516 @@
+/* Bloco 1 */
+
+:root{--bg:#f4f0e8;--paper:#fffdfa;--ink:#20272a;--muted:#566168;--line:#ded7cc;--wine:#743642;--hist:#8c5a2b;--fil:#54508f;--soc:#2e6c5e;--shadow:0 10px 28px rgba(45,38,30,.08)}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 7% 0%,rgba(116,54,66,.09),transparent 28rem),radial-gradient(circle at 92% 4%,rgba(46,108,94,.08),transparent 25rem),var(--bg);color:var(--ink);line-height:1.55}a{color:inherit}.hero{background:linear-gradient(135deg,#252b2e,#3b3231);color:white;padding:54px 20px 34px}.hero>div,.toolbar>div,main,footer{max-width:1200px;margin:auto}.kicker,small{text-transform:uppercase;letter-spacing:.12em;font-weight:800;font-size:.8125rem}.kicker{color:#d7b4ba}.hero h1,.series-head h1,.discipline-title h2{font-family:Georgia,serif}.hero h1{font-size:clamp(2.2rem,6vw,4.8rem);line-height:1;margin:.3rem 0 1rem}.hero p{max-width:870px;color:#e9e2db;font-size:1.05rem}.toolbar{position:sticky;top:0;z-index:30;background:rgba(255,253,250,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.toolbar>div{padding:10px 18px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}button,.pill,.filebtn,.chip{border:1px solid var(--line);background:white;border-radius:999px;padding:8px 12px;font:inherit;font-size:.86rem;font-weight:750;text-decoration:none;cursor:pointer}button:hover,.pill:hover,.filebtn:hover,.chip:hover{border-color:#9b8d7e}.search{margin-left:auto;min-width:230px;flex:1;max-width:360px}.search input{width:100%;border:1px solid var(--line);border-radius:999px;padding:9px 13px;font:inherit}main{padding:28px 18px 80px}.notice{background:#fff7dc;border:1px solid #e9d79a;border-radius:18px;padding:14px 16px;color:#5c512d}.series{margin-top:38px;scroll-margin-top:78px}.series-head{background:#252b2e;color:white;padding:22px 24px;border-radius:24px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow)}.series-head small{color:#cbbdc0}.series-head h1{font-size:2.3rem;margin:.1rem 0 0}.chips{display:flex;gap:8px;flex-wrap:wrap}.series-head .chip{background:#353c3f;color:white;border-color:#555c5f}.discipline{margin-top:34px;scroll-margin-top:84px}.discipline-title{display:flex;justify-content:space-between;align-items:end;gap:16px;padding:0 4px 12px;border-bottom:2px solid var(--line)}.discipline-title h2{font-size:2rem;margin:.05rem 0}.discipline-title p{margin:0;color:var(--muted)}.discipline-title a{font-size:.84rem;color:var(--muted);text-decoration:none}.historia .discipline-title{border-color:rgba(140,90,43,.5)}.filosofia .discipline-title{border-color:rgba(84,80,143,.5)}.sociologia .discipline-title{border-color:rgba(46,108,94,.5)}.week-card{margin-top:17px;background:var(--paper);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}.week-head{display:flex;align-items:center;gap:14px;padding:17px 19px;border-bottom:1px solid var(--line)}.week-head span{padding:7px 10px;border-radius:11px;background:#eee7dc;font-size:.8125rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.historia .week-head span{background:#f2e4d5;color:#70461f}.filosofia .week-head span{background:#e8e6f6;color:#49467c}.sociologia .week-head span{background:#dfeee9;color:#275a4e}.week-head h3{margin:0;font-size:1.18rem}.plan-grid{display:grid;grid-template-columns:1fr 1fr}.plan-grid section{padding:14px 17px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}.plan-grid section:nth-child(even){border-right:0}.plan-grid .wide{grid-column:1/-1;border-right:0}h4{margin:0 0 5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:.8125rem}p{margin:0}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88rem}.notebook{background:#fbf6e8}.notebook.empty{color:#4d4943}
+/* Identidade visual dos blocos de caderno */
+.wide.notebook{position:relative;margin-top:2px;padding:20px 18px 18px 76px;background:linear-gradient(to right,rgba(205,68,68,.24) 0,rgba(205,68,68,.24) 2px,transparent 2px) 54px 0/2px 100% no-repeat,repeating-linear-gradient(to bottom,#fffefb 0 30px,#d6e3ff 30px 31px);border:1px solid #d7cdbd;border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 14px rgba(77,63,43,.06)}
+.wide.notebook::before{content:"NO CADERNO";display:inline-block;position:absolute;top:12px;left:16px;padding:5px 10px;border-radius:999px;background:#fff6da;border:1px solid #d8bf7a;color:#6f5321;font:800 .8125rem/1 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.11em;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.wide.notebook::after{content:"";position:absolute;left:48px;top:0;bottom:0;width:2px;background:rgba(200,74,74,.45)}
+.wide.notebook h4{margin:18px 0 8px;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-size:1.22rem;line-height:1.2;letter-spacing:.01em;text-transform:none;color:#2a3e66;font-weight:700}
+.wide.notebook p,.wide.notebook li,.wide.notebook td,.wide.notebook th{font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-size:1.02rem;line-height:1.65;color:#2e2a25}
+.wide.notebook p strong,.wide.notebook li strong,.wide.notebook td strong,.wide.notebook th strong{font-family:inherit}
+.wide.notebook ul,.wide.notebook ol{margin:8px 0 6px 22px}
+.wide.notebook table{background:rgba(255,255,255,.65);border-radius:12px;overflow:hidden}
+.wide.notebook th,.wide.notebook td{border-color:#cfd8ec}
+@media(max-width:760px){.wide.notebook{padding:18px 14px 16px 60px}.wide.notebook::after{left:38px}.wide.notebook h4{font-size:1.08rem}.wide.notebook p,.wide.notebook li,.wide.notebook td,.wide.notebook th{font-size:.96rem;line-height:1.58}}
+@media print{.wide.notebook{box-shadow:none;background:linear-gradient(to right,rgba(205,68,68,.24) 0,rgba(205,68,68,.24) 2px,transparent 2px) 54px 0/2px 100% no-repeat,repeating-linear-gradient(to bottom,#fffefb 0 30px,#d6e3ff 30px 31px)}}details.build summary{cursor:pointer;padding:13px 19px;background:#f5efe5;font-weight:800;list-style:none}details.build summary::-webkit-details-marker{display:none}details.build summary::before{content:"＋ "}details.build[open] summary::before{content:"− "}.editors{padding:17px;display:grid;grid-template-columns:1fr 1fr;gap:13px;background:#fbfaf6}.editors label{display:flex;flex-direction:column;gap:6px;color:#625d56;font-size:.8125rem;font-weight:800}.editors .span2{grid-column:1/-1}textarea{min-height:115px;width:100%;resize:vertical;border:1px solid #d8cfc3;border-radius:12px;padding:10px 11px;font:inherit;line-height:1.45;background:white;color:var(--ink)}textarea:focus,input:focus{outline:3px solid rgba(116,54,66,.12);border-color:#9b6b73}.status{font-size:.8125rem;color:var(--muted)}.hidden{display:none!important}footer{padding:0 18px 44px;color:var(--muted);font-size:.88rem}#importFile{display:none}@media(max-width:760px){.search{order:3;min-width:100%;max-width:none}.plan-grid{grid-template-columns:1fr}.plan-grid section,.plan-grid section:nth-child(even),.plan-grid .wide{grid-column:1/-1;border-right:0}.editors{grid-template-columns:1fr}.editors .span2{grid-column:auto}}@media print{body{background:white}.toolbar,.notice,.discipline-title a,details.build summary{display:none!important}main{max-width:none;padding:0}.series{break-before:page;margin-top:0}.series:first-of-type{break-before:auto}.week-card{box-shadow:none;break-inside:avoid}textarea{min-height:80px;border:1px solid #bbb}}
+
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 32px}
+.overview-card{display:flex;flex-direction:column;gap:4px;background:var(--paper);border:1px solid var(--line);
+border-radius:18px;padding:16px 17px;text-decoration:none;box-shadow:var(--shadow)}
+.overview-card:hover{border-color:#9b8d7e;transform:translateY(-1px)}
+.overview-card small{color:var(--muted)}
+.overview-card strong{font-family:Georgia,serif;font-size:1.12rem}
+.overview-card span{color:var(--muted);font-size:.86rem}
+@media(max-width:900px){.overview-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.overview-grid{grid-template-columns:1fr}}
+@media print{.overview-grid{display:none!important}.series{break-before:page}.series:first-of-type{break-before:auto}}
+
+.registro-visual{margin:18px 0 4px;padding:14px;background:#fbfaf7;border:1px solid var(--line);border-radius:16px}
+.registro-visual h4{margin:0 0 10px;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.registro-visual img{display:block;width:min(100%,760px);height:auto;margin:auto;border-radius:12px;border:1px solid #d7d0c4;box-shadow:0 5px 15px rgba(0,0,0,.06)}
+@media print{.registro-visual img{max-height:230mm;object-fit:contain;box-shadow:none}}
+
+
+.study-track{margin:14px 0 22px;padding:14px 16px;background:#fbfaf7;border:1px solid var(--line);border-radius:18px}
+.study-track h3{margin:0 0 10px;font-family:Georgia,serif}
+.track-list{display:grid;gap:8px}
+.track-item{display:grid;grid-template-columns:34px minmax(180px,1fr) minmax(220px,1.3fr) 34px;gap:10px;align-items:center;
+border-left:3px solid #a99b8c;background:#fff;border-radius:10px;padding:8px 10px}
+.track-num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#eee;border:1px solid #bbb;font-weight:800}
+.track-theme{font-weight:800}
+.track-resource{font-size:.88rem;color:var(--muted)}
+.track-check{width:20px;height:20px;border:2px solid #aaa;border-radius:4px}
+.concepts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.concept-chip{background:#f0ede7;border:1px solid #d8d0c5;border-radius:999px;padding:4px 8px;font-size:.82rem}
+@media(max-width:760px){.track-item{grid-template-columns:32px 1fr 28px}.track-resource{grid-column:2/4}}
+@media print{.study-track{break-inside:avoid}.track-check{border-color:#666}}
+
+.track-resource .mode{display:inline-block;font-weight:800;font-size:.8125rem;letter-spacing:.04em;
+padding:3px 7px;border-radius:999px;margin-right:6px;border:1px solid #cfc6b9;background:#f4f0e9;color:#4a4038}
+.track-concepts{font-size:.8125rem;color:#6a6259;margin-top:4px}
+.study-legend{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+.study-legend span{font-size:.8125rem;border:1px solid #d6cec2;border-radius:999px;padding:4px 8px;background:#fff}
+.week-study-note{background:#f8f5ef;border:1px solid #ddd4c8;border-radius:12px;padding:10px 12px;margin-top:8px}
+.week-study-note strong{font-size:.8125rem;text-transform:uppercase;letter-spacing:.05em}
+@media print{.study-legend{display:none}}
+
+.caderno-visual-em{margin:16px 0 6px;padding:14px;background:#fbfaf7;border:1px solid var(--line);border-radius:16px}
+.caderno-visual-em h4{margin:0 0 10px;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.caderno-visual-em img{display:block;width:min(100%,760px);height:auto;margin:auto;border-radius:12px;border:1px solid #d7d0c4;box-shadow:0 5px 15px rgba(0,0,0,.06)}
+@media print{.caderno-visual-em img{max-height:230mm;object-fit:contain;box-shadow:none}}
+
+.revisao-academica{margin:12px 0 18px;padding:11px 13px;border-left:4px solid #75685d;background:#f7f3ec;border-radius:8px;font-size:.88rem}
+.revisao-academica strong{font-family:Georgia,serif}
+.epi{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 8px}
+.epi span{font-size:.8125rem;font-weight:800;letter-spacing:.05em;border:1px solid #c8c0b5;background:#fff;border-radius:999px;padding:3px 7px}
+@media print{.revisao-academica{break-inside:avoid}}
+
+.caderno-final{
+  margin:16px 0 8px;padding:16px 18px;background:#fffefb;border:1px solid #cfc6ba;
+  border-radius:18px;box-shadow:0 5px 14px rgba(0,0,0,.04)
+}
+.caderno-final h4{margin:0 0 5px;font-family:Georgia,serif;font-size:1.1rem}
+.caderno-final .meta{font-size:.8125rem;color:#6b625a;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+.caderno-final .badges{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0 11px}
+.caderno-final .badges span{font-size:.8125rem;font-weight:800;border:1px solid #c9c0b5;border-radius:999px;padding:3px 7px;background:#f7f4ee}
+.caderno-final .flow{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.caderno-final .node{border:1px solid #bdb3a7;border-radius:11px;padding:7px 9px;background:#f5f1eb;font-weight:700}
+.caderno-final .arrow{font-weight:900;color:#746b62}
+.caderno-final table{margin:8px 0 4px;font-size:.88rem}
+.caderno-final th,.caderno-final td{padding:7px 8px}
+.caderno-final .sintese{margin-top:10px;padding-top:9px;border-top:1px dashed #cfc6ba}
+.caderno-final .nota{font-size:.8125rem;color:#655e57;margin-top:8px}
+.sem-caderno{font-size:.84rem;color:#6a625b;background:#f8f5ef;border:1px dashed #d2c9bd;border-radius:12px;padding:9px 11px}
+@media print{.caderno-final{break-inside:avoid;box-shadow:none}}
+
+.registro-visual-final{margin:14px 0 8px;padding:12px;background:#faf8f3;border:1px solid #d2cbc0;border-radius:16px}
+.registro-visual-final img{display:block;width:min(100%,760px);height:auto;margin:auto;border-radius:12px;border:1px solid #ddd5ca}
+@media print{.registro-visual-final img{max-height:235mm;object-fit:contain}}
+
+.study-legend span{font-size:.8125rem}
+.plan-grid section h4{letter-spacing:.01em}
+.revisao-academica .epi{display:none}
+.revisao-academica strong{font-family:Georgia,serif}
+
+/* V2 TESTE SEGURO — controles técnicos; conteúdo pedagógico preservado */
+#searchCount{white-space:nowrap}
+#status[data-kind="ok"]{color:#2e6c5e}
+#status[data-kind="warn"]{color:#8c5a2b}
+#status[data-kind="error"]{color:#9b2f3f;font-weight:800}
+@media(max-width:720px){
+  #openAllBtn,#closeAllBtn,#clearSearchBtn{font-size:.8125rem;padding:.45rem .6rem}
+}
+
+/* V2.3 — definições dos conceitos-chave */
+.concept-definitions{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.concept-definitions-title{
+  grid-column:1/-1;
+  font-size:.8125rem;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:#5e6670;
+  margin-top:2px;
+}
+.concept-definition-item{
+  font-size:.8125rem;
+  line-height:1.36;
+  padding:8px 9px;
+  background:#fbfcfd;
+  border:1px solid #dce2e7;
+  border-radius:10px;
+}
+.concept-definition-item strong{font-weight:900}
+@media(max-width:720px){
+  .concept-definitions{grid-template-columns:1fr}
+}
+@media print{
+  .concept-definitions{grid-template-columns:1fr 1fr}
+  .concept-definition-item{break-inside:avoid}
+}
+
+/* Caderno da professora integrado ao planejamento */
+.prof-caderno{
+  margin:8px 14px 0;
+  border:0;
+}
+.prof-seal{
+  display:inline-flex;
+  align-items:center;
+  width:auto;
+  cursor:pointer;
+  list-style:none;
+  border:1px solid #9d8b67;
+  background:#f7f0df;
+  color:#5c4b2f;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:.8125rem;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  transition:.15s ease;
+}
+.prof-seal::-webkit-details-marker{display:none}
+.prof-seal:hover{background:#efe3c6}
+.prof-caderno[open]>.prof-seal{
+  background:#e8dcc1;
+  border-color:#86734f;
+}
+.prof-panel{
+  margin-top:10px;
+  padding:14px 16px 16px;
+  border:1px solid #d9d2c3;
+  border-left:5px solid #9d8b67;
+  border-radius:12px;
+  background:#fffdfa;
+}
+.prof-panel-head{
+  padding-bottom:8px;
+  margin-bottom:10px;
+  border-bottom:1px solid #e5ded1;
+}
+.prof-context{
+  font-size:.8125rem;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  font-weight:800;
+  color:#746b5d;
+}
+.prof-panel-head h4{
+  margin:3px 0 0;
+  font-family:Georgia,serif;
+  font-size:1.1rem;
+  color:#3e4650;
+}
+.prof-panel h4{
+  margin:16px 0 6px;
+  color:#455b66;
+}
+.prof-panel p{
+  margin:0 0 9px;
+  line-height:1.52;
+}
+.prof-panel .meta-box{
+  display:grid;
+  gap:4px;
+  margin:0 0 12px;
+}
+.prof-panel .meta-row{
+  display:grid;
+  grid-template-columns:130px 1fr;
+  gap:8px;
+  padding:7px 9px;
+  background:#f6f7f7;
+  border-radius:8px;
+  font-size:.84rem;
+}
+.prof-panel .table-wrap{
+  overflow-x:auto;
+  margin:9px 0 13px;
+}
+.prof-panel table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.88rem;
+}
+.prof-panel th,.prof-panel td{
+  border:1px solid #d8dde1;
+  padding:8px 9px;
+  vertical-align:top;
+  text-align:left;
+}
+.prof-panel th{background:#eef2f4}
+.prof-panel .lesson-steps{
+  margin:.1rem 0 .1rem 1.1rem;
+  padding:0;
+}
+.prof-panel .lesson-steps li{margin:.28rem 0}
+.prof-panel .callout{
+  border:1px solid #d8dde1;
+  border-left:5px solid #8b9aa2;
+  border-radius:10px;
+  padding:10px 12px;
+  margin:11px 0;
+  background:#f8fafb;
+}
+.prof-panel .callout-title{
+  font-weight:900;
+  margin-bottom:4px;
+}
+.prof-panel .callout-body{font-size:.92rem}
+.prof-panel .callout.curiosity{background:#fff8e4;border-left-color:#b08a3b}
+.prof-panel .callout.parallel{background:#f4f7f8;border-left-color:#6a8995}
+.prof-panel .callout.care{background:#faeeee;border-left-color:#a76565}
+.prof-panel .callout.map{background:#edf6f2;border-left-color:#4f8872}
+.prof-panel .callout.method{background:#edf3f7;border-left-color:#58798a}
+
+.prof-references{
+  margin:18px 0 6px;
+  border:1px solid #d7d0c0;
+  border-radius:12px;
+  background:#fffdfa;
+}
+.prof-references>summary{
+  cursor:pointer;
+  padding:11px 13px;
+  font-weight:800;
+  color:#5c4b2f;
+}
+.prof-ref-body{
+  padding:0 14px 14px;
+}
+.prof-ref-body p{
+  font-size:.84rem;
+  margin:7px 0;
+  line-height:1.4;
+}
+
+@media(max-width:720px){
+  .prof-caderno{margin:8px 8px 0}
+  .prof-panel{padding:12px}
+  .prof-panel .meta-row{grid-template-columns:1fr}
+}
+@media print{
+  .prof-caderno:not([open]) .prof-panel{display:none}
+}
+
+/* Registros de caderno: leitura rápida em tela e projeção */
+.atividade-aluno{margin-top:7px;color:#4f4b45}
+.caderno-box{margin-top:7px;padding:12px 13px;background:#fffdf7;border:1px solid #dfd4ba;border-radius:12px;line-height:1.46}
+.caderno-box p{margin:0 0 8px}
+.caderno-box p:last-child{margin-bottom:0}
+.caderno-box ul,.caderno-box ol{margin:6px 0 8px 20px;padding:0}
+.caderno-box li{margin:3px 0}
+.caderno-box table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.9rem}
+.caderno-box th,.caderno-box td{border:1px solid #d8cfbb;padding:7px 8px;vertical-align:top;text-align:left}
+.caderno-box th{background:#f4ecd9}
+.caderno-box .setas{font-weight:800;letter-spacing:.01em;padding:8px 10px;background:#f7f1e3;border-radius:9px;margin:8px 0}
+.caderno-box .sintese{padding:8px 10px;border-left:4px solid #a58955;background:#fbf7ee}
+@media(max-width:760px){.caderno-box table{font-size:.84rem}}
+
+/* Navegação rápida: somente turma/disciplina ficam expostas; serviços ficam recolhidos. */
+.hero{padding:20px 20px 16px}.hero h1{font-size:clamp(1.55rem,4vw,2.45rem);margin:.15rem 0 .35rem}.hero p{margin:.2rem 0;font-size:.92rem}.hero .prof-global-note{display:none}.hero>div:nth-child(2){display:none!important}
+.toolbar{box-shadow:0 5px 18px rgba(45,38,30,.07)}.toolbar .nav-shell{padding:7px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.nav-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.nav-label{font-size:.8125rem;text-transform:uppercase;letter-spacing:.09em;font-weight:850;color:var(--muted);margin-right:1px}.nav-choice{padding:6px 10px;font-size:.82rem}.nav-choice.is-active{background:#252b2e;color:white;border-color:#252b2e}.disciplina-choice[data-discipline="historia"].is-active{background:var(--hist);border-color:var(--hist)}.disciplina-choice[data-discipline="filosofia"].is-active{background:var(--fil);border-color:var(--fil)}.disciplina-choice[data-discipline="sociologia"].is-active{background:var(--soc);border-color:var(--soc)}
+.tools-menu{margin-left:auto;position:relative}.tools-menu>summary{list-style:none;border:1px solid var(--line);background:white;border-radius:999px;padding:6px 11px;font-size:.8125rem;font-weight:800;cursor:pointer;user-select:none}.tools-menu>summary::-webkit-details-marker{display:none}.tools-menu[open]>summary{background:#f1ede6}.tools-panel{position:absolute;right:0;top:calc(100% + 8px);width:min(620px,calc(100vw - 24px));background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 18px 45px rgba(35,31,27,.18);display:grid;gap:10px}.tools-actions,.tools-search,.tools-status{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.tools-panel button,.tools-panel .filebtn{padding:7px 10px;font-size:.8125rem}.tools-panel .search{margin:0;min-width:220px;max-width:none;flex:1}.tools-status{padding-top:4px;border-top:1px solid var(--line)}.tools-status .status{font-size:.8125rem}.overview-grid{display:none!important}
+.series{scroll-margin-top:72px}.discipline{scroll-margin-top:72px}
+@media(max-width:760px){.hero{padding:14px 14px 11px}.hero .kicker{font-size:.8125rem}.hero h1{font-size:1.5rem}.hero p{font-size:.82rem}.toolbar .nav-shell{padding:6px 8px;gap:6px}.nav-label{display:none}.nav-choice{padding:6px 8px;font-size:.8125rem}.tools-menu{margin-left:0}.tools-menu>summary{padding:6px 8px;font-size:.8125rem}.tools-panel{position:fixed;left:8px;right:8px;top:58px;width:auto;max-height:70vh;overflow:auto}.series{margin-top:22px}.discipline{margin-top:24px}}
+
+/* Versão objetiva: registro pronto para projeção + atalhos de semana */
+.week-card{scroll-margin-top:96px}
+.study-track .track-list{gap:8px}
+.study-track a.week-shortcut{display:grid;color:inherit;text-decoration:none;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.study-track a.week-shortcut:hover{transform:translateY(-1px);border-color:#9b8d7e;box-shadow:0 5px 14px rgba(45,38,30,.08)}
+.track-go{align-self:center;justify-self:end;white-space:nowrap;font-size:.8125rem;font-weight:850;text-transform:uppercase;letter-spacing:.06em;padding:5px 8px;border:1px solid #d8cfc3;border-radius:999px;background:#fff;color:#5e625f}
+.registro-pronto{position:relative;z-index:1}
+.registro-titulo{margin:16px 0 12px;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-size:1.35rem;font-weight:800;color:#21385f;line-height:1.25}
+.registro-flow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:8px 0 15px}
+.registro-node{display:inline-flex;align-items:center;min-height:42px;padding:7px 10px;border:1px solid #b9c7df;border-radius:12px;background:rgba(255,255,255,.82);font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-weight:700;color:#2e3d55}
+.registro-arrow{font:900 1.25rem/1 Georgia,serif;color:#8b5d4e}
+.registro-conceitos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}
+.registro-conceito{padding:10px 11px;border:1px solid #ccd6e6;border-radius:12px;background:rgba(255,255,255,.75)}
+.registro-conceito strong{display:block;margin-bottom:3px;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-size:1rem;color:#253e66}
+.registro-conceito span{display:block;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-size:.93rem;line-height:1.45;color:#302d28}
+.registro-tabela{width:100%;border-collapse:collapse;background:rgba(255,255,255,.72);margin:8px 0}
+.registro-tabela th,.registro-tabela td{padding:9px 10px;border:1px solid #cbd5e5;text-align:left;vertical-align:top;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive}
+.registro-tabela th{background:rgba(237,242,251,.9);color:#263c60}
+@media(max-width:760px){.registro-conceitos{grid-template-columns:1fr}.track-go{display:none}.registro-titulo{font-size:1.15rem}}
+@media print{.study-track a.week-shortcut{box-shadow:none}.track-go{display:none}}
+
+/* Livro e perguntas no próprio registro de caderno */
+.book-activity{margin-top:16px;padding:10px 12px;border-top:1px solid #ddd7cc;border-bottom:1px solid #ddd7cc;background:rgba(255,255,255,.72);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;font-size:.96rem!important;line-height:1.45!important;color:#4d453d!important}
+.book-activity strong{color:#6b4f25}
+.notebook-questions{margin-top:16px;padding-top:12px;border-top:1px solid #d9d3c8}
+.notebook-questions-title{margin-bottom:7px;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.8125rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:#6f6254}
+.notebook-questions ol{margin:0 0 0 21px;padding:0}
+.notebook-questions li{margin:7px 0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;font-size:1rem!important;line-height:1.5!important;color:#2b2b2b!important}
+@media(max-width:760px){.notebook-questions li{font-size:.95rem!important}.book-activity{font-size:.9rem!important}}
+@media print{.book-activity,.notebook-questions{break-inside:avoid}}
+
+/* ===== Revisão de 30/09/2026 ===== */
+:root{--accent:#8c5a2b;--focus:#743642}
+.historia{--accent:var(--hist)}.filosofia{--accent:var(--fil)}.sociologia{--accent:var(--soc)}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+/* lide, objetivos e abertura */
+.lide-box{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px 24px;padding:16px 19px 14px;border-bottom:1px solid var(--line);border-left:5px solid var(--accent)}
+.lide{margin:0;font-family:Georgia,serif;font-size:1.14rem;line-height:1.6;max-width:64ch}
+.rot{display:block;margin-bottom:4px;font-size:.8125rem;font-weight:800;letter-spacing:.02em;color:var(--muted)}
+.lide-obj ul{margin:0;padding-left:1.1rem}
+.lide-obj li{margin:3px 0;font-size:.97rem}
+.gancho{grid-column:1/-1;padding:11px 15px;border-radius:12px;background:#faf5ea;border:1px solid #e6dcc6}
+.gancho-noticia{background:#eef5f1;border-color:#cfe1d8}
+.gancho-fato{background:#f1f0f8;border-color:#d9d6ee}
+.gq{margin:0 0 5px;font-size:1.04rem;font-weight:750}
+.gm{margin:0;font-size:.96rem;color:#353c41}
+.gm a.src{font-weight:700;text-underline-offset:3px}
+/* verificar e variar */
+.aval-d{margin:10px 14px;border:1px solid var(--line);border-radius:12px;background:#fffdfa}
+.aval-d>summary{cursor:pointer;list-style:none;padding:10px 14px;font-weight:800}
+.aval-d>summary::-webkit-details-marker{display:none}
+.aval-d>summary::before{content:"＋ "}
+.aval-d[open]>summary::before{content:"− "}
+.aval-body{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;padding:2px 16px 14px}
+.aval-body h5{margin:0 0 4px;font-size:.92rem}
+.aval-body p{margin:0 0 6px;font-size:.95rem}
+.aval-body ul{margin:4px 0 0;padding-left:1.1rem;font-size:.95rem}
+.aval-wide{grid-column:1/-1;padding-top:8px;border-top:1px dashed var(--line)}
+.para-lembrar{margin-top:14px;padding:8px 12px;background:rgba(255,246,218,.75);border-left:4px solid #d8bf7a;border-radius:6px}
+/* avaliação do bimestre */
+.disc-aval{margin:30px 0 8px;padding:20px;border:1px solid var(--line);border-top:5px solid var(--accent);border-radius:18px;background:var(--paper);box-shadow:var(--shadow)}
+.disc-aval h3{margin:0 0 6px;font-family:Georgia,serif;font-size:1.35rem}
+.disc-aval p{margin:0 0 10px}
+.disc-aval .table-wrap{overflow-x:auto;margin:12px 0 16px}
+.rubrica{width:100%;min-width:680px;border-collapse:collapse;font-size:.92rem}
+.rubrica th,.rubrica td{border:1px solid #d8dde1;padding:9px 10px;text-align:left;vertical-align:top}
+.rubrica thead th{background:#f1ece2}
+.rubrica tbody th{width:19%;background:#f8f5ef}
+.disc-aval .editors{padding:12px 0 0;background:transparent;grid-template-columns:1fr 1fr 1fr}
+@media(max-width:900px){.disc-aval .editors{grid-template-columns:1fr}}
+/* guia e modos */
+.guia{margin:0 0 8px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
+.guia>summary{cursor:pointer;list-style:none;padding:12px 16px;font-weight:800}
+.guia>summary::-webkit-details-marker{display:none}
+.guia>summary::before{content:"＋ "}
+.guia[open]>summary::before{content:"− "}
+.guia-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 22px;padding:2px 18px 18px}
+.guia-grid h3{margin:0 0 6px;font-size:1rem;font-family:Georgia,serif}
+.guia-grid ul,.guia-grid dl{margin:0;padding-left:1.1rem;font-size:.93rem}
+.guia-grid dl{padding-left:0}
+.guia-grid dt{font-weight:800;margin-top:6px}
+.guia-grid dd{margin:0}
+.guia-grid table{width:100%;border-collapse:collapse;font-size:.9rem}
+.guia-grid td,.guia-grid th{border:1px solid #d8dde1;padding:6px 8px;text-align:left;vertical-align:top}
+.guia-wide{grid-column:1/-1}
+.guia-grid .tag{font-weight:800}
+.guia-grid label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:.9rem}
+.refs-novas{margin-top:16px;padding-top:10px;border-top:1px dashed #cfc6ba}
+.refs-novas h5{margin:0 0 4px;font-size:.95rem}
+.refs-novas .aviso{padding:8px 10px;background:#fff7dc;border:1px solid #e9d79a;border-radius:8px}
+.nav-modes{display:flex;gap:6px}
+.nav-modes button[aria-pressed="true"]{background:#252b2e;color:#fff;border-color:#252b2e}
+body.easy{font-size:1.125rem;line-height:1.8;letter-spacing:.012em}
+body.easy .wide.notebook h4,body.easy .wide.notebook p,body.easy .wide.notebook li,body.easy .wide.notebook td,body.easy .wide.notebook th,
+body.easy .registro-titulo,body.easy .registro-node,body.easy .registro-conceito strong,body.easy .registro-conceito span,
+body.easy .registro-tabela th,body.easy .registro-tabela td{font-family:Verdana,Tahoma,system-ui,sans-serif}
+body.easy .registro-conceitos{grid-template-columns:1fr}
+body.easy .plan-grid{grid-template-columns:1fr}
+body.easy .plan-grid section,body.easy .plan-grid section:nth-child(even){border-right:0}
+body.easy .lide-box,body.easy .aval-body{grid-template-columns:1fr}
+body.easy .concept-definition-item,body.easy .gm,body.easy .lide-obj li{font-size:1.02rem}
+body.easy p,body.easy li{max-width:70ch}
+body.mode-aula .prof-caderno,body.mode-aula details.build,body.mode-aula details.aval-d,body.mode-aula .revisao-academica,
+body.mode-aula .disc-aval,body.mode-aula .guia,body.mode-aula details.prof-references,body.mode-aula .meta-curric{display:none!important}
+@media(max-width:760px){
+  .lide-box,.aval-body,.guia-grid{grid-template-columns:1fr}
+  .lide{font-size:1.06rem}
+  .nav-modes{flex-wrap:wrap}
+}
+@media print{
+  .guia,.nav-modes{display:none!important}
+  .lide-box,.gancho,.disc-aval,.aval-body{break-inside:avoid}
+  .lide-box{grid-template-columns:1fr 1fr}
+}
+
+
+/* caderno-limpo-v3 */
+
+/* Um único bloco de caderno: limpo, calmo e legível em projetor/TV */
+.wide.notebook{
+  position:relative!important;
+  margin:8px 14px 18px!important;
+  padding:24px 28px 26px!important;
+  background:#fffefb!important;
+  border:1px solid #d9dee5!important;
+  border-left:5px solid #8096ad!important;
+  border-radius:16px!important;
+  box-shadow:0 4px 14px rgba(38,49,59,.06)!important;
+  color:#222a31!important;
+}
+.wide.notebook::before{
+  content:"Caderno"!important;
+  position:static!important;
+  display:block!important;
+  width:max-content!important;
+  margin:0 0 10px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#63798f!important;
+  font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive!important;
+  font-size:1.05rem!important;
+  font-weight:700!important;
+  line-height:1.15!important;
+  letter-spacing:.02em!important;
+  text-transform:none!important;
+}
+.wide.notebook::after{display:none!important;content:none!important}
+.wide.notebook h4,
+.wide.notebook .registro-titulo{
+  margin:0 0 14px!important;
+  color:#263746!important;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:clamp(1.12rem,2vw,1.42rem)!important;
+  font-weight:800!important;
+  line-height:1.25!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+.wide.notebook p,
+.wide.notebook li,
+.wide.notebook td,
+.wide.notebook th,
+.wide.notebook .registro-conceito,
+.wide.notebook .registro-conceito span,
+.wide.notebook .registro-node{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:clamp(1rem,1.45vw,1.14rem)!important;
+  line-height:1.58!important;
+  color:#20282e!important;
+}
+.wide.notebook .registro-conceitos{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px 14px!important;
+  margin-top:8px!important;
+}
+.wide.notebook .registro-conceito{
+  padding:11px 13px!important;
+  background:#f7f9fb!important;
+  border:1px solid #e2e7ec!important;
+  border-radius:11px!important;
+}
+.wide.notebook .registro-conceito strong{
+  display:block!important;
+  margin-bottom:2px!important;
+  color:#324c63!important;
+  font-size:1em!important;
+}
+.wide.notebook .registro-flow{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  flex-wrap:wrap!important;
+  margin:8px 0 14px!important;
+}
+.wide.notebook .registro-node{
+  padding:8px 10px!important;
+  background:#f4f7f9!important;
+  border:1px solid #dce3e9!important;
+  border-radius:10px!important;
+  font-size:.98rem!important;
+}
+.wide.notebook .registro-arrow{color:#71879a!important;font-weight:800!important}
+.wide.notebook table{width:100%!important;margin:10px 0!important;border-collapse:separate!important;border-spacing:0!important;background:#fff!important;border:1px solid #e1e6eb!important;border-radius:11px!important;overflow:hidden!important}
+.wide.notebook th{background:#f3f6f8!important;color:#31465a!important;font-weight:800!important}
+.wide.notebook th,.wide.notebook td{padding:10px 12px!important;border:0!important;border-bottom:1px solid #e8ecef!important;vertical-align:top!important}
+.wide.notebook tr:last-child td{border-bottom:0!important}
+.registro-visual,.registro-visual-final{display:none!important}
+@media(max-width:760px){
+  .wide.notebook{margin:8px 8px 16px!important;padding:19px 18px 21px!important}
+  .wide.notebook .registro-conceitos{grid-template-columns:1fr!important}
+}
+@media print{
+  .wide.notebook{box-shadow:none!important;background:#fff!important;border-color:#cfd5da!important}
+}
+
+
+/* abas-reais-v1 */
+
+/* Abas reais: somente a turma e disciplina ativas permanecem visíveis em tela. */
+section.series[hidden], section.discipline[hidden]{display:none!important}
+@media print{section.series[hidden],section.discipline[hidden]{display:block!important}}
+
+
+/* caderno-bonitinho-v4 */
+
+/* Caderno de aluno: compacto, colorido e legível à distância */
+.historia .wide.notebook{--caderno-accent:#c87438;--caderno-accent-2:#e7a867;--caderno-soft:#fff2de;--caderno-soft-2:#f7e5d3;--caderno-marker:#ffd98f}
+.filosofia .wide.notebook{--caderno-accent:#7467a8;--caderno-accent-2:#b187b8;--caderno-soft:#f2edff;--caderno-soft-2:#f7e8f2;--caderno-marker:#dbc9ff}
+.sociologia .wide.notebook{--caderno-accent:#3f8878;--caderno-accent-2:#65a596;--caderno-soft:#e9f7f2;--caderno-soft-2:#fff4cf;--caderno-marker:#bfe9db}
+
+.wide.notebook{
+  margin:6px 12px 12px!important;
+  padding:14px 18px 15px!important;
+  background:
+    repeating-linear-gradient(to bottom,rgba(255,255,255,.96) 0 31px,rgba(163,190,219,.20) 31px 32px)!important;
+  border:1px solid color-mix(in srgb,var(--caderno-accent) 36%,#dfe4e8)!important;
+  border-left:4px solid var(--caderno-accent)!important;
+  border-radius:13px!important;
+  box-shadow:0 3px 9px rgba(45,52,58,.055)!important;
+}
+.wide.notebook::before{
+  content:"Caderno"!important;
+  display:inline-block!important;
+  margin:0 0 5px!important;
+  padding:1px 5px 2px!important;
+  color:var(--caderno-accent)!important;
+  font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive!important;
+  font-size:1rem!important;
+  font-weight:800!important;
+  line-height:1.05!important;
+  background:linear-gradient(transparent 58%,var(--caderno-marker) 58% 94%,transparent 94%)!important;
+  transform:rotate(-1deg)!important;
+}
+.wide.notebook .registro-titulo,
+.wide.notebook h4{
+  display:table!important;
+  margin:0 0 8px!important;
+  padding:0 3px 2px!important;
+  color:#26323b!important;
+  font-size:clamp(1.13rem,1.8vw,1.38rem)!important;
+  font-weight:850!important;
+  line-height:1.18!important;
+  background:linear-gradient(transparent 62%,var(--caderno-marker) 62% 93%,transparent 93%)!important;
+}
+.wide.notebook p,
+.wide.notebook li,
+.wide.notebook td,
+.wide.notebook th,
+.wide.notebook .registro-conceito,
+.wide.notebook .registro-conceito span,
+.wide.notebook .registro-node{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:clamp(.98rem,1.34vw,1.09rem)!important;
+  line-height:1.42!important;
+}
+.wide.notebook .registro-conceitos{
+  gap:6px 8px!important;
+  margin-top:5px!important;
+}
+.wide.notebook .registro-conceito{
+  position:relative!important;
+  padding:7px 9px 7px 12px!important;
+  background:rgba(255,255,255,.86)!important;
+  border:1px solid rgba(100,112,124,.12)!important;
+  border-radius:9px!important;
+  box-shadow:0 1px 3px rgba(38,45,51,.035)!important;
+}
+.wide.notebook .registro-conceito:nth-child(4n+1){background:color-mix(in srgb,var(--caderno-soft) 76%,white)!important}
+.wide.notebook .registro-conceito:nth-child(4n+2){background:color-mix(in srgb,var(--caderno-soft-2) 72%,white)!important}
+.wide.notebook .registro-conceito:nth-child(4n+3){background:#eef5ff!important}
+.wide.notebook .registro-conceito:nth-child(4n){background:#fff5e8!important}
+.wide.notebook .registro-conceito::before{
+  content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:4px;background:var(--caderno-accent)
+}
+.wide.notebook .registro-conceito strong{
+  display:inline!important;
+  margin:0 3px 0 0!important;
+  color:#243848!important;
+  font-size:1em!important;
+  box-shadow:inset 0 -.38em 0 color-mix(in srgb,var(--caderno-marker) 72%,transparent)!important;
+}
+.wide.notebook .registro-conceito span{display:inline!important;color:#2f353a!important}
+
+.wide.notebook .registro-flow{gap:5px!important;margin:5px 0 8px!important}
+.wide.notebook .registro-node{
+  padding:6px 9px!important;
+  background:var(--caderno-soft)!important;
+  border:1px solid color-mix(in srgb,var(--caderno-accent) 28%,#dfe4e8)!important;
+  border-radius:9px!important;
+  font-weight:700!important;
+}
+.wide.notebook .registro-arrow{color:var(--caderno-accent)!important;font-size:1.08rem!important}
+
+.wide.notebook table{margin:6px 0!important;border-radius:9px!important;border-color:color-mix(in srgb,var(--caderno-accent) 20%,#dfe4e8)!important}
+.wide.notebook th,.wide.notebook td{padding:7px 9px!important;line-height:1.35!important}
+.wide.notebook th{background:var(--caderno-soft)!important;color:#293b49!important}
+
+.book-activity{
+  position:relative!important;
+  margin:8px 0 4px!important;
+  padding:7px 10px 7px 34px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:#fff1a9!important;
+  color:#493f25!important;
+  box-shadow:0 2px 5px rgba(93,76,27,.08)!important;
+  font-size:.94rem!important;
+  line-height:1.3!important;
+}
+.book-activity::before{content:"↳";position:absolute;left:11px;top:5px;color:#a46f16;font-size:1.28rem;font-weight:900}
+.book-activity strong{color:#7b5414!important;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
+
+.notebook-questions{
+  margin-top:8px!important;
+  padding-top:8px!important;
+  border-top:2px dashed color-mix(in srgb,var(--caderno-accent) 38%,#dfe4e8)!important;
+}
+.notebook-questions-title{
+  display:table!important;
+  margin:0 0 5px!important;
+  padding:1px 5px!important;
+  color:#31404a!important;
+  font-size:.77rem!important;
+  font-weight:900!important;
+  letter-spacing:.07em!important;
+  background:linear-gradient(transparent 48%,var(--caderno-marker) 48% 96%,transparent 96%)!important;
+}
+.notebook-questions ol{counter-reset:cadernoq!important;list-style:none!important;margin:0!important;padding:0!important}
+.notebook-questions li{
+  counter-increment:cadernoq!important;
+  position:relative!important;
+  margin:4px 0!important;
+  padding:5px 8px 5px 34px!important;
+  border-radius:8px!important;
+  background:rgba(255,255,255,.70)!important;
+  font-size:clamp(.97rem,1.28vw,1.06rem)!important;
+  line-height:1.35!important;
+}
+.notebook-questions li::before{
+  content:counter(cadernoq);
+  position:absolute;left:5px;top:5px;width:22px;height:22px;display:grid;place-items:center;
+  border-radius:50%;background:var(--caderno-accent);color:white;font-size:.76rem;font-weight:900;
+  box-shadow:0 1px 3px rgba(0,0,0,.10)
+}
+
+@media(max-width:760px){
+  .wide.notebook{margin:5px 6px 10px!important;padding:12px 12px 13px!important}
+  .wide.notebook .registro-conceitos{grid-template-columns:1fr!important}
+  .book-activity{padding-left:31px!important}
+}
+@media print{
+  .wide.notebook{background:#fff!important;box-shadow:none!important}
+  .notebook-questions li{background:#fff!important}
+}
+
+
+/* leitura-neurodiversa-v1 */
+
+/* Tipografia simples, espaçada e previsível para projeção e leitura sustentada. */
+body, button, input, textarea, select, .week-card, .prof-panel, .study-track, .discipline-title, .series-head, .book-activity, .notebook-questions, .registro-pronto, .registro-conceito, .registro-conceito span, .registro-node, .registro-tabela, .registro-tabela th, .registro-tabela td {
+  font-family: Verdana, Tahoma, Arial, sans-serif!important;
+}
+body{line-height:1.55!important}
+.week-head h3,.discipline-title h2,.series-head h1,.hero h1{font-family:Verdana,Tahoma,Arial,sans-serif!important;letter-spacing:-.015em!important}
+.wide.notebook p,.wide.notebook li,.wide.notebook td,.wide.notebook th,.wide.notebook .registro-conceito,.wide.notebook .registro-conceito span,.wide.notebook .registro-node,.book-activity,.notebook-questions li{
+  font-family:Verdana,Tahoma,Arial,sans-serif!important;
+  line-height:1.5!important;
+}
+/* Mantém só a pequena etiqueta Caderno com personalidade visual. */
+.wide.notebook::before{font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive!important}
+.book-activity{font-weight:800!important;letter-spacing:.015em!important}
+
+
+/* malu-projecao-e-correcoes */
+
+/* Navegação do professor: o caderno projetado é uma tela própria. */
+.week-head{flex-wrap:wrap;column-gap:10px;row-gap:7px}
+.week-head h3{flex:1;min-width:170px}
+.projetar-btn{margin-left:auto;border:1px solid var(--accent,#6b7680);color:#fff;background:var(--accent,#566674);font-size:.84rem;font-weight:850;border-radius:10px;padding:7px 11px;white-space:nowrap}
+.projetar-btn:hover{filter:brightness(.90);border-color:var(--accent,#566674)}
+.projetar-btn:focus-visible,.projection-actions button:focus-visible{outline:3px solid #edb650;outline-offset:3px}
+.projection-view[hidden]{display:none!important}
+body.is-projecting{overflow:hidden}
+.projection-view{position:fixed;inset:0;z-index:200;background:#f4f3ef;display:flex;flex-direction:column;font-family:Verdana,Tahoma,Arial,sans-serif}
+.projection-toolbar{position:relative;z-index:2;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px max(16px,calc((100vw - 1380px)/2));background:#fff;border-bottom:1px solid #d4dbe0;box-shadow:0 2px 8px rgba(30,42,51,.06)}
+.projection-heading{display:flex;flex-direction:column;gap:1px;min-width:160px;flex:1}
+.projection-heading strong{font-size:1rem;line-height:1.25;color:#24313a}
+.projection-kicker{font-size:.72rem;font-weight:800;letter-spacing:.035em;text-transform:uppercase;color:#596d7a}
+.projection-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.projection-actions button{border:1px solid #c9d2da;border-radius:9px;padding:7px 10px;background:#fff;color:#283943;font:800 .82rem/1.25 Verdana,Tahoma,Arial,sans-serif;white-space:nowrap}
+.projection-actions button:hover{background:#eef4f7}
+.projection-actions button:disabled{opacity:.36;cursor:not-allowed}
+.projection-actions .projection-close{background:#273843;color:#fff;border-color:#273843}
+.projection-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:14px max(12px,calc((100vw - 1380px)/2)) 28px}
+.projection-page{--projection-scale:1;max-width:1380px;margin:0 auto}
+.projection-page .wide.notebook{margin:0!important;padding:16px 22px 22px!important;background-color:#fff!important;box-shadow:0 3px 15px rgba(30,40,50,.07)!important}
+.projection-page .wide.notebook .registro-titulo,.projection-page .wide.notebook h4{font-size:calc(1.52rem * var(--projection-scale))!important;line-height:1.25!important;margin:4px 0 10px!important}
+.projection-page .wide.notebook p,.projection-page .wide.notebook li,.projection-page .wide.notebook td,.projection-page .wide.notebook th,.projection-page .wide.notebook .registro-conceito,.projection-page .wide.notebook .registro-conceito span,.projection-page .wide.notebook .registro-node{
+ font-family:Verdana,Tahoma,Arial,sans-serif!important;font-size:calc(1.13rem * var(--projection-scale))!important;line-height:1.46!important}
+.wide.notebook .registro-conceito strong{font-family:Verdana,Tahoma,Arial,sans-serif!important;font-weight:800!important}
+.projection-page .wide.notebook .registro-conceito strong{font-size:1em!important}
+.projection-page .wide.notebook .registro-conceitos{gap:9px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.projection-page .wide.notebook .registro-conceito{padding:9px 12px!important}
+.projection-page .wide.notebook .book-activity{font-size:calc(1.08rem * var(--projection-scale))!important}
+.projection-page .wide.notebook .notebook-questions li{font-size:calc(1.12rem * var(--projection-scale))!important;line-height:1.45!important;margin:6px 0!important}
+.projection-page .wide.notebook .notebook-questions-title{font-size:calc(.87rem * var(--projection-scale))!important}
+.projection-page .wide.notebook .para-lembrar{margin-top:9px!important}
+/* Quando a leitura facilitada estiver ativa, não deixar regras antigas com !important reverter a coluna única. */
+body.easy .wide.notebook .registro-conceitos,
+body.easy .projection-page .wide.notebook .registro-conceitos{grid-template-columns:1fr!important}
+body.easy .wide.notebook p,body.easy .wide.notebook li,body.easy .wide.notebook td,body.easy .wide.notebook th,
+body.easy .wide.notebook .registro-conceito,body.easy .wide.notebook .registro-conceito span,body.easy .wide.notebook .registro-node{font-family:Verdana,Tahoma,Arial,sans-serif!important;font-size:1.13rem!important;line-height:1.72!important}
+body.easy .projection-page .wide.notebook p,body.easy .projection-page .wide.notebook li,body.easy .projection-page .wide.notebook td,
+body.easy .projection-page .wide.notebook th,body.easy .projection-page .wide.notebook .registro-conceito,
+body.easy .projection-page .wide.notebook .registro-conceito span,body.easy .projection-page .wide.notebook .registro-node{font-size:calc(1.20rem * var(--projection-scale))!important;line-height:1.65!important}
+body.easy .projection-page .wide.notebook .notebook-questions li{font-size:calc(1.20rem * var(--projection-scale))!important;line-height:1.65!important}
+body.easy .concept-definitions{grid-template-columns:1fr!important}
+@media(max-width:800px){.projection-toolbar{padding:7px 9px}.projection-actions{gap:4px}.projection-actions button{padding:6px 8px;font-size:.76rem}.projection-scroll{padding:9px 6px 20px}.projection-page .wide.notebook{padding:12px 11px 18px!important}.projection-page .wide.notebook .registro-conceitos{grid-template-columns:1fr!important}.projection-heading strong{font-size:.91rem}.projetar-btn{font-size:.79rem}}
+@media print{
+ /* Configuração padrão: imprimir só a disciplina ativa; imprimir tudo é opção explícita. */
+ body.print-scope-disciplina section.series:not(.print-selected-series){display:none!important}
+ body.print-scope-disciplina section.discipline:not(.print-selected-discipline){display:none!important}
+ body.print-scope-tudo section.series,body.print-scope-tudo section.discipline{display:block!important}
+ body.print-scope-caderno main,body.print-scope-caderno .hero,body.print-scope-caderno .toolbar,body.print-scope-caderno footer{display:none!important}
+ body.print-scope-caderno .projection-view{position:static!important;inset:auto!important;display:block!important;background:#fff!important;box-shadow:none!important;height:auto!important}
+ body.print-scope-caderno .projection-toolbar{display:none!important}
+ body.print-scope-caderno .projection-scroll{display:block!important;overflow:visible!important;padding:0!important}
+ body.print-scope-caderno .projection-page{max-width:none!important}
+ body.print-scope-caderno .projection-page .wide.notebook{padding:10px 14px!important;margin:0!important;box-shadow:none!important;break-inside:auto!important}
+ .projetar-btn{display:none!important}
+ .projection-view:not(.projection-printing){display:none!important}
+}
+
+
+/* Bloco 7 */
+
+/* ===== Projeção do aluno: códigos, matriz e fontes (v3) ===== */
+.projection-page.historia{--proj-accent:var(--hist)}
+.projection-page.filosofia{--proj-accent:var(--fil)}
+.projection-page.sociologia{--proj-accent:var(--soc)}
+.projection-refs{--s:var(--projection-scale,1);margin-top:14px;padding:14px 18px 16px;background:#fff;border:1px solid #d4dbe0;border-left:6px solid var(--proj-accent,#566674);border-radius:14px;box-shadow:0 3px 15px rgba(30,40,50,.06);display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px 26px;font-family:Verdana,Tahoma,Arial,sans-serif;color:#24313a}
+.projection-refs h3{margin:0 0 7px;font-size:calc(1rem*var(--s));font-weight:800;letter-spacing:0;text-transform:none;color:#24313a}
+.pr-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pr-code-row{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:baseline}
+.pr-chip{display:inline-block;padding:3px 9px;border:2px solid var(--proj-accent,#566674);border-radius:8px;color:var(--proj-accent,#33414a);font:800 calc(.98rem*var(--s))/1.25 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#fff}
+.pr-desc{font-size:calc(.98rem*var(--s));line-height:1.4;color:#2e3a42}
+.pr-fontes{grid-column:1/-1}
+.pr-fontes .pr-list{grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px 22px}
+.pr-fonte{display:flex;gap:12px;align-items:flex-start}
+.pr-qr{flex:none;width:calc(92px*var(--s));height:calc(92px*var(--s));border:1px solid #d4dbe0;border-radius:6px;overflow:hidden;background:#fff}
+.pr-qr svg{display:block;width:100%;height:100%}
+.pr-fonte a{color:#1d4f73;font-size:calc(.98rem*var(--s));line-height:1.35;font-weight:700;text-underline-offset:3px;overflow-wrap:anywhere}
+.pr-host{display:block;margin-top:2px;font-size:calc(.85rem*var(--s));color:#4c5b65;font-weight:400}
+.projection-view.refs-off .projection-refs{display:none}
+.projection-actions button[aria-pressed="true"]{background:#273843;color:#fff;border-color:#273843}
+.projection-refs a:focus-visible{outline:3px solid #edb650;outline-offset:3px}
+@media(max-width:760px){.projection-refs{padding:12px}.pr-fontes .pr-list{grid-template-columns:1fr}}
+@media print{
+  .projection-refs{break-inside:avoid;box-shadow:none;border-color:#9aa5ad}
+  .pr-fonte a{color:#000}
+  .pr-qr{border-color:#777}
+}
+
+
+/* malu-projecao-lettering-v1 */
+
+/* Lettering moderado apenas no caderno projetável: conteúdo e modo professora intactos. */
+.projection-view{background:#f2f0ef}
+.projection-page.historia{--ink-letter:#79502f;--light-letter:#fff3df;--ink-sticker:#d97e44;--marker-letter:#ffd78f;--secondary-letter:#e9f2fc;--paper-lines:#d7e8f3}
+.projection-page.filosofia{--ink-letter:#65548f;--light-letter:#f3eefe;--ink-sticker:#9a7cbb;--marker-letter:#dcd0ff;--secondary-letter:#fff0e3;--paper-lines:#e5ddf7}
+.projection-page.sociologia{--ink-letter:#2f796d;--light-letter:#e8f7f2;--ink-sticker:#4a9a84;--marker-letter:#b8ebd2;--secondary-letter:#fff3d7;--paper-lines:#d6ece4}
+.projection-page .wide.notebook{
+ position:relative!important;overflow:visible!important;
+ border:1.5px solid #dadfdf!important;border-left:5px solid var(--ink-sticker)!important;
+ border-radius:15px!important;
+ background:repeating-linear-gradient(to bottom,#fffefa 0px,#fffefa 39px,var(--paper-lines) 40px,#fffefa 41px)!important;
+ box-shadow:0 3px 0 #d3d7db,0 9px 23px rgba(41,52,60,.08)!important;
+ padding:17px 24px 20px!important;
+}
+.projection-page .wide.notebook::before{
+ content:"✎  meu caderno"!important;
+ font-family:"Segoe Print","Comic Sans MS",cursive!important;
+ font-size:calc(.98rem * var(--projection-scale))!important;
+ font-weight:800!important;letter-spacing:0!important;
+ color:var(--ink-letter)!important;
+ display:table!important;margin:0 0 9px!important;padding:2px 8px 3px!important;
+ background:linear-gradient(transparent 47%,var(--marker-letter) 47% 93%,transparent 93%)!important;
+ transform:rotate(-1.5deg)!important;
+}
+.projection-page .wide.notebook .registro-titulo,
+.projection-page .wide.notebook .student-summary>h4,
+.projection-page .wide.notebook h4{
+ position:relative!important;display:table!important;max-width:100%!important;
+ width:fit-content!important;
+ font-family:"Trebuchet MS",Verdana,Tahoma,sans-serif!important;
+ font-weight:900!important;
+ color:#263746!important;
+ font-size:calc(1.56rem * var(--projection-scale))!important;
+ line-height:1.27!important;letter-spacing:.008em!important;
+ padding:2px 6px 4px!important;margin:0 0 12px!important;
+ background:linear-gradient(transparent 56%,var(--marker-letter) 56% 92%,transparent 92%)!important;
+ transform:rotate(-.35deg)!important;
+ text-shadow:.6px .6px 0 rgba(255,255,255,.9)!important;
+}
+.projection-page .wide.notebook .registro-titulo::before,
+.projection-page .wide.notebook .student-summary>h4::before{content:"✦ ";color:var(--ink-sticker)!important;font-size:.85em!important}
+.projection-page .wide.notebook p,
+.projection-page .wide.notebook li,
+.projection-page .wide.notebook td,
+.projection-page .wide.notebook th,
+.projection-page .wide.notebook .registro-conceito,
+.projection-page .wide.notebook .registro-conceito span,
+.projection-page .wide.notebook .registro-node{
+ font-family:Verdana,Tahoma,Arial,sans-serif!important;
+ color:#27343d!important;
+ line-height:1.47!important;
+}
+.projection-page .wide.notebook .registro-conceitos{gap:7px 10px!important;margin:7px 0 8px!important}
+.projection-page .wide.notebook .registro-conceito{
+ position:relative!important;background:rgba(255,255,255,.93)!important;
+ border:1px solid #e0e5e7!important;border-radius:9px!important;
+ padding:8px 11px 8px 14px!important;box-shadow:1px 2px 0 rgba(93,95,100,.07)!important;
+}
+.projection-page .wide.notebook .registro-conceito:nth-child(3n+1){background:color-mix(in srgb,var(--light-letter) 80%,white)!important}
+.projection-page .wide.notebook .registro-conceito:nth-child(3n+2){background:color-mix(in srgb,var(--secondary-letter) 70%,white)!important}
+.projection-page .wide.notebook .registro-conceito:nth-child(3n){background:#fff8e9!important}
+.projection-page .wide.notebook .registro-conceito::before{left:1px!important;top:8px!important;bottom:8px!important;width:4px!important;background:var(--ink-sticker)!important}
+.projection-page .wide.notebook .registro-conceito strong{
+ color:var(--ink-letter)!important;font-family:Verdana,Tahoma,Arial,sans-serif!important;
+ box-shadow:inset 0 -.33em 0 var(--marker-letter)!important;
+ font-size:1em!important;font-weight:800!important;
+}
+.projection-page .wide.notebook .registro-node{
+ background:var(--light-letter)!important;
+ border:1.5px solid color-mix(in srgb,var(--ink-sticker) 50%,#ddd)!important;
+ border-radius:11px 10px 12px 9px!important;
+ box-shadow:2px 2px 0 rgba(75,76,80,.11)!important;
+ padding:6px 9px!important;min-height:32px!important;
+}
+.projection-page .wide.notebook .registro-arrow{color:var(--ink-sticker)!important;font-weight:900!important}
+.projection-page .wide.notebook table{
+ background:rgba(255,255,255,.95)!important;
+ border:1px solid #d5dedf!important;border-radius:10px!important;
+ box-shadow:2px 3px 0 rgba(40,50,60,.065)!important;
+}
+.projection-page .wide.notebook th{background:var(--light-letter)!important;color:var(--ink-letter)!important}
+.projection-page .wide.notebook td,.projection-page .wide.notebook th{border-bottom:1px solid #e4e8e9!important;padding:7px 11px!important}
+.projection-page .wide.notebook .para-lembrar{
+ position:relative!important;
+ background:linear-gradient(95deg,var(--marker-letter),#fff7d9 95%)!important;
+ border-left:5px solid var(--ink-sticker)!important;border-radius:6px 12px 10px 6px!important;
+ padding:8px 12px!important;box-shadow:2px 2px 0 rgba(65,66,70,.09)!important;
+ margin-top:9px!important;
+}
+.projection-page .wide.notebook .para-lembrar strong{color:#4e483c!important}
+.projection-page .wide.notebook .book-activity{
+ display:table!important;max-width:100%!important;
+ transform:rotate(-.45deg)!important;
+ background:#fff1a9!important;border-left:2px solid #eec855!important;
+ box-shadow:2px 3px 0 rgba(90,81,53,.12)!important;
+ margin:9px 0 5px!important;
+}
+.projection-page .wide.notebook .notebook-questions{
+ margin-top:10px!important;padding-top:9px!important;
+ border-top:2px dashed var(--ink-sticker)!important;
+}
+.projection-page .wide.notebook .notebook-questions-title{
+ font:800 calc(1.01rem * var(--projection-scale))/1.3 "Segoe Print","Comic Sans MS","Trebuchet MS",cursive!important;
+ letter-spacing:.015em!important;text-transform:none!important;
+ color:var(--ink-letter)!important;
+ background:linear-gradient(transparent 51%,var(--marker-letter) 51% 94%,transparent 94%)!important;
+ display:table!important;transform:rotate(-.8deg)!important;
+ padding:1px 5px 2px!important;margin-bottom:7px!important;
+}
+.projection-page .wide.notebook .notebook-questions li{
+ background:rgba(255,255,255,.88)!important;
+ box-shadow:1px 1px 0 rgba(65,69,72,.055)!important;
+ border:1px solid color-mix(in srgb,var(--ink-sticker) 15%,#ececec)!important;
+ border-radius:8px 11px 9px 7px!important;
+ margin:5px 0!important;padding:6px 8px 6px 36px!important;
+}
+.projection-page .wide.notebook .notebook-questions li::before{
+ background:var(--ink-sticker)!important;
+ font-family:"Trebuchet MS",Verdana,sans-serif!important;
+ transform:rotate(-7deg)!important;
+ left:6px!important;top:6px!important;width:23px!important;height:23px!important;
+}
+/* Leitura facilitada: retira inclinações e lettering dos cabeçalhos; não reduz contraste. */
+body.easy .projection-page .wide.notebook .registro-titulo,
+body.easy .projection-page .wide.notebook .student-summary>h4,
+body.easy .projection-page .wide.notebook h4,
+body.easy .projection-page .wide.notebook .notebook-questions-title,
+body.easy .projection-page .wide.notebook::before{font-family:Verdana,Tahoma,Arial,sans-serif!important;transform:none!important}
+body.easy .projection-page .wide.notebook .book-activity,
+body.easy .projection-page .wide.notebook .notebook-questions li::before{transform:none!important}
+@media(max-width:800px){
+ .projection-page .wide.notebook{padding:12px 13px 17px!important}
+ .projection-page .wide.notebook .registro-titulo,.projection-page .wide.notebook .student-summary>h4{font-size:calc(1.32rem * var(--projection-scale))!important}
+}
+@media print{
+ body.print-scope-caderno .projection-page .wide.notebook{box-shadow:none!important;background:#fff!important}
+ body.print-scope-caderno .projection-page .wide.notebook .registro-conceito,
+ body.print-scope-caderno .projection-page .wide.notebook table{box-shadow:none!important}
+}
+
+
+/* malu-lettering-tematico-60 */
+/* ===== Estética final do caderno: lettering + desenhos de caneta ===== */
+.projection-page .wide.notebook{
+  padding:15px 23px 19px!important;
+  background:repeating-linear-gradient(to bottom,#fffefa 0px,#fffefa 39px,color-mix(in srgb,var(--paper-lines) 76%,white) 40px,#fffefa 41px)!important;
+}
+.projection-page .wide.notebook::before{
+  content:"✎  meu caderno"!important;
+  font:700 calc(1.38rem*var(--projection-scale))/1 "Caveat","Segoe Print","Lobster Two",cursive!important;
+  letter-spacing:0!important;
+  display:table!important;
+  margin:0 0 19px!important;
+  color:var(--ink-letter)!important;
+}
+.projection-page .wide.notebook .registro-titulo,
+.projection-page .wide.notebook .student-summary>h4,
+.projection-page .wide.notebook h4{
+  font:700 calc(2.40rem*var(--projection-scale))/1.02 "Caveat","Kalam","Segoe Print","Lobster Two",cursive!important;
+  letter-spacing:0!important;
+  max-width:100%!important;
+  color:#192b50!important;
+  padding:0 5px 4px!important;
+  margin:0 0 10px!important;
+  transform:none!important;
+  background:linear-gradient(transparent 68%,var(--marker-letter) 68% 94%,transparent 94%)!important;
+}
+.projection-page .wide.notebook .registro-titulo::before,
+.projection-page .wide.notebook .student-summary>h4::before{content:""!important}
+.projection-page .wide.notebook .registro-conceito strong{
+  font:700 calc(1.55rem*var(--projection-scale))/1.02 "Caveat","Kalam","Segoe Print","Lobster Two",cursive!important;
+  letter-spacing:0!important;color:var(--ink-letter)!important;
+  box-shadow:inset 0 -.3em 0 var(--marker-letter)!important;
+  padding:0 2px!important;
+}
+.projection-page .wide.notebook .para-lembrar{display:block!important;min-height:38px!important;padding:9px 13px!important}
+.projection-page .wide.notebook .para-lembrar strong{
+  font:700 calc(1.49rem*var(--projection-scale))/1 "Caveat","Kalam","Segoe Print","Lobster Two",cursive!important;
+  color:var(--ink-letter)!important;letter-spacing:0!important;
+}
+.projection-page .wide.notebook .notebook-questions-title{
+  font:700 calc(1.65rem*var(--projection-scale))/1 "Caveat","Kalam","Segoe Print","Lobster Two",cursive!important;
+  letter-spacing:0!important;transform:none!important;text-transform:none!important;
+  margin:0 0 7px!important;
+}
+/* Perguntas sem numeração nem indicação de quantidade. */
+.notebook-questions ul{list-style:none!important;margin:0!important;padding:0!important}
+.notebook-questions li{position:relative!important;counter-increment:none!important;padding-left:27px!important}
+.notebook-questions li::before{
+  content:""!important;position:absolute!important;
+  left:7px!important;top:50%!important;transform:translateY(-50%)!important;
+  width:9px!important;height:9px!important;
+  display:block!important;border-radius:50%!important;
+  background:var(--caderno-accent,#bd8750)!important;
+  box-shadow:none!important;
+}
+.projection-page .wide.notebook .notebook-questions li{padding-left:31px!important}
+.projection-page .wide.notebook .notebook-questions li::before{content:""!important;display:block!important;width:9px!important;height:9px!important;left:10px!important;top:50%!important;transform:translateY(-50%)!important;border-radius:50%!important;box-shadow:none!important;background:var(--ink-sticker)!important}
+/* Desenhos vetoriais embutidos: sempre disponíveis, inclusive offline. */
+.letter-doodles{display:none}
+.projection-page .wide.notebook>.letter-doodles{
+  position:absolute;right:19px;top:9px;
+  display:flex;align-items:center;gap:9px;z-index:1;
+  pointer-events:none;
+}
+.projection-page .letter-doodle{
+  width:40px;height:40px;
+  display:grid;place-items:center;color:var(--ink-letter);
+  transform:rotate(-7deg);
+}
+.projection-page .letter-doodle:nth-child(2){color:var(--ink-sticker);transform:rotate(8deg)}
+.projection-page .letter-doodle .doodle-svg{width:36px;height:36px;filter:drop-shadow(.6px .7px 0 rgba(30,35,50,.10))}
+.letter-closing-doodle{display:none}
+.projection-page .letter-closing-doodle{display:inline-flex;vertical-align:middle;margin-right:7px;float:right;color:var(--ink-letter)}
+.projection-page .letter-closing-doodle svg{width:22px;height:22px;transform:rotate(8deg)}
+/* Leitura facilitada privilegia legibilidade, sem perder a organização do conteúdo. */
+body.easy .projection-page .wide.notebook .registro-titulo,
+body.easy .projection-page .wide.notebook .student-summary>h4,
+body.easy .projection-page .wide.notebook h4,
+body.easy .projection-page .wide.notebook .registro-conceito strong,
+body.easy .projection-page .wide.notebook .para-lembrar strong,
+body.easy .projection-page .wide.notebook .notebook-questions-title,
+body.easy .projection-page .wide.notebook::before{
+  font-family:Verdana,Tahoma,Arial,sans-serif!important;
+  font-weight:800!important;line-height:1.3!important;transform:none!important;
+}
+body.easy .projection-page .wide.notebook .registro-titulo,
+body.easy .projection-page .wide.notebook .student-summary>h4,
+body.easy .projection-page .wide.notebook h4{font-size:calc(1.58rem*var(--projection-scale))!important}
+body.easy .projection-page .wide.notebook .registro-conceito strong{font-size:calc(1.10rem*var(--projection-scale))!important}
+body.easy .projection-page .wide.notebook .para-lembrar strong{font-size:calc(1.08rem*var(--projection-scale))!important}
+body.easy .projection-page .wide.notebook .notebook-questions-title{font-size:calc(1.17rem*var(--projection-scale))!important}
+@media(max-width:800px){
+ .projection-page .wide.notebook .registro-titulo,.projection-page .wide.notebook .student-summary>h4,.projection-page .wide.notebook h4{font-size:calc(1.99rem*var(--projection-scale))!important}
+ .projection-page .wide.notebook .registro-conceito strong{font-size:calc(1.44rem*var(--projection-scale))!important}
+ .projection-page .letter-doodle{width:29px;height:29px}
+ .projection-page .letter-doodle .doodle-svg{width:27px;height:27px}
+ .projection-page .wide.notebook>.letter-doodles{gap:5px;right:11px;top:10px}
+}
+@media print{
+ body.print-scope-caderno .projection-page .letter-doodle{color:#34383c!important}
+ body.print-scope-caderno .projection-page .wide.notebook{background:#fff!important}
+}
+
+
+/* malu-restauracao-visual-final */
+
+/* ===== RESTAURAÇÃO VISUAL FINAL: lettering, desenhos e páginas na trilha ===== */
+/* Mantém o texto corrido em Verdana; lettering só onde funciona como hierarquia visual. */
+.wide.notebook{position:relative!important;overflow:visible!important}
+.wide.notebook::before{
+  content:"✎  meu caderno"!important;
+  font-family:"Caveat","Kalam","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:1.38rem!important;font-weight:700!important;line-height:1!important;
+  letter-spacing:0!important;text-transform:none!important;
+  color:var(--caderno-accent,#425d78)!important;
+  display:table!important;margin:0 0 12px!important;padding:1px 7px 3px!important;
+  background:linear-gradient(transparent 48%,var(--caderno-marker,#ffe09a) 48% 94%,transparent 94%)!important;
+  transform:rotate(-1.2deg)!important;
+}
+.wide.notebook .registro-titulo,
+.wide.notebook .student-summary>h4{
+  font-family:"Caveat","Kalam","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:clamp(1.9rem,3vw,2.55rem)!important;font-weight:700!important;line-height:1.02!important;
+  letter-spacing:0!important;text-transform:none!important;color:#192b50!important;
+  display:table!important;width:fit-content!important;max-width:calc(100% - 105px)!important;
+  margin:0 0 10px!important;padding:0 5px 4px!important;
+  background:linear-gradient(transparent 68%,var(--caderno-marker,#ffe09a) 68% 94%,transparent 94%)!important;
+  transform:none!important;
+}
+.wide.notebook .registro-conceito strong{
+  font-family:"Kalam","Caveat","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:1.28em!important;font-weight:700!important;line-height:1.05!important;
+  color:var(--caderno-accent,#36506a)!important;
+  box-shadow:inset 0 -.30em 0 color-mix(in srgb,var(--caderno-marker,#ffe09a) 75%,transparent)!important;
+  padding:0 2px!important;
+}
+.wide.notebook .para-lembrar strong,
+.wide.notebook .notebook-questions-title{
+  font-family:"Caveat","Kalam","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:1.42rem!important;font-weight:700!important;line-height:1.05!important;
+  letter-spacing:0!important;text-transform:none!important;color:var(--caderno-accent,#36506a)!important;
+}
+.wide.notebook .notebook-questions-title{
+  display:table!important;padding:1px 5px 2px!important;
+  background:linear-gradient(transparent 52%,var(--caderno-marker,#ffe09a) 52% 94%,transparent 94%)!important;
+}
+/* Os desenhos deixam de ser exclusivos da tela de projeção. */
+.wide.notebook>.letter-doodles{
+  position:absolute!important;right:16px!important;top:10px!important;
+  display:flex!important;align-items:center!important;gap:8px!important;z-index:3!important;
+  pointer-events:none!important;
+}
+.wide.notebook .letter-doodle{
+  width:40px!important;height:40px!important;display:grid!important;place-items:center!important;
+  color:var(--caderno-accent,#425d78)!important;transform:rotate(-7deg)!important;
+}
+.wide.notebook .letter-doodle:nth-child(2){color:var(--caderno-accent-2,#c8794a)!important;transform:rotate(8deg)!important}
+.wide.notebook .letter-doodle .doodle-svg{width:36px!important;height:36px!important;filter:drop-shadow(.6px .7px 0 rgba(30,35,50,.10))!important}
+.wide.notebook .letter-closing-doodle{
+  display:inline-flex!important;vertical-align:middle!important;float:right!important;
+  margin:0 0 0 8px!important;color:var(--caderno-accent,#425d78)!important;
+}
+.wide.notebook .letter-closing-doodle svg{width:23px!important;height:23px!important;transform:rotate(7deg)!important}
+/* Na projeção, o lettering cresce e os doodles ganham presença sem invadir o texto. */
+.projection-page .wide.notebook .registro-titulo,
+.projection-page .wide.notebook .student-summary>h4{
+  font-family:"Caveat","Kalam","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:calc(2.55rem*var(--projection-scale))!important;
+  max-width:calc(100% - 120px)!important;
+}
+.projection-page .wide.notebook .registro-conceito strong{
+  font-family:"Kalam","Caveat","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:calc(1.43rem*var(--projection-scale))!important;
+}
+.projection-page .wide.notebook .para-lembrar strong{
+  font-family:"Caveat","Kalam","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:calc(1.48rem*var(--projection-scale))!important;
+}
+.projection-page .wide.notebook .notebook-questions-title{
+  font-family:"Caveat","Kalam","Segoe Print","Bradley Hand","Comic Sans MS","Comic Neue",cursive!important;
+  font-size:calc(1.64rem*var(--projection-scale))!important;
+}
+.projection-page .wide.notebook>.letter-doodles{right:19px!important;top:10px!important;gap:10px!important}
+.projection-page .wide.notebook .letter-doodle{width:45px!important;height:45px!important}
+.projection-page .wide.notebook .letter-doodle .doodle-svg{width:41px!important;height:41px!important}
+/* Páginas do livro: voltam a aparecer de forma evidente na trilha. */
+.track-resource{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:wrap!important}
+.track-page{
+  display:inline-block!important;margin-left:3px!important;padding:3px 8px 4px!important;
+  border-radius:7px!important;border:1px solid #dfbd58!important;background:#fff1a9!important;
+  color:#654810!important;font-size:.79rem!important;font-weight:900!important;line-height:1.1!important;
+  letter-spacing:.01em!important;white-space:nowrap!important;
+  box-shadow:0 1px 2px rgba(90,70,20,.08)!important;
+}
+/* Leitura facilitada continua podendo priorizar a decodificação. */
+body.easy .wide.notebook .registro-titulo,
+body.easy .wide.notebook .student-summary>h4,
+body.easy .wide.notebook .registro-conceito strong,
+body.easy .wide.notebook .para-lembrar strong,
+body.easy .wide.notebook .notebook-questions-title,
+body.easy .wide.notebook::before{
+  font-family:Verdana,Tahoma,Arial,sans-serif!important;transform:none!important;
+}
+@media(max-width:760px){
+  .wide.notebook .registro-titulo,.wide.notebook .student-summary>h4{max-width:calc(100% - 72px)!important;font-size:1.85rem!important}
+  .wide.notebook>.letter-doodles{right:8px!important;top:8px!important;gap:3px!important}
+  .wide.notebook .letter-doodle{width:29px!important;height:29px!important}
+  .wide.notebook .letter-doodle .doodle-svg{width:27px!important;height:27px!important}
+  .track-page{font-size:.75rem!important}
+}
+
+
+/* malu-final-bonitinho */
+
+/* ===== ÚLTIMA REVISÃO VISUAL — referência: caderno lettering aprovado ===== */
+:root{
+  --malu-navy:#16366f;
+  --malu-ink:#26333f;
+  --malu-line:#d7e8f7;
+}
+body{background:#f5f8fb!important;color:var(--malu-ink)!important}
+.hero{background:linear-gradient(135deg,#f8fbff 0%,#fff5df 100%)!important;color:#17365f!important;border-bottom:1px solid #d9e3ec!important}
+.hero .kicker{color:#d96f35!important}.hero p{color:#536575!important}.toolbar{background:rgba(255,255,255,.97)!important}
+.series-head{background:#17365f!important}
+
+/* Paletas vivas, sem tons acinzentados/terrosos apagados. */
+.historia .wide.notebook,.projection-page.historia .wide.notebook{
+ --caderno-accent:#ef7f3b;--caderno-accent-2:#1d4f91;--caderno-marker:#ffe19a;
+ --caderno-soft:#fff2df;--caderno-soft2:#eaf4ff;--caderno-soft3:#fff7c9;--caderno-title:#173b78;
+}
+.filosofia .wide.notebook,.projection-page.filosofia .wide.notebook{
+ --caderno-accent:#7b61c9;--caderno-accent-2:#cf6fa8;--caderno-marker:#ddccff;
+ --caderno-soft:#f0eaff;--caderno-soft2:#ffeaf5;--caderno-soft3:#fff2bb;--caderno-title:#49388f;
+}
+.sociologia .wide.notebook,.projection-page.sociologia .wide.notebook{
+ --caderno-accent:#168777;--caderno-accent-2:#f08c62;--caderno-marker:#bfeadd;
+ --caderno-soft:#e5f7f2;--caderno-soft2:#fff0e9;--caderno-soft3:#fff1ad;--caderno-title:#12665f;
+}
+
+/* Folha de caderno clara, pautada, alegre. */
+.wide.notebook,.projection-page .wide.notebook{
+ position:relative!important;overflow:hidden!important;
+ background:
+   linear-gradient(to right,transparent 0 30px,rgba(244,112,96,.30) 30px 32px,transparent 32px),
+   repeating-linear-gradient(to bottom,#fff 0 38px,var(--malu-line) 38px 39px)!important;
+ border:1px solid #cfdae3!important;border-left:5px solid var(--caderno-accent)!important;
+ border-radius:20px!important;box-shadow:0 8px 22px rgba(35,55,70,.11)!important;
+ padding:20px 28px 23px 54px!important;color:#24313c!important;
+}
+.projection-page .wide.notebook{padding:18px 28px 23px 58px!important}
+
+/* Etiqueta e título com lettering de verdade (com fallbacks locais). */
+.wide.notebook::before,.projection-page .wide.notebook::before{
+ content:"✎ meu caderno"!important;
+ font-family:"Brush Script MT","Lucida Handwriting","Segoe Print","URW Chancery L","Z003","Purisa","Comic Neue",cursive!important;
+ font-size:1.55rem!important;font-weight:700!important;color:#7a4a27!important;
+ display:table!important;margin:0 0 9px!important;padding:0 7px 3px!important;
+ background:linear-gradient(transparent 55%,#ffe2ad 55% 93%,transparent 93%)!important;
+ transform:rotate(-1deg)!important;letter-spacing:.01em!important;text-transform:none!important;
+}
+.wide.notebook .registro-titulo,.wide.notebook .student-summary>h4,
+.projection-page .wide.notebook .registro-titulo,.projection-page .wide.notebook .student-summary>h4{
+ font-family:"Brush Script MT","Lucida Handwriting","Segoe Print","URW Chancery L","Z003","Purisa","Comic Neue",cursive!important;
+ color:var(--caderno-title)!important;font-weight:700!important;letter-spacing:.005em!important;text-transform:none!important;
+ font-size:clamp(2.0rem,3vw,2.7rem)!important;line-height:1.03!important;
+ display:table!important;width:fit-content!important;max-width:calc(100% - 125px)!important;
+ margin:2px 0 15px!important;padding:0 8px 3px!important;
+ background:linear-gradient(transparent 69%,var(--caderno-marker) 69% 95%,transparent 95%)!important;
+ transform:rotate(-.25deg)!important;
+}
+.projection-page .wide.notebook .registro-titulo,.projection-page .wide.notebook .student-summary>h4{
+ font-size:calc(2.65rem*var(--projection-scale))!important;
+}
+.wide.notebook .registro-titulo::after,.wide.notebook .student-summary>h4::after{
+ content:" ✦";color:var(--caderno-accent)!important;font-family:Verdana,sans-serif!important;font-size:.58em!important;vertical-align:top!important;
+}
+
+/* Corpo continua fácil de ler. */
+.wide.notebook p,.wide.notebook li,.wide.notebook td,.wide.notebook th,.wide.notebook .registro-node,
+.projection-page .wide.notebook p,.projection-page .wide.notebook li,.projection-page .wide.notebook td,.projection-page .wide.notebook th,.projection-page .wide.notebook .registro-node{
+ font-family:Verdana,Tahoma,Arial,sans-serif!important;color:#273542!important;
+}
+
+/* Fluxos parecem anotação de caderno, não formulário. */
+.wide.notebook .registro-flow,.projection-page .wide.notebook .registro-flow{gap:7px 6px!important;margin:6px 0 14px!important}
+.wide.notebook .registro-node,.projection-page .wide.notebook .registro-node{
+ background:#fff8ef!important;border:2px solid color-mix(in srgb,var(--caderno-accent) 58%,#fff)!important;
+ border-radius:12px!important;padding:8px 11px!important;font-weight:800!important;color:#19345e!important;
+ box-shadow:0 2px 0 rgba(30,45,60,.04)!important;
+}
+.wide.notebook .registro-arrow,.projection-page .wide.notebook .registro-arrow{color:var(--caderno-accent)!important;font-size:1.38rem!important;font-weight:900!important}
+
+/* Conceitos: cartões pastéis alternados + palavra em lettering. */
+.wide.notebook .registro-conceitos,.projection-page .wide.notebook .registro-conceitos{gap:9px 12px!important;margin-top:8px!important}
+.wide.notebook .registro-conceito,.projection-page .wide.notebook .registro-conceito{
+ position:relative!important;border:1px solid #d4dee7!important;border-left:5px solid var(--caderno-accent)!important;
+ border-radius:13px!important;padding:10px 13px!important;box-shadow:0 2px 5px rgba(30,45,60,.05)!important;
+ background:rgba(255,255,255,.94)!important;
+}
+.wide.notebook .registro-conceito:nth-child(3n+1),.projection-page .wide.notebook .registro-conceito:nth-child(3n+1){background:var(--caderno-soft)!important}
+.wide.notebook .registro-conceito:nth-child(3n+2),.projection-page .wide.notebook .registro-conceito:nth-child(3n+2){background:var(--caderno-soft2)!important}
+.wide.notebook .registro-conceito:nth-child(3n),.projection-page .wide.notebook .registro-conceito:nth-child(3n){background:#fff!important}
+.wide.notebook .registro-conceito strong,.projection-page .wide.notebook .registro-conceito strong{
+ font-family:"Brush Script MT","Lucida Handwriting","Segoe Print","URW Chancery L","Z003","Purisa","Comic Neue",cursive!important;
+ font-size:1.48em!important;line-height:1!important;color:var(--caderno-title)!important;font-weight:700!important;
+ box-shadow:inset 0 -.36em 0 color-mix(in srgb,var(--caderno-marker) 82%,transparent)!important;
+ padding:0 3px!important;
+}
+.projection-page .wide.notebook .registro-conceito strong{font-size:calc(1.52rem*var(--projection-scale))!important}
+
+/* Tabelas com cara de quadro desenhado e cores leves. */
+.wide.notebook table,.projection-page .wide.notebook table{background:rgba(255,255,255,.96)!important;border:1px solid #cdd8e1!important;border-radius:14px!important;overflow:hidden!important;box-shadow:0 3px 6px rgba(30,45,60,.045)!important}
+.wide.notebook th,.projection-page .wide.notebook th{background:var(--caderno-soft)!important;color:var(--caderno-title)!important;font-weight:900!important}
+.wide.notebook td,.wide.notebook th,.projection-page .wide.notebook td,.projection-page .wide.notebook th{border-bottom:1px solid #dde5eb!important;padding:8px 11px!important}
+.wide.notebook tr:nth-child(even) td,.projection-page .wide.notebook tr:nth-child(even) td{background:rgba(255,255,255,.72)!important}
+
+/* Fechamento: processo/reflexão/relação em bloco luminoso. */
+.wide.notebook .para-lembrar,.projection-page .wide.notebook .para-lembrar{
+ position:relative!important;margin:12px 0 8px!important;padding:11px 15px 12px!important;
+ background:linear-gradient(100deg,#fff0ae 0%,#fff8d8 100%)!important;
+ border:0!important;border-left:5px solid var(--caderno-accent)!important;border-radius:13px!important;
+ box-shadow:0 2px 6px rgba(70,55,20,.08)!important;
+}
+.wide.notebook .para-lembrar strong,.projection-page .wide.notebook .para-lembrar strong{
+ font-family:"Brush Script MT","Lucida Handwriting","Segoe Print","URW Chancery L","Z003","Purisa","Comic Neue",cursive!important;
+ color:#7c3f22!important;font-size:1.48rem!important;line-height:1!important;font-weight:700!important;
+}
+.projection-page .wide.notebook .para-lembrar strong{font-size:calc(1.55rem*var(--projection-scale))!important}
+
+/* Página do livro = post-it pequeno e óbvio. */
+.wide.notebook .book-activity,.projection-page .wide.notebook .book-activity{
+ display:table!important;width:auto!important;margin:9px 0 3px!important;padding:7px 12px!important;
+ background:#fff0a8!important;border:1px solid #e8c955!important;border-radius:9px!important;
+ color:#654812!important;font-weight:900!important;box-shadow:2px 3px 0 rgba(220,188,70,.20)!important;
+ transform:rotate(-.6deg)!important;
+}
+.wide.notebook .book-activity::before,.projection-page .wide.notebook .book-activity::before{content:"↳"!important;color:#d67b27!important;font-weight:900!important;margin-right:4px!important;position:static!important}
+
+/* Perguntas: sem 1,2,3; pontos simples e cartões claros. */
+.wide.notebook .notebook-questions,.projection-page .wide.notebook .notebook-questions{margin-top:10px!important;padding-top:10px!important;border-top:2px dashed var(--caderno-accent)!important}
+.wide.notebook .notebook-questions-title,.projection-page .wide.notebook .notebook-questions-title{
+ font-family:"Brush Script MT","Lucida Handwriting","Segoe Print","URW Chancery L","Z003","Purisa","Comic Neue",cursive!important;
+ color:var(--caderno-title)!important;font-size:1.7rem!important;font-weight:700!important;letter-spacing:0!important;text-transform:none!important;
+ display:table!important;padding:0 6px 2px!important;background:linear-gradient(transparent 54%,var(--caderno-marker) 54% 94%,transparent 94%)!important;
+}
+.projection-page .wide.notebook .notebook-questions-title{font-size:calc(1.8rem*var(--projection-scale))!important}
+.wide.notebook .notebook-questions ul,.projection-page .wide.notebook .notebook-questions ul{list-style:none!important;margin:4px 0 0!important;padding:0!important}
+.wide.notebook .notebook-questions li,.projection-page .wide.notebook .notebook-questions li{
+ position:relative!important;margin:6px 0!important;padding:7px 11px 7px 31px!important;background:rgba(255,255,255,.92)!important;
+ border:1px solid color-mix(in srgb,var(--caderno-accent) 28%,#d9e0e5)!important;border-radius:11px!important;line-height:1.38!important;
+}
+.wide.notebook .notebook-questions li::before,.projection-page .wide.notebook .notebook-questions li::before{
+ content:""!important;position:absolute!important;left:11px!important;top:50%!important;transform:translateY(-50%)!important;
+ width:9px!important;height:9px!important;border-radius:50%!important;background:var(--caderno-accent)!important;
+}
+
+/* Doodles visíveis, como desenho de caneta nas margens. */
+.wide.notebook>.letter-doodles,.projection-page .wide.notebook>.letter-doodles{
+ right:18px!important;top:12px!important;gap:9px!important;display:flex!important;z-index:6!important;
+}
+.wide.notebook .letter-doodle,.projection-page .wide.notebook .letter-doodle{
+ width:50px!important;height:50px!important;color:var(--caderno-title)!important;opacity:1!important;
+ filter:none!important;
+}
+.wide.notebook .letter-doodle:nth-child(2),.projection-page .wide.notebook .letter-doodle:nth-child(2){color:var(--caderno-accent)!important}
+.wide.notebook .letter-doodle .doodle-svg,.projection-page .wide.notebook .letter-doodle .doodle-svg{width:46px!important;height:46px!important;stroke-width:1.45!important}
+.projection-page .wide.notebook .letter-doodle{width:58px!important;height:58px!important}.projection-page .wide.notebook .letter-doodle .doodle-svg{width:54px!important;height:54px!important}
+.wide.notebook .letter-closing-doodle,.projection-page .wide.notebook .letter-closing-doodle{color:var(--caderno-accent-2)!important;margin-left:8px!important}
+.wide.notebook::after,.projection-page .wide.notebook::after{
+ content:"✦  〰"!important;display:block!important;position:absolute!important;right:20px!important;bottom:14px!important;
+ color:var(--caderno-accent)!important;font:bold 1.05rem/1 Verdana,sans-serif!important;opacity:.85!important;
+}
+
+/* Trilha: página do livro pequena e bonita, sem texto extra. */
+.track-page{background:#fff0a8!important;border-color:#e6c956!important;color:#654812!important;border-radius:8px!important;padding:4px 8px!important;font-weight:900!important;box-shadow:1px 2px 0 rgba(220,188,70,.17)!important}
+.historia .track-item{border-left-color:#ef7f3b!important}.filosofia .track-item{border-left-color:#7b61c9!important}.sociologia .track-item{border-left-color:#168777!important}
+
+/* Fontes e QR codes continuam presentes, mas visualmente subordinados ao caderno. */
+.projection-refs{background:#fff!important;border:1px solid #d4dfe7!important;border-left:5px solid var(--proj-accent,#50677a)!important;border-radius:15px!important;box-shadow:0 4px 12px rgba(35,50,65,.07)!important}
+.projection-refs h3{color:#2d4050!important}.pr-chip{background:#f8fbfd!important}
+
+/* Leitura facilitada preserva função: tira lettering quando acionada. */
+body.easy .wide.notebook::before,body.easy .wide.notebook .registro-titulo,body.easy .wide.notebook .student-summary>h4,
+body.easy .wide.notebook .registro-conceito strong,body.easy .wide.notebook .para-lembrar strong,body.easy .wide.notebook .notebook-questions-title,
+body.easy .projection-page .wide.notebook::before,body.easy .projection-page .wide.notebook .registro-titulo,body.easy .projection-page .wide.notebook .student-summary>h4,
+body.easy .projection-page .wide.notebook .registro-conceito strong,body.easy .projection-page .wide.notebook .para-lembrar strong,body.easy .projection-page .wide.notebook .notebook-questions-title{
+ font-family:Verdana,Tahoma,Arial,sans-serif!important;transform:none!important;
+}
+@media(max-width:800px){
+ .wide.notebook,.projection-page .wide.notebook{padding-left:42px!important;padding-right:14px!important}
+ .wide.notebook .registro-titulo,.wide.notebook .student-summary>h4{font-size:1.95rem!important;max-width:calc(100% - 80px)!important}
+ .wide.notebook>.letter-doodles,.projection-page .wide.notebook>.letter-doodles{right:8px!important;top:9px!important;gap:2px!important}
+ .wide.notebook .letter-doodle,.projection-page .wide.notebook .letter-doodle{width:36px!important;height:36px!important}
+ .wide.notebook .letter-doodle .doodle-svg,.projection-page .wide.notebook .letter-doodle .doodle-svg{width:33px!important;height:33px!important}
+}
+@media print{.wide.notebook,.projection-page .wide.notebook{box-shadow:none!important;background:#fff!important}}
+
+
+/* Bloco 12 */
+
+/* ===== Matriz: texto oficial da habilidade na projeção ===== */
+.pr-hab{margin:0}
+.pr-hab>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;border-radius:8px}
+.pr-hab>summary::-webkit-details-marker{display:none}
+.pr-hab>summary::after{content:'ver habilidade ▾';font-size:calc(.85rem*var(--s,1));font-weight:700;color:#4c5b65;text-decoration:underline;text-underline-offset:3px}
+.pr-hab[open]>summary::after{content:'ocultar ▴'}
+.pr-hab>p{margin:6px 0 0;font-size:calc(.98rem*var(--s,1));line-height:1.45;color:#2e3a42}
+.pr-hab>summary:focus-visible{outline:3px solid #edb650;outline-offset:3px}
+.pr-src-note{margin:8px 0 0;font-size:calc(.8125rem*var(--s,1));color:#4c5b65}
+@media print{.pr-hab>summary::after{content:''}}
+
+/* ===== Usabilidade (v5) ===== */
+:root{--toolbar-h:112px}
+.week-card{scroll-margin-top:calc(var(--toolbar-h) + 10px)}
+.toolbar{transition:transform .22s ease}
+.toolbar.tb-hide{transform:translateY(-101%)}
+.skip-link{position:absolute;left:8px;top:-60px;z-index:100;background:#1f2a30;color:#fff;padding:10px 14px;border-radius:0 0 10px 10px;font-weight:800;text-decoration:none}
+.skip-link:focus{top:0}
+.weekbar{display:flex;align-items:center;gap:8px;padding:5px 14px 7px;border-top:1px solid rgba(0,0,0,.07);background:rgba(255,250,242,.96)}
+.wk-label{flex:1;min-width:0;font-size:.95rem;font-weight:800;color:#24313a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-label small{font-weight:600;color:#566168;margin-left:8px;text-transform:none;letter-spacing:0;font-size:.95rem}
+.wk-btn,.wk-project{min-height:36px;border:1px solid #cfc6b8;border-radius:10px;background:#fff;color:#24313a;font:800 .9rem/1 inherit;font-family:inherit;cursor:pointer;padding:0 14px}
+.wk-btn{min-width:42px;font-size:1.05rem}
+.wk-project{background:#273843;color:#fff;border-color:#273843}
+.wk-btn:disabled{opacity:.45;cursor:default}
+.wk-btn:hover:not(:disabled),.wk-project:hover{filter:brightness(.97)}
+.save-toast{position:fixed;left:14px;bottom:14px;z-index:60;background:#1f2a30;color:#fff;padding:7px 14px;border-radius:999px;font-size:.9rem;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.save-toast.on{opacity:1;transform:none}
+.save-toast[hidden]{display:block!important;visibility:hidden}
+.save-toast.on[hidden]{visibility:visible}
+body.is-projecting .save-toast{display:none!important}
+.nav-toggle{display:none}
+@media(max-width:760px){
+  .nav-toggle{display:inline-flex;align-items:center;gap:6px}
+  .toolbar:not(.nav-open) .nav-modes,.toolbar:not(.nav-open) .tools-menu{display:none}
+  .toolbar.nav-open .nav-toggle>span[aria-hidden]{display:inline-block;transform:rotate(180deg)}
+  .nav-label{display:none}
+  .nav-choice,.tools-menu>summary{min-height:38px}
+  .nav-shell{gap:6px 8px;padding:6px 10px}
+  .wk-label small{display:none}
+  .weekbar{padding:5px 10px 7px}
+  .save-toast{bottom:12px}
+}
+@media print{.weekbar,.skip-link,.save-toast{display:none!important}}
+
+
+/* Bloco 13 */
+
+/* ===== Ferramentas no celular ===== */
+@media(max-width:760px){
+  .toolbar.nav-open .tools-menu>summary{display:none}
+  .toolbar.nav-open #navModes,.toolbar.nav-open #navTools{display:block;width:100%}
+  .toolbar.nav-open #navModes{display:flex;flex-wrap:wrap;gap:6px;padding:2px 2px 6px}
+  .toolbar.nav-open .tools-panel{position:static;width:auto;max-width:none;box-shadow:none;border:0;padding:4px 2px 8px;max-height:calc(100vh - 230px);overflow:auto}
+  .toolbar.nav-open .tools-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .toolbar.nav-open .tools-actions>*{width:100%;min-height:44px}
+}
+/* ===== Aulas dadas por turma ===== */
+.aulas-view{position:fixed;inset:0;z-index:190;background:#f4f0e8;overflow:auto;-webkit-overflow-scrolling:touch;font-family:Verdana,Tahoma,system-ui,sans-serif;color:#24313a}
+.aulas-top{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px 18px;background:#fffdfa;border-bottom:1px solid #d9d2c3;box-shadow:0 2px 10px rgba(30,40,50,.06)}
+.aulas-heading h2{margin:0;font-family:Georgia,serif;font-size:1.3rem}
+.aulas-heading p{margin:2px 0 0;font-size:.95rem;font-weight:700;color:#566168}
+.aulas-actions{display:flex;flex-wrap:wrap;gap:8px}
+.aulas-actions button{min-height:42px;padding:0 16px;border:1px solid #cfc6b8;border-radius:10px;background:#fff;color:#24313a;font:800 .92rem/1 inherit;font-family:inherit;cursor:pointer}
+.aulas-actions #aulasClose{background:#273843;color:#fff;border-color:#273843}
+.aulas-body{max-width:1040px;margin:0 auto;padding:14px 14px 8px;display:grid;gap:12px}
+.aulas-grupo{background:#fffdfa;border:1px solid #d9d2c3;border-left:6px solid var(--g-accent,#566174);border-radius:14px;overflow:hidden}
+.aulas-grupo.historia{--g-accent:var(--hist,#8c5a2b)}.aulas-grupo.filosofia{--g-accent:var(--fil,#54508f)}.aulas-grupo.sociologia{--g-accent:var(--soc,#2e6c5e)}
+.aulas-grupo{scroll-margin-top:96px}
+.aulas-grupo>summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:13px 16px;font-weight:800;font-size:1.02rem}
+.aulas-grupo>summary>span:first-of-type{flex:1 1 auto;text-align:left}
+.aulas-grupo>summary::-webkit-details-marker{display:none}
+.aulas-grupo>summary::before{content:'＋';flex:none;width:1.1em}
+.aulas-grupo[open]>summary::before{content:'−'}
+.aulas-grupo>summary .ag-count{font-weight:700;color:#566168;font-size:.92rem}
+.aulas-grupo>summary:focus-visible,.aulas-actions button:focus-visible{outline:3px solid #743642;outline-offset:2px}
+.aulas-semana{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;padding:10px 16px;border-top:1px solid #ece6d9}
+.aulas-semana .as-t{font-size:.98rem;line-height:1.35}
+.aulas-semana .as-t b{font-weight:800}
+.as-turmas{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.as-turma{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:4px 12px 4px 10px;border:2px solid #cfc6b8;border-radius:12px;background:#fff;cursor:pointer;font-weight:800;font-size:.98rem}
+.as-turma input{width:22px;height:22px;margin:0;accent-color:var(--g-accent,#2e6c5e);cursor:pointer}
+.as-turma small{font-weight:700;color:#566168;font-size:.8125rem;min-width:2.6em}
+.as-turma.on{border-color:var(--g-accent,#2e6c5e);background:#f0f7f4}
+.as-turma:focus-within{outline:3px solid #743642;outline-offset:2px}
+.aulas-note{max-width:1040px;margin:4px auto 28px;padding:0 18px;font-size:.88rem;color:#566168}
+body.is-aulas{overflow:hidden}
+@media(max-width:700px){
+  .aulas-grupo{scroll-margin-top:172px}
+  .aulas-semana{grid-template-columns:1fr}
+  .as-turmas{justify-content:flex-start}
+  .aulas-top{padding:10px 12px}
+  .aulas-actions button{flex:1 1 auto}
+}
+@media print{.aulas-view{display:none!important}}
+
+
+/* Bloco 14 */
+
+/* ===== Atividade de 1h30 ===== */
+.atv-d{margin:10px 14px;border:1px solid var(--line);border-left:5px solid var(--accent,#566174);border-radius:12px;background:#fffdfa}
+.atv-d>summary{cursor:pointer;list-style:none;padding:11px 14px;font-weight:800}
+.atv-d>summary::-webkit-details-marker{display:none}
+.atv-d>summary::before{content:"＋ "}
+.atv-d[open]>summary::before{content:"− "}
+.atv-body{padding:2px 16px 16px}
+.atv-acoes{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.atv-btn{min-height:42px;padding:0 16px;border:1px solid #cfc6b8;border-radius:10px;background:#fff;color:#24313a;font:800 .9rem/1 inherit;font-family:inherit;cursor:pointer}
+.atv-btn.atv-proj{background:#273843;color:#fff;border-color:#273843}
+.atv-btn:focus-visible{outline:3px solid #743642;outline-offset:2px}
+.atv-aluno{--as:var(--projection-scale,1);background:#fff;border:1px solid #d8dde1;border-radius:14px;padding:16px 20px;font-family:Verdana,Tahoma,system-ui,sans-serif;color:#24313a}
+.atv-kicker{display:block;font-size:calc(.85rem*var(--as));font-weight:800;color:var(--accent,#566174)}
+.atv-titulo{margin:4px 0 6px;font-family:Georgia,serif;font-size:calc(1.4rem*var(--as));line-height:1.25}
+.atv-nome{margin:0 0 10px;font-size:calc(.9rem*var(--as));color:#566168}
+.atv-tempo{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0 0 12px;padding:0}
+.atv-tempo li{padding:5px 12px;border:2px solid var(--accent,#566174);border-radius:999px;font-size:calc(.92rem*var(--as));font-weight:700}
+.atv-p{margin:0 0 14px}
+.atv-p h4{margin:0 0 6px;font-size:calc(1.05rem*var(--as));font-weight:800;color:var(--accent,#33414a);text-transform:none;letter-spacing:0}
+.atv-texto{margin:0;padding:12px 14px;background:#fbf7ec;border-left:4px solid var(--accent,#566174);border-radius:8px;font-size:calc(1.08rem*var(--as));line-height:1.7}
+.atv-q{margin:0;padding-left:1.4rem;display:grid;gap:8px;font-size:calc(1.04rem*var(--as));line-height:1.5}
+.atv-q li::marker{font-weight:800;color:var(--accent,#33414a)}
+.atv-check{margin:0;padding-left:1.2rem;list-style:'☐ ';font-size:calc(.98rem*var(--as));line-height:1.6}
+.atv-prof{margin-top:14px;padding:12px 16px;border:1px dashed #b9ae9a;border-radius:12px;background:#faf6ee;font-size:.95rem}
+.atv-prof h5{margin:8px 0 4px;font-size:.98rem}.atv-prof h5:first-child{margin-top:0}
+.atv-prof p{margin:0 0 6px;line-height:1.5}.atv-prof ul{margin:0 0 6px;padding-left:1.2rem}
+.projection-page>.atv-aluno{margin-top:6px;box-shadow:0 3px 15px rgba(30,40,50,.08)}
+.projection-actions button#projectionMode[aria-pressed="true"]{background:#273843;color:#fff;border-color:#273843}
+body.mode-aula .atv-d{display:none!important}
+#atvPrint{display:none}
+@media print{
+  body.print-atv>*:not(#atvPrint){display:none!important}
+  body.print-atv #atvPrint{display:block!important}
+  body.print-atv .atv-aluno{border:0;box-shadow:none;padding:0 4mm;break-after:page;--as:.95}
+  body.print-atv .atv-aluno:last-child{break-after:auto}
+  body.print-atv .atv-texto{background:#fff;border-left:3px solid #666}
+}
+
+
+/* Bloco 15 */
+
+/* ===== Sincronização entre aparelhos ===== */
+.sync-view{position:fixed;inset:0;z-index:195;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(30,36,42,.55);overflow:auto;font-family:Verdana,Tahoma,system-ui,sans-serif;color:#24313a}
+.sync-card{width:min(560px,100%);background:#fffdfa;border:1px solid #d9d2c3;border-radius:18px;padding:18px 20px 20px;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+.sync-card h2{margin:0 0 6px;font-family:Georgia,serif;font-size:1.3rem}
+.sync-p{margin:0 0 12px;font-size:.95rem;line-height:1.5}
+.sync-l{display:block;margin:10px 0 4px;font-weight:800;font-size:.9rem}
+.sync-card input{width:100%;min-height:44px;padding:8px 12px;border:1px solid #bfb6a6;border-radius:10px;font:inherit;font-size:.95rem;background:#fff;color:#24313a}
+.sync-row{display:flex;gap:8px}.sync-row input{flex:1;min-width:0}
+.sync-card button{min-height:44px;padding:0 14px;border:1px solid #cfc6b8;border-radius:10px;background:#fff;color:#24313a;font:800 .92rem/1 inherit;font-family:inherit;cursor:pointer}
+.sync-card button.sync-main{background:#273843;color:#fff;border-color:#273843}
+.sync-card button:focus-visible,.sync-card input:focus-visible{outline:3px solid #743642;outline-offset:2px}
+.sync-warn{margin:8px 0 0;font-size:.88rem;color:#5b4a1f;background:#fff7dc;border:1px solid #e9d79a;border-radius:8px;padding:7px 10px}
+.sync-status{min-height:1.4em;margin:10px 0 0;font-weight:700;font-size:.92rem}
+.sync-status.ok{color:#245b3a}.sync-status.err{color:#8a2a2a}
+.sync-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+body.is-sync{overflow:hidden}
+@media print{.sync-view{display:none!important}}
+
+
+/* print-cadernos */
+
+/* Imprimir caderno da disciplina: só o título de cada semana e o bloco "No caderno" */
+@media print{
+body.print-scope-cadernos .hero,body.print-scope-cadernos .series-head,body.print-scope-cadernos .prof-references,body.print-scope-cadernos .notice,body.print-scope-cadernos .discipline-title,body.print-scope-cadernos .week-head{display:none!important}
+body.print-scope-cadernos main{padding:0!important}
+body.print-scope-cadernos footer{display:none!important}
+body.print-scope-cadernos,body.print-scope-cadernos main,body.print-scope-cadernos section.series,body.print-scope-cadernos section.discipline,body.print-scope-cadernos .week-card,body.print-scope-cadernos .plan-grid{background:#fff!important}
+body.print-scope-cadernos section.series,body.print-scope-cadernos section.discipline{margin:0!important;padding:0!important}
+body.print-scope-cadernos section.discipline>:not(.week-card){display:none!important}
+body.print-scope-cadernos .discipline-title a{display:none!important}
+body.print-scope-cadernos .week-card>:not(.week-head):not(.plan-grid){display:none!important}
+body.print-scope-cadernos .week-card:has(.notebook.empty){display:none!important}
+body.print-scope-cadernos .plan-grid{display:block!important}
+body.print-scope-cadernos .plan-grid>:not(.notebook){display:none!important}
+body.print-scope-cadernos .week-head button{display:none!important}
+body.print-scope-cadernos .week-card{border:0!important;border-radius:0!important;margin:0!important;padding:0!important;box-shadow:none!important;break-before:page;break-inside:avoid}
+body.print-scope-cadernos .print-first-caderno{break-before:auto}
+body.print-scope-cadernos .plan-grid{border:0!important;padding:0!important;margin:0!important}
+body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:avoid;margin:0!important;zoom:var(--fit,1);width:var(--fit-w,auto)}
+}
+
