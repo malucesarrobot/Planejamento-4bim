@@ -169,7 +169,7 @@ try {
   assert.equal(await page.locator('#searchBox').count(),0);
   assert.equal(await page.locator('#wkProject').isVisible(),true);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
-  const box=await page.locator('.lesson-quick-nav').boundingBox();assert.ok(box.y>=0 && box.y+box.height<=845);
+  assert.equal(await page.locator('.lesson-quick-nav').count(),0);const box=await page.locator('.weekbar').boundingBox();assert.ok(box.width<=390);
   assert.equal(await card.locator('.ux-actions').evaluate(n=>getComputedStyle(n).position),'static');
   await page.screenshot({path:'test-results/mobile.png',fullPage:true});
   await card.getByRole('button',{name:'Editar aula',exact:true}).click();

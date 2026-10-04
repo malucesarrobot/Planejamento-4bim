@@ -27,9 +27,15 @@ try {
  const student=await page.evaluate(()=>window.MaluShare.buildHtml([{id:'s3-historia',classes:['3ªA']}],'alunos','3ª A',''));
  assert.ok(!student.includes('"preparacao":'));assert.ok(!student.includes('Resposta esperada'));assert.ok(!student.includes('Fundamentação acadêmica'));assert.ok(!student.includes('PRIVATE_'));
  const studentPage=await browser.newPage({viewport:{width:390,height:844}});await studentPage.setContent(student);assert.equal(await studentPage.locator('[data-material=preparacao]').count(),0);assert.equal(await studentPage.locator('#shareAudience').textContent(),'3ªA');
- await studentPage.locator('#shareProject').click();assert.equal(await studentPage.locator('.wide.notebook').isVisible(),true);
+ assert.equal(await studentPage.locator('#shareProject').count(),0);assert.equal(await studentPage.locator('.wide.notebook').isVisible(),true);
  for(let week=0;week<6;week++){await studentPage.locator('.share-weeks button').nth(week).click();for(const material of ['quadro','atividade','fontes']){await studentPage.locator('[data-material='+material+']').click();assert.ok((await studentPage.locator('.share-content').textContent()).trim().length>0);}}
  assert.equal(await studentPage.locator('.share-content a').first().getAttribute('target'),'_blank');
+ const exported=await studentPage.evaluate(()=>JSON.parse(document.getElementById('shareData').textContent));
+ for(const l of exported.items[0].lessons){assert.equal(new Set(l.fontes.map(f=>f.u)).size,l.fontes.length);assert.ok(l.fontes.some(f=>f.n),'source provenance missing');}
+ assert.ok(exported.items[0].lessons[0].fontes.some(f=>f.u.includes('memorialdaresistencia')),'teacher video reference omitted');
+ assert.ok(exported.items[0].lessons[3].fontes.some(f=>f.u.includes('ims.com.br')),'teacher film reference omitted');
+ await studentPage.locator('[data-material=fontes]').click();assert.ok(await studentPage.locator('.share-content .share-sources li p').count()>0);
+ await studentPage.screenshot({path:'test-results/student-export-sources.png'});
  await studentPage.locator('[data-material=quadro]').click();assert.ok(await studentPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile overflow');
  assert.equal(await page.locator('#shareMessage').textContent().then(t=>t.startsWith('Versão baixada')),true);assert.deepEqual(errors,[]);
  console.log('PASS Andrei multi-series selection, six weeks, class scope, teacher preparation and answers, student board/activities/sources, no personal data or synchronization, unchanged saves and mobile export');

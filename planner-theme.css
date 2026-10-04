@@ -196,3 +196,10 @@ body.ux-ready .projection-refs{border-left:3px solid #718b9d;padding-left:12px}
 @media print{.ux-direct-selectors,.ux-print-route{display:none!important}body.ux-print-prepare .ux-print-note-space{display:block;min-height:4cm;margin-top:18px;border:1px solid #ccc;padding:10px;break-inside:avoid}body.ux-print-prepare .ux-study{background:#fff;border:0}body.ux-print-prepare p,body.ux-print-prepare li{orphans:3;widows:3}body.ux-print-prepare h4,body.ux-print-prepare h5{break-after:avoid}}
 
 @media screen and (max-width:760px){body.ux-ready .nav-shell{display:block;position:relative}.ux-direct-selectors{max-width:none;width:100%}.ux-choice-row:first-child{padding-right:72px}body.ux-ready #navTools{position:absolute;top:8px;right:10px}}
+
+/* Uma única aba de preparação; projetar acompanha a escolha da semana. */
+body.ux-ready .weekbar{align-items:center}
+.ux-week-context{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+body.ux-ready .weekbar #wkProject{min-height:40px;width:auto;padding:7px 10px;font-size:.8rem;margin:0}
+body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7rem;white-space:nowrap}
+@media(max-width:760px){.ux-week-context{grid-column:1;grid-row:2;gap:3px}.ux-week-context .wk-label{flex:1;font-size:.7rem!important}.ux-week-context #wkTrack{flex:none}body.ux-ready .weekbar #wkProject{grid-column:2;grid-row:2}}

@@ -18,24 +18,23 @@
     const data=window.MaluEditorialData,lesson=data?.exams[card.id];if(!lesson)return null;
     const wrap=node('section',null,'ux-exam-connections');wrap.appendChild(node('h4','Questões já cobradas · 2016–2025'));
     wrap.appendChild(node('p',lesson.theme,'ux-exam-theme'));
-    wrap.appendChild(node('p','Direta: o conteúdo cobrado coincide com a aula. Aproximação: permite comparação ou aprofundamento. O ano é a edição do exame. A numeração depende do caderno indicado.','ux-editorial-note'));
-    const groups=[['Questões objetivas e discursivas',lesson.connections.filter(c=>data.occurrences[c.ref].tipo!=='Redação')],['Temas de redação já cobrados',lesson.connections.filter(c=>data.occurrences[c.ref].tipo==='Redação')]];
+    wrap.appendChild(node('p','O ano indica a edição; consulte o caderno e a questão informados.','ux-editorial-note'));
+    const occurrences={...data.occurrences,...data.essayOccurrences};
+    const groups=[['Questões objetivas e discursivas',lesson.connections.filter(c=>occurrences[c.ref].tipo!=='Redação')],['Temas de redação já cobrados',lesson.connections.filter(c=>occurrences[c.ref].tipo==='Redação')]];
     for(const [heading,connections] of groups){
      if(!connections.length)continue;
      wrap.appendChild(node('h4',heading));
      for(const c of connections){
-      const r=data.occurrences[c.ref],item=node('article',null,'ux-exam-item');item.dataset.examRef=c.ref;
+      const r=occurrences[c.ref],item=node('article',null,'ux-exam-item');item.dataset.examRef=c.ref;
       item.appendChild(node('h5',r.exame+' · '+r.ano));
       item.appendChild(node('p',r.tema,'ux-exam-theme'));
       item.appendChild(node('p','Banca: '+r.banca+' · '+r.localizacao+' · '+r.caderno,'ux-editorial-note'));
       item.appendChild(node('p',c.relation==='Direta'?'Conteúdo diretamente relacionado':'Aproximação com esta aula','ux-exam-relation'));
-      paragraphs(item,c.why);
-      if(r.nota)paragraphs(item,r.nota);
+      const context=node('details',null,'ux-exam-context');context.appendChild(node('summary','Relação com a aula'));paragraphs(context,c.why);if(r.nota)paragraphs(context,r.nota);item.appendChild(context);
+
       link(item,'Abrir prova ou publicação oficial ↗',r.fonte);wrap.appendChild(item);
     }
     }
-    if(lesson.exercise){const exercise=node('aside',null,'ux-exam-practice');exercise.appendChild(node('h5','Treino autoral opcional'));paragraphs(exercise,lesson.exercise);wrap.appendChild(exercise);}
-    wrap.appendChild(node('p',data.researchScope+' Um tema de redação não comprova que a prova exigiu o filósofo desta aula.','ux-editorial-note'));
     return wrap;
   }
   function bibliography(card) {

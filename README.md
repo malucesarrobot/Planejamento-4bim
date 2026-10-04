@@ -104,3 +104,16 @@ As 60 preparações incluem Bibliografia e repertório da semana, com recorte de
 ## Seletores diretos e apoio visual
 
 Série e disciplina são escolhidas em duas linhas de botões compactos, com opção ativa destacada e indisponibilidade de Filosofia/Sociologia no 9º ano. A seleção usa o estado anterior e preserva os mesmos salvamentos. Glossário e aprofundamento mantêm-se abertos com fundos distintos; pergunta e fontes têm sinalização lateral. O esquema organiza os conceitos em blocos, sem inserir setas causais. Imprimir roteiro da semana / PDF imprime a preparação da semana selecionada com espaço de anotações e sem os controles de navegação. O PDF é salvo pelo diálogo de impressão do navegador.
+
+
+## Fontes na versão dos alunos
+
+A cópia dos alunos prioriza leitura, caderno, esquema, atividades e exames, sem botão de projeção. Fontes e repertório reúne os links da aula, as referências conceituais do aprofundamento docente e os repertórios da bibliografia semanal, deduplicados por endereço e acompanhados de notas de contexto e acesso. Orientações de uso exclusivas da professora, preparação, gabaritos e dados pessoais não são exportados. A versão para professor conserva a opção de projeção.
+
+
+A preparação é acessada exclusivamente pela aba Preparar aula. A faixa duplicada Preparar / estudar foi removida; Projetar quadro permanece junto à navegação da semana.
+
+
+Exames apresenta registros objetivos de ocorrência. A explicação completa do vínculo fica em Relação com a aula. Treino autoral foi removido; são listados apenas temas reais já cobrados com fonte verificável.
+
+Exames: temas reais do Enem já catalogados e cinco propostas oficiais complementares (PAS/UnB, PAES/UEMA e FUVEST), relacionadas às semanas com indicação de relação direta ou tangencial. O treino autoral foi retirado; explicações ficam em blocos expansíveis.

@@ -29,14 +29,14 @@ try{
   assert.ok(lesson.y<track.y,'lesson must precede the overview');
   await page.locator('#wkTrack').click();
   const trackBox=await page.locator('.study-track:visible').boundingBox();assert.ok(trackBox.y>=0 && trackBox.y<100);
-  await page.locator('#wkPrepare').click();
+  await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   await page.screenshot({path:'test-results/mobile-lesson-first.png'});
   await page.locator('article.week-card:visible').getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
-  await page.locator('#wkPrepare').click();
+  await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   assert.equal(await page.locator('article.week-card:visible').getAttribute('data-ux-panel'),'prepare');
   assert.equal(await page.locator('article.week-card:visible .prof-caderno').getAttribute('open'),'');
   assert.equal(await page.locator('article.week-card:visible .prof-panel').isVisible(),true);
-  assert.ok((await page.locator('.lesson-quick-nav').boundingBox()).height<90);
+  assert.equal(await page.locator('.lesson-quick-nav').count(),0);assert.equal(await page.locator('#wkPrepare').count(),0);
   await page.locator('#wkProject').click();
   assert.equal(await page.locator('[data-lesson-material=caderno]').getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
@@ -78,7 +78,7 @@ try{
   await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/mobile-classroom-sources.png'});
   await page.locator('#projectionClose').click();
   assert.equal(await page.locator('article.week-card:visible').getAttribute('data-ux-panel'),'prepare');
-  await page.locator('#wkPrepare').click();
+  await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   await page.screenshot({path:'test-results/mobile-teacher-preparation.png'});
   await page.locator('#uxSeries').selectOption('s3');await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#uxWeekChoices button').nth(2).click();
   await page.reload();await page.waitForSelector('body.ux-ready');await page.locator('#wkProject').click();
@@ -91,7 +91,7 @@ try{
     const defined=[...c.querySelectorAll('.ux-glossary dt')].map(n=>n.textContent.trim().toLocaleLowerCase('pt-BR'));
     return [...c.querySelectorAll('.concept-chip')].every(n=>defined.includes(n.textContent.trim().toLocaleLowerCase('pt-BR')));
   }));assert.equal(coverage,true,'all listed concepts need glossary entries');
-  await page.locator('#uxWeekChoices button').first().click();await page.locator('#wkPrepare').click();
+  await page.locator('#uxWeekChoices button').first().click();await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   const glossary=page.locator('article.week-card:visible .ux-glossary');
   assert.equal(await glossary.isVisible(),true);
   assert.ok(await glossary.locator('dt').count()>=15);
@@ -104,7 +104,7 @@ try{
     assert.equal(await page.locator('#projectionPage .ux-glossary').count(),0);
   }
   await page.locator('#projectionClose').click();
-  await page.locator('#uxWeekChoices button').nth(1).click();await page.locator('#wkPrepare').click();
+  await page.locator('#uxWeekChoices button').nth(1).click();await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   assert.match(await page.locator('article.week-card:visible .ux-glossary').textContent(),/Aura — em Walter Benjamin/);
   await page.locator('article.week-card:visible .ux-glossary-sources summary').click();
   assert.equal(await page.locator('article.week-card:visible .ux-glossary-sources a').count(),5);
@@ -116,7 +116,7 @@ try{
       && !c.querySelector('.prof-panel .callout-title')?.textContent.includes('Curiosidade documentada');
   }));assert.equal(reviewed,true,'all lessons need substantive limitations, labelled examples and sources');
   await page.locator('#uxSeries').selectOption('s1');await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#uxWeekChoices button').nth(2).click();
-  await page.locator('#wkPrepare').click();
+  await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   const epicurus=page.locator('article.week-card:visible');
   for(const term of ['Desejos naturais e necessários','Desejos naturais não necessários','Desejos vazios ou vãos','O Jardim de Epicuro','Sensação e juízo'])assert.equal(await epicurus.locator('.ux-glossary').getByText(term,{exact:true}).isVisible(),true);
   const student=await epicurus.locator('.atv-aluno').textContent();

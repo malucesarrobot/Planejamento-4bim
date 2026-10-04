@@ -167,17 +167,6 @@
   $('wkNext').addEventListener('click',()=>{const list=matches(),i=list.findIndex(c=>c.id===current);if(i>=0 && i<list.length-1)showWeek(list[i+1].id,true);});
   function startLesson() { if(current)window.openProjection(current); }
   $('wkProject').addEventListener('click',startLesson);
-  const shortcuts=el('nav','lesson-quick-nav');shortcuts.setAttribute('aria-label','Acesso direto à aula');
-  const prepareButton=el('button',null,'Preparar / estudar');prepareButton.id='wkPrepare';prepareButton.type='button';
-  prepareButton.addEventListener('click',()=>{
-    const card=current && $(current);if(!card)return;
-    setPanel(card,'prepare');
-    card.querySelectorAll('.prof-caderno,.ux-curriculum').forEach(d=>d.open=true);
-    card.scrollIntoView({block:'start',behavior:'instant'});
-    card.querySelector('.week-head h3').focus({preventScroll:true});
-  });
-  shortcuts.append(prepareButton,$('wkProject'));$('navShell').parentElement.after(shortcuts);
-
   seriesSelect.addEventListener('change',()=>{
     const s=seriesSelect.value,d=subjectSelect.value;
     planner.setSelection(s,d);refresh(remembered.get(activeSection().id),true);
@@ -269,7 +258,7 @@
     for(const [key,label] of [['prepare','Preparar aula'],['notebook','Caderno dos alunos'],['activity','Atividade']]) {
       const b=el('button',null,label);b.type='button';b.id=card.id+'-tab-'+key;
       b.setAttribute('role','tab');b.setAttribute('aria-controls',card.id+'-panel-'+key);
-      b.addEventListener('click',()=>setPanel(card,key));tabs.appendChild(b);
+      b.addEventListener('click',()=>{setPanel(card,key);if(key==='prepare')card.querySelectorAll('.prof-caderno,.ux-curriculum').forEach(d=>d.open=true);});tabs.appendChild(b);
       const p=el('div','ux-panel');p.id=card.id+'-panel-'+key;p.setAttribute('role','tabpanel');p.setAttribute('aria-labelledby',b.id);p.tabIndex=0;set[key]=p;
     }
     tabs.addEventListener('keydown',e=>{
@@ -311,7 +300,7 @@
   });
   const trackButton=el('button',null,'Ver trilha');trackButton.id='wkTrack';trackButton.type='button';
   trackButton.addEventListener('click',()=>{const track=activeSection()?.querySelector('.study-track');if(track){track.tabIndex=-1;track.scrollIntoView({block:'start',behavior:'instant'});track.focus({preventScroll:true});}});
-  $('wkLabel').after(trackButton);
+  const weekContext=el('div','ux-week-context');$('wkLabel').before(weekContext);weekContext.append($('wkLabel'),trackButton);
   const toolsPanel=$('navTools').querySelector('.tools-panel');
   toolsPanel.prepend($('uxResume'),$('uxStorage'),$('guia'));
 
