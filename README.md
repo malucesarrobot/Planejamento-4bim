@@ -78,3 +78,7 @@ Esta etapa separa conteúdo, estilos e funções sem acrescentar telas ou clique
 ## Seleção por série e aplicação por turma
 
 O topo oferece somente Série e Disciplina, sem campo de busca. Cada aula traz caixas de seleção com os nomes das turmas da série. Marcar ou desmarcar uma turma conserva os registros das demais e usa as mesmas chaves de aula e turma dos backups anteriores. A data registrada continua disponível no título da caixa e no painel Progresso das turmas. A série, disciplina e semana anteriores continuam sendo retomadas, inclusive a partir da preferência antiga que incluía a turma.
+
+## Glossários por aula
+
+A preparação de todas as 60 semanas tem um Glossário da aula expandido, reunindo definições já existentes no material. Em Estética e Filosofia da Arte e Arte e Sociedade, o glossário foi complementado com definições de trabalho, exemplos e referências consultáveis; os sentidos específicos de Kant e Benjamin são identificados. O componente fica na preparação da professora e não entra nas projeções nem na impressão do caderno dos alunos. O texto original dos cadernos e a estrutura usada pelas edições anteriores permanecem intactos. `assets/js/planner-glossary.js` reúne essa lógica e os complementos de arte.

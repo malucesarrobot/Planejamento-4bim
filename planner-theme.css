@@ -79,6 +79,19 @@
   body.ux-ready .ux-class-check input {appearance:auto;accent-color:#235c4b;width:19px;height:19px;min-height:0;margin:0;padding:0;cursor:pointer;}
   body.ux-ready .ux-class-check:has(input:checked) {color:#235c4b;}
   body.ux-ready .ux-class-check input:focus-visible {outline:2px solid #235c4b;outline-offset:3px;}
+  body.ux-ready .ux-glossary {margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:#f9fbf8;}
+  body.ux-ready .ux-glossary h4 {margin:0 0 12px;font-size:1.05rem;color:#235c4b;}
+  body.ux-ready .ux-glossary dl {margin:0;}
+  body.ux-ready .ux-glossary dt {font-weight:700;margin:16px 0 4px;color:#253d31;}
+  body.ux-ready .ux-glossary dt:first-child {margin-top:0;}
+  body.ux-ready .ux-glossary dd {margin:0;padding:0 0 12px;border-bottom:1px solid var(--line);}
+  body.ux-ready .ux-glossary dd:last-child {border-bottom:0;padding-bottom:0;}
+  body.ux-ready .ux-glossary p {margin:0;line-height:1.6;font-size:.95rem;}
+  body.ux-ready .ux-glossary .ux-glossary-intro {margin-bottom:14px;color:#617367;font-size:.85rem;}
+  body.ux-ready .ux-glossary .ux-glossary-example {margin-top:5px;color:#52655a;font-size:.85rem;}
+  body.ux-ready .ux-glossary-sources {margin-top:14px;font-size:.85rem;}
+  body.ux-ready .ux-glossary-sources summary {cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;}
+  body.ux-ready .ux-glossary-sources a {overflow-wrap:anywhere;}
   @media(max-width:760px) {
     body.ux-ready .hero {padding:18px 18px!important;}
     body.ux-ready .hero h1 {font-size:1.5rem!important;}

@@ -85,6 +85,30 @@ try{
   assert.match(await page.locator('#projectionTitle').textContent(),/\S/);
   assert.equal(await page.locator('article.week-card:not(.ux-inactive):not(.hidden)').getAttribute('id'),'s3-filosofia-semana-3');
   assert.equal(await page.locator('[data-lesson-material=caderno]').getAttribute('aria-pressed'),'true');
+  await page.locator('#projectionClose').click();
+  assert.equal(await page.locator('.ux-glossary').count(),60);
+  const coverage=await page.locator('article.week-card').evaluateAll(cards=>cards.every(c=>{
+    const defined=[...c.querySelectorAll('.ux-glossary dt')].map(n=>n.textContent.trim().toLocaleLowerCase('pt-BR'));
+    return [...c.querySelectorAll('.concept-chip')].every(n=>defined.includes(n.textContent.trim().toLocaleLowerCase('pt-BR')));
+  }));assert.equal(coverage,true,'all listed concepts need glossary entries');
+  await page.locator('#uxWeekChoices button').first().click();await page.locator('#wkPrepare').click();
+  const glossary=page.locator('article.week-card:visible .ux-glossary');
+  assert.equal(await glossary.isVisible(),true);
+  assert.equal(await glossary.locator('dt').count(),15);
+  for(const term of ['Belo','Arte','Fruição','Representação','Juízo estético'])assert.equal(await glossary.getByText(term,{exact:true}).isVisible(),true);
+  assert.equal(await glossary.locator('.ux-glossary-example').count(),15);
+  await glossary.scrollIntoViewIfNeeded();await page.screenshot({path:'test-results/mobile-glossary.png'});
+  await page.locator('#wkProject').click();
+  for(const material of ['pergunta','conteudo','caderno','atividade','fontes']){
+    await page.locator('[data-lesson-material='+material+']').click();
+    assert.equal(await page.locator('#projectionPage .ux-glossary').count(),0);
+  }
+  await page.locator('#projectionClose').click();
+  await page.locator('#uxWeekChoices button').nth(1).click();await page.locator('#wkPrepare').click();
+  assert.match(await page.locator('article.week-card:visible .ux-glossary').textContent(),/Aura — em Walter Benjamin/);
+  await page.locator('article.week-card:visible .ux-glossary-sources summary').click();
+  assert.equal(await page.locator('article.week-card:visible .ux-glossary-sources a').count(),5);
+  console.log('PASS 60 teacher glossaries, full concept coverage, art definitions and examples, linked references and no projection leakage');
   assert.deepEqual(errors,[]);
   console.log('PASS one-tap classroom launch, independent materials visible on mobile, student-only content, direct source opening, scroll return, free choice and restored selection');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

@@ -112,6 +112,7 @@ try {
   await page.emulateMedia({media:'print'});
   assert.equal(await page.locator('.week-card .student-curriculum:visible').count(),60);
   assert.equal(await page.locator('.week-card .prof-panel:visible').count(),0);
+  assert.equal(await page.locator('.week-card .ux-glossary:visible').count(),0);
   await page.pdf({path:'test-results/all-notebooks-with-codes.pdf',format:'A4',printBackground:true});
   const font=await page.locator('.week-card .student-curriculum').first().evaluate(n=>getComputedStyle(n).fontSize);
   assert.ok(parseFloat(font)>=13,'footer print text too small');

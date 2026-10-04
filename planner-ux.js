@@ -231,6 +231,7 @@
     const notebook=card.querySelector('.wide.notebook'),activity=card.querySelector('.atv-aluno');
     if(!notebook || !activity)throw new Error('Aula sem caderno ou atividade: '+card.id);
     notebookCurriculum(card,notebook);
+    const glossary=window.MaluGlossary.build(card,notebook);
     const head=card.querySelector('.week-head h3');head.tabIndex=-1;
     bases.set(card.id,{title:head.textContent,notebook:notebook.cloneNode(true),activity:activity.cloneNode(true)});
     const actions=el('div','ux-actions');actions.setAttribute('aria-label','Ações desta aula');
@@ -273,6 +274,7 @@
     const teacher=set.prepare.querySelector('.prof-caderno > summary');
     if(teacher){teacher.textContent='Fundamentação e roteiro da professora';teacher.parentElement.open=true;}
     const curriculum=set.prepare.querySelector('.ux-curriculum');if(curriculum)curriculum.open=true;
+    if(glossary){const teacherBlock=set.prepare.querySelector('.prof-caderno');if(teacherBlock)teacherBlock.before(glossary);else set.prepare.prepend(glossary);}
     card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare',false);
   }
   document.body.classList.remove('mode-aula');
