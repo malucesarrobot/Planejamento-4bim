@@ -996,19 +996,40 @@ function latestRecord(w){
 }
 function watchCompletion(id,d,w){
   let sent=false;
+  function showFinishedUI(){
+    const holder=d.querySelector('.malu-stepbar');
+    if(!holder)return;
+    const prev=holder.querySelector('#maluPrev');
+    const next=holder.querySelector('#maluNext');
+    const label=holder.querySelector('#maluStepLabel');
+    const hint=holder.querySelector('#maluStepHint');
+    if(prev){prev.disabled=true;prev.style.visibility='hidden'}
+    if(label)label.textContent='Atividade concluída ✓';
+    if(hint)hint.textContent='resultado salvo';
+    if(next){
+      next.disabled=false;
+      next.classList.remove('malu-next-pending');
+      next.classList.add('malu-next-finish');
+      next.textContent='Voltar às minhas aulas';
+      next.onclick=()=>goHome();
+    }
+  }
   async function send(){
     if(sent)return;
     sent=true;
+    showFinishedUI();
     await markComplete(id,latestRecord(w),d);
   }
   window.__percursosFrameFinished=function(doneId,doneDoc,doneWin){
     if(doneId===id) send();
   };
   function check(){
-    if(sent)return;
     const res=d.getElementById('studentResult')||d.getElementById('resultado')||d.querySelector('[id*="studentResult"],.student-result');
     const txt=(res?res.textContent:'')||'';
-    if(res&&!res.classList.contains('hidden')&&/conclu|atividade conclu/i.test(txt)) send();
+    if(res&&!res.classList.contains('hidden')&&/conclu|atividade conclu/i.test(txt)){
+      showFinishedUI();
+      if(!sent) send();
+    }
   }
   const mo=new MutationObserver(check);
   mo.observe(d.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class"],characterData:true});
