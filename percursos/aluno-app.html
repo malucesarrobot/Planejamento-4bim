@@ -8,28 +8,75 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
 iframe{display:block;width:100%;height:100%;border:0}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-<iframe id="app" src="aluno.html?v=20261005-1559" title="Percursos de Aprendizagem"></iframe>
+<iframe id="app" src="aluno.html?v=20261005-1612" title="Percursos de Aprendizagem"></iframe>
 <script>
 (function(){
-  const OLD1='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
-  const OLD2='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026';
-  const NEW='https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026';
-  const f=document.getElementById('app');
-  f.addEventListener('load',()=>{
+  const firebaseConfig={
+    apiKey:"AIzaSyB8XorTQASMD51JbYEXIBTW6PYeq7BGRTU",
+    authDomain:"canto-das-pretas.firebaseapp.com",
+    databaseURL:"https://canto-das-pretas-default-rtdb.firebaseio.com",
+    projectId:"canto-das-pretas",
+    storageBucket:"canto-das-pretas.firebasestorage.app",
+    messagingSenderId:"454913796929",
+    appId:"1:454913796929:web:44550491a32d50cc8bcfc0"
+  };
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  }catch(e){console.warn("Percursos: Firebase Auth indisponível",e)}
+
+  async function getStudentToken(){
+    try{
+      let user=firebase.auth().currentUser;
+      if(!user){
+        const cred=await firebase.auth().signInAnonymously();
+        user=cred.user;
+      }
+      return user ? await user.getIdToken() : "";
+    }catch(e){
+      console.warn("Percursos: login anônimo não disponível",e);
+      return "";
+    }
+  }
+
+  function normalizeDbUrl(input){
+    let s=String(input);
+    s=s.replace(
+      "https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1",
+      "https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026"
+    ).replace(
+      "https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026",
+      "https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026"
+    );
+    return s;
+  }
+
+  function addAuth(url,token){
+    if(!token || !url.startsWith("https://canto-das-pretas-default-rtdb.firebaseio.com/")) return url;
+    const sep=url.includes("?")?"&":"?";
+    return url+sep+"auth="+encodeURIComponent(token);
+  }
+
+  const f=document.getElementById("app");
+  f.addEventListener("load",()=>{
     try{
       const w=f.contentWindow;
       if(!w || w.__percursosFetchBridge)return;
       const nativeFetch=w.fetch.bind(w);
-      w.fetch=function(input,init){
-        if(typeof input==='string'){
-          input=input.replace(OLD1,NEW).replace(OLD2,NEW);
+      w.fetch=async function(input,init){
+        if(typeof input==="string"){
+          let url=normalizeDbUrl(input);
+          const token=await getStudentToken();
+          url=addAuth(url,token);
+          return nativeFetch(url,init);
         }
         return nativeFetch(input,init);
       };
       w.__percursosFetchBridge=true;
-    }catch(e){console.error('Falha ao ativar sincronização dos Percursos',e)}
+    }catch(e){console.error("Falha ao ativar sincronização dos Percursos",e)}
   });
 })();
 </script>
