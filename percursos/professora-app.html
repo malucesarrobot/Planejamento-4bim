@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Percursos de Aprendizagem — Professora</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
+iframe{display:block;width:100%;height:100%;border:0}
+</style>
+</head>
+<body>
+<iframe id="app" src="professora.html?v=20261005-1559" title="Painel da professora"></iframe>
+<script>
+(function(){
+  const OLD1='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
+  const OLD2='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026';
+  const NEW='https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026';
+  const f=document.getElementById('app');
+  f.addEventListener('load',()=>{
+    try{
+      const w=f.contentWindow;
+      if(!w || w.__percursosFetchBridge)return;
+      const nativeFetch=w.fetch.bind(w);
+      w.fetch=function(input,init){
+        if(typeof input==='string'){
+          input=input.replace(OLD1,NEW).replace(OLD2,NEW);
+        }
+        return nativeFetch(input,init);
+      };
+      w.__percursosFetchBridge=true;
+    }catch(e){console.error('Falha ao ativar leitura dos Percursos',e)}
+  });
+})();
+</script>
+</body>
+</html>
