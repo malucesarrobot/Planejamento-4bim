@@ -959,9 +959,10 @@ function openActivity(id,btn){
           throw new Error("Estrutura de atividade incompatível: "+id);
         }
 
-        enhanceStudentActivity(d,w,id);
-        studentOnly(d);
-        watchCompletion(id,d,w);
+        /* As melhorias de navegação são opcionais: uma falha nelas nunca pode derrubar a aula. */
+        try{ enhanceStudentActivity(d,w,id); }catch(e){ console.error("Percursos: falha nas melhorias da aula",id,e); }
+        try{ studentOnly(d); }catch(e){ console.error("Percursos: falha ao aplicar modo aluno",id,e); }
+        try{ watchCompletion(id,d,w); }catch(e){ console.error("Percursos: falha ao acompanhar conclusão",id,e); }
       }else if(accessMode==="teacher"){
         if(typeof w.view==="function"){
           try{
