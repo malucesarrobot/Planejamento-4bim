@@ -62,7 +62,9 @@
     font-size:13px
   }
 }
-</style></head><body><header><div class="wrap brand">
+</style><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head><body><header><div class="wrap brand">
 <div class="brand-lockup"><svg class="percursos-logo" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
   <path d="M7 10.5c6.3 0 10.7 1.6 15 5v22c-4.3-3.4-8.7-5-15-5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
   <path d="M41 10.5c-6.3 0-10.7 1.6-15 5v22c4.3-3.4 8.7-5 15-5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
@@ -311,14 +313,8 @@ function shuffleArray(arr){
 }
 
 function shuffleDifferent(arr){
-  if(arr.length<2) return arr;
-  const original=arr.slice();
-  for(let tries=0;tries<8;tries++){
-    shuffleArray(arr);
-    if(arr.some((item,i)=>item!==original[i])) return arr;
-  }
-  arr.push(arr.shift());
-  return arr;
+  /* Aleatoriedade real: a mesma ordem pode, legitimamente, se repetir. */
+  return shuffleArray(arr);
 }
 
 function shuffleChoices(question){
@@ -488,9 +484,11 @@ function installCognitiveStyle(d){
 }
 
 function installOneQuestionMode(d,w,activityId){
-  const qs=[...d.querySelectorAll(".question")];
-  if(qs.length<2) return;
-  const realQs=qs.filter(q=>q.dataset.extra!=="wordsearch");
+  const allQs=[...d.querySelectorAll(".question")];
+  if(allQs.length<2) return;
+  const realQs=shuffleArray(allQs.filter(q=>q.dataset.extra!=="wordsearch").slice());
+  const extras=allQs.filter(q=>q.dataset.extra==="wordsearch");
+  const qs=realQs.concat(extras);
   let idx=0;
 
   const finishBtn=d.getElementById("finish") || d.getElementById("fim") ||
@@ -1120,11 +1118,52 @@ async function encryptPayload(payload){
   const ek=await crypto.subtle.encrypt({name:'RSA-OAEP'},pub,raw);
   return {v:1,ek:bytesToB64(ek),iv:bytesToB64(iv),ct:bytesToB64(ct),activity_id:payload.activity_id,discipline:payload.discipline,series:payload.series,created_at:Date.now()};
 }
+let studentAuthPromise=null;
+async function studentAuthToken(){
+  if(studentAuthPromise) return studentAuthPromise;
+  studentAuthPromise=(async()=>{
+    if(typeof firebase==='undefined'||!firebase.initializeApp||!firebase.auth) throw new Error('Firebase Auth não carregou');
+    const cfg={
+      apiKey:'AIzaSyB8XorTQASMD51JbYEXIBTW6PYeq7BGRTU',
+      authDomain:'canto-das-pretas.firebaseapp.com',
+      databaseURL:'https://canto-das-pretas-default-rtdb.firebaseio.com',
+      projectId:'canto-das-pretas',
+      storageBucket:'canto-das-pretas.firebasestorage.app',
+      messagingSenderId:'454913796929',
+      appId:'1:454913796929:web:44550491a32d50cc8bcfc0'
+    };
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    const auth=firebase.auth();
+    let user=auth.currentUser;
+    if(!user){
+      try{
+        const cred=await auth.signInAnonymously();
+        user=cred.user;
+      }catch(e){
+        const code=e&&e.code?e.code:'';
+        if(code==='auth/operation-not-allowed') throw new Error('login anônimo do Firebase está desativado');
+        throw e;
+      }
+    }
+    return user ? await user.getIdToken() : '';
+  })();
+  try{return await studentAuthPromise}
+  catch(e){studentAuthPromise=null;throw e}
+}
 async function firebaseRequest(url,options){
+  let finalUrl=url;
+  try{
+    const token=await studentAuthToken();
+    if(token && /^https:\/\/canto-das-pretas-default-rtdb\.firebaseio\.com\//.test(finalUrl)){
+      finalUrl+=(finalUrl.includes('?')?'&':'?')+'auth='+encodeURIComponent(token);
+    }
+  }catch(e){
+    throw new Error(e&&e.message?e.message:'falha de autenticação do aluno');
+  }
   const ctl=new AbortController();
   const to=setTimeout(()=>ctl.abort(),15000);
   try{
-    const r=await fetch(url,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
+    const r=await fetch(finalUrl,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
     if(!r.ok){
       let detail='';
       try{detail=(await r.text()).slice(0,180)}catch(e){}
