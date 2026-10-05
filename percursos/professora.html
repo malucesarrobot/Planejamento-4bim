@@ -31,7 +31,7 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const ALLOWED_EMAILS=new Set(['malu.cesar@gmail.com','prof.malufc@gmail.com','patriciacunhaoliveiro39@gmail.com']);
 const AUTO_UNLOCK_B64='aFF6cXhaUHhwWV9lN2lAV2VGOTA=';
-const DB_URL='https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026',SALT='8i9BVuCClxbzNEkSE3xqvA==',KEY_IV='E79xUQwMGHpDOLKh',ENC_PRIVATE='3BfjWt7zpt3NZq9je/O4OtJqKMe5dYm/hQ8XjrgquJgq1DalA6mtjbY2lxBO7ISFIN16MkMg1EDo3QaFbm5P6ZhuCNtc6G7w4v5Z/DnD01zoryPfFXDco0ONF7hNhueAvTiju/GSkX2RDS7mntCxC33MAIZK+7J2ndjaILs9iopfetBkqF13YyO7wfbfn7oY0eAlyaID4BPEw6ebY0USjC8WPXwYirzQ//IrZkgGeLqDVJBWA/+AJ0SjX3UwrQIXzz3KB0V5CdNFCkyFbFQtchQgoL7ruVlJOflKpkgNBugZaMvboJNV2whQiHUXGDKDDyB9UBjoz/oMGucDNuRQIaBRqnBiPzYETgtq9Io+sVnxvlU+g/V7k/mTxAWr+0BFPSShciEqVN8/vY7rOL966h3hyaMMTtmppFY8lrN365w+XrSzxzgogtJ5WfWB59Qnz2EtAAo4SZoIBa+SmF6aTI3Ket2yQ6LXS6+eZ6Iohu48FZWbcgx9Sz5z9VZGecnHc2893kl/CUQqZ/WfmNDdOglgtPldGusoGUCVrNXlwFZeV6aiO5Xs+sFunjgi59CFPIVpBlxu/O96/yZlKNeEZybQ2mXNEXRP7lRJZBEFeuQHo0VKQxO5++Sbe+kwu2g6MqUdQJfGamh1uDD4Tis2MJxt0Put3o37GSxFQ4f0EXFSOE1Y03z8ehaqJnJRENh6PHJhuX8rpwRtvqSZ/f2S8Nb4rbb2vWTYWlvr1ujesTsHyo/gA7IkSGoPGLg47vgphSXpqmjlZ9QQznD+O8X/PALDjkgZltkO2hx6TdguacMPuXoq6tHPyJOIfkt893xoF5x6s653CmqjlB8OzfR1Uc1IaPHx2Jq4TjeAdmed8fjHYRxsh80K+ePnfeFoS+TjhwUYwZgD0GEig5mdUYn7v5UXCfZi4C7/CcKplNqf6TPhHVw1f9pTKwPifJiEU5wpSdXDHT72O6tqc7d7nla7sFAf2PHFIFVxt1hIMqBUe669zXZMKM3Y9uge+SCmMMnRsnpT6rTqF8Wkwg9bN4WONR2Ty+EEyZrdC8AaXlVd+l5us4/TFiSY04/cOmtU+EW3MUn1zKJVFe4bAUDnff2owpdjf9dyBZdhtH32YPmU18uJoMZGHDOgXDGSlfsjM+OIdVY1cX0jy5XxqfhFIAE9I0mUyaS9ujBmMcV4r8QcbR95TApbpdMx4OhP6S8XrkiNq3jpSy5RNhD+l7WBRfsBj6NxR3IAyyWwJQip5pgb7veCfgTWC233zCP9P8fGrwG5bs3MGeOkrMrwGckyMwXG4PrleI9GxPH5I0gc+IpXhaPSOtE37QQV/y1Nu5q4qEWCg6T3RZ1dmTE/h+ULkXbvIQKb1COVavQuhjq+PoMwLPs+SRSc+5OtTyfRxfgg7o0askrgKhW1WO3S0n4x5Akf1SWezL9nuh+CBpptCClk3+zoYs8wLBIhcMbmJr7UCwQ132aE6TdGektbibZDXSa0xXo5fUJEZ+u0PPPWAZSmT9Cdj4+C6TAIcwGXpbPGc/+++nQy9k6WmkvJMSAd6RKzbCTRm4P0nV02PE755Xv3kBPs+KJZ8F1ScBMWSrSGhidQ0xZRSiLHmNs6bz475XDripd5u3dly9KGv01eGNWPn9K1zqw=';
+const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026',LEGACY_DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1',SALT='8i9BVuCClxbzNEkSE3xqvA==',KEY_IV='E79xUQwMGHpDOLKh',ENC_PRIVATE='3BfjWt7zpt3NZq9je/O4OtJqKMe5dYm/hQ8XjrgquJgq1DalA6mtjbY2lxBO7ISFIN16MkMg1EDo3QaFbm5P6ZhuCNtc6G7w4v5Z/DnD01zoryPfFXDco0ONF7hNhueAvTiju/GSkX2RDS7mntCxC33MAIZK+7J2ndjaILs9iopfetBkqF13YyO7wfbfn7oY0eAlyaID4BPEw6ebY0USjC8WPXwYirzQ//IrZkgGeLqDVJBWA/+AJ0SjX3UwrQIXzz3KB0V5CdNFCkyFbFQtchQgoL7ruVlJOflKpkgNBugZaMvboJNV2whQiHUXGDKDDyB9UBjoz/oMGucDNuRQIaBRqnBiPzYETgtq9Io+sVnxvlU+g/V7k/mTxAWr+0BFPSShciEqVN8/vY7rOL966h3hyaMMTtmppFY8lrN365w+XrSzxzgogtJ5WfWB59Qnz2EtAAo4SZoIBa+SmF6aTI3Ket2yQ6LXS6+eZ6Iohu48FZWbcgx9Sz5z9VZGecnHc2893kl/CUQqZ/WfmNDdOglgtPldGusoGUCVrNXlwFZeV6aiO5Xs+sFunjgi59CFPIVpBlxu/O96/yZlKNeEZybQ2mXNEXRP7lRJZBEFeuQHo0VKQxO5++Sbe+kwu2g6MqUdQJfGamh1uDD4Tis2MJxt0Put3o37GSxFQ4f0EXFSOE1Y03z8ehaqJnJRENh6PHJhuX8rpwRtvqSZ/f2S8Nb4rbb2vWTYWlvr1ujesTsHyo/gA7IkSGoPGLg47vgphSXpqmjlZ9QQznD+O8X/PALDjkgZltkO2hx6TdguacMPuXoq6tHPyJOIfkt893xoF5x6s653CmqjlB8OzfR1Uc1IaPHx2Jq4TjeAdmed8fjHYRxsh80K+ePnfeFoS+TjhwUYwZgD0GEig5mdUYn7v5UXCfZi4C7/CcKplNqf6TPhHVw1f9pTKwPifJiEU5wpSdXDHT72O6tqc7d7nla7sFAf2PHFIFVxt1hIMqBUe669zXZMKM3Y9uge+SCmMMnRsnpT6rTqF8Wkwg9bN4WONR2Ty+EEyZrdC8AaXlVd+l5us4/TFiSY04/cOmtU+EW3MUn1zKJVFe4bAUDnff2owpdjf9dyBZdhtH32YPmU18uJoMZGHDOgXDGSlfsjM+OIdVY1cX0jy5XxqfhFIAE9I0mUyaS9ujBmMcV4r8QcbR95TApbpdMx4OhP6S8XrkiNq3jpSy5RNhD+l7WBRfsBj6NxR3IAyyWwJQip5pgb7veCfgTWC233zCP9P8fGrwG5bs3MGeOkrMrwGckyMwXG4PrleI9GxPH5I0gc+IpXhaPSOtE37QQV/y1Nu5q4qEWCg6T3RZ1dmTE/h+ULkXbvIQKb1COVavQuhjq+PoMwLPs+SRSc+5OtTyfRxfgg7o0askrgKhW1WO3S0n4x5Akf1SWezL9nuh+CBpptCClk3+zoYs8wLBIhcMbmJr7UCwQ132aE6TdGektbibZDXSa0xXo5fUJEZ+u0PPPWAZSmT9Cdj4+C6TAIcwGXpbPGc/+++nQy9k6WmkvJMSAd6RKzbCTRm4P0nV02PE755Xv3kBPs+KJZ8F1ScBMWSrSGhidQ0xZRSiLHmNs6bz475XDripd5u3dly9KGv01eGNWPn9K1zqw=';
 const AAD_KEY=new TextEncoder().encode('MALU-ADAPTAR-PRIVATE-KEY-v1'),AAD_RESULT=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 let privateKey=null,records=[],timer=null,authUser=null;
 
@@ -45,15 +45,7 @@ async function fetchResults(url,required){
   try{
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);
     try{
-      let finalUrl=url+'/results.json';
-      try{
-        const user=firebase.auth().currentUser;
-        if(user){
-          const token=await user.getIdToken();
-          finalUrl+=(finalUrl.includes('?')?'&':'?')+'auth='+encodeURIComponent(token);
-        }
-      }catch(e){}
-      const r=await fetch(finalUrl,{cache:'no-store',signal:ctl.signal});
+      const r=await fetch(url+'/results.json',{cache:'no-store',signal:ctl.signal});
       if(!r.ok)throw new Error((r.status===401||r.status===403?'banco recusou o acesso':'HTTP '+r.status));
       return await r.json()||{};
     }finally{clearTimeout(to)}
@@ -65,9 +57,13 @@ async function fetchResults(url,required){
 async function load(){
   const st=document.getElementById('syncStatus');st.textContent='Atualizando…';st.className='status';
   try{
-    const obj=await fetchResults(DB_URL,true);
+    const [obj,legacy]=await Promise.all([fetchResults(DB_URL,true),fetchResults(LEGACY_DB_URL,false)]);
     const out=[];let unreadable=0;
-    for(const [id,env] of Object.entries(obj)){
+    const all=[
+      ...Object.entries(legacy).map(([id,env])=>['legacy:'+id,env]),
+      ...Object.entries(obj).map(([id,env])=>[id,env])
+    ];
+    for(const [id,env] of all){
       try{const x=await decryptEnvelope(env);x._id=id;out.push(x)}
       catch(e){unreadable++}
     }
