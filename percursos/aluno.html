@@ -1049,7 +1049,6 @@ document.getElementById("entryClass").addEventListener("keydown",e=>{
 (function(){
 'use strict';
 const DB_URL='https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026';
-const FALLBACK_DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
 const PUBLIC_KEY_B64='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr5epPHYuI30AMeSMbxJBjxrbV3LX9uA73QEsbgq5vGxTaAeNeFF7DUqrH6h3InBOGtTdUfv+W+JDeavSwhN4y3i/Sdu3v7z7RqmJyf3xvHhaveS8RUA2Q3xn72oMBx3R97Blf1m/jPYOYZEApYgFgXkDY26+1Rinijy7xIid/SZdI7jWOueWJK0Ynj6zN3TOj9Ska+zrVhJycGsnSrMw4B3gh0U0cgvA4wzef4UGVQy6CJEd5+HkkQ4og2Sei6hoSeOWENjfprZGgXBN3UJDgIt/EcjzWt4110FZ/3IOHoLFLWyO9F7n+YykSm0Ace6vYt3O3BUzoCX264T5vvmkqwIDAQAB';
 const AAD=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 const PROGRESS_KEY='malu-adaptar-progress-v2';
@@ -1101,15 +1100,12 @@ async function pullRemoteProgress(){
   try{
     const h=await studentHash();
     const local=loadLocalProgress();
-    for(const base of [DB_URL,FALLBACK_DB_URL]){
-      try{
-        const r=await fetch(base+'/progress/'+h+'.json',{cache:'no-store'});
-        if(!r.ok)continue;
-        const remote=await r.json()||{};
-        Object.keys(remote).forEach(k=>{
-          if(!local[k]||String(remote[k].finished_at||'')>String(local[k].finished_at||''))local[k]=remote[k];
-        });
-      }catch(e){}
+    const r=await fetch(DB_URL+'/progress/'+h+'.json',{cache:'no-store'});
+    if(r.ok){
+      const remote=await r.json()||{};
+      Object.keys(remote).forEach(k=>{
+        if(!local[k]||String(remote[k].finished_at||'')>String(local[k].finished_at||''))local[k]=remote[k];
+      });
     }
     saveLocalProgress(local);
     paintProgress();
@@ -1141,15 +1137,7 @@ async function firebaseRequest(url,options){
   }finally{clearTimeout(to)}
 }
 async function firebaseWrite(path,options){
-  let firstError=null;
-  for(const base of [DB_URL,FALLBACK_DB_URL]){
-    try{
-      return await firebaseRequest(base+path,options);
-    }catch(e){
-      if(!firstError)firstError=e;
-    }
-  }
-  throw firstError||new Error('não foi possível gravar no banco');
+  return firebaseRequest(DB_URL+path,options);
 }
 async function flushPending(options){
   const silent=!!(options&&options.silent);
@@ -1284,7 +1272,7 @@ function watchCompletion(id,d,w){
     if(sent)return;
     sent=true;
     showFinishedUI('sending');
-    const result=await markComplete(id,latestRecord(w),d);
+    const result=await markComplete(id,recordFromFrame(w),d);
     if(result&&result.ok)showFinishedUI('sent');
     else{
       /* A conclusão local é definitiva. O envio remoto fica apenas na fila de sincronização. */
