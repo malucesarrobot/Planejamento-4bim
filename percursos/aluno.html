@@ -1118,52 +1118,11 @@ async function encryptPayload(payload){
   const ek=await crypto.subtle.encrypt({name:'RSA-OAEP'},pub,raw);
   return {v:1,ek:bytesToB64(ek),iv:bytesToB64(iv),ct:bytesToB64(ct),activity_id:payload.activity_id,discipline:payload.discipline,series:payload.series,created_at:Date.now()};
 }
-let studentAuthPromise=null;
-async function studentAuthToken(){
-  if(studentAuthPromise) return studentAuthPromise;
-  studentAuthPromise=(async()=>{
-    if(typeof firebase==='undefined'||!firebase.initializeApp||!firebase.auth) throw new Error('Firebase Auth não carregou');
-    const cfg={
-      apiKey:'AIzaSyB8XorTQASMD51JbYEXIBTW6PYeq7BGRTU',
-      authDomain:'canto-das-pretas.firebaseapp.com',
-      databaseURL:'https://canto-das-pretas-default-rtdb.firebaseio.com',
-      projectId:'canto-das-pretas',
-      storageBucket:'canto-das-pretas.firebasestorage.app',
-      messagingSenderId:'454913796929',
-      appId:'1:454913796929:web:44550491a32d50cc8bcfc0'
-    };
-    if(!firebase.apps.length) firebase.initializeApp(cfg);
-    const auth=firebase.auth();
-    let user=auth.currentUser;
-    if(!user){
-      try{
-        const cred=await auth.signInAnonymously();
-        user=cred.user;
-      }catch(e){
-        const code=e&&e.code?e.code:'';
-        if(code==='auth/operation-not-allowed') throw new Error('login anônimo do Firebase está desativado');
-        throw e;
-      }
-    }
-    return user ? await user.getIdToken() : '';
-  })();
-  try{return await studentAuthPromise}
-  catch(e){studentAuthPromise=null;throw e}
-}
 async function firebaseRequest(url,options){
-  let finalUrl=url;
-  try{
-    const token=await studentAuthToken();
-    if(token && /^https:\/\/canto-das-pretas-default-rtdb\.firebaseio\.com\//.test(finalUrl)){
-      finalUrl+=(finalUrl.includes('?')?'&':'?')+'auth='+encodeURIComponent(token);
-    }
-  }catch(e){
-    throw new Error(e&&e.message?e.message:'falha de autenticação do aluno');
-  }
   const ctl=new AbortController();
   const to=setTimeout(()=>ctl.abort(),15000);
   try{
-    const r=await fetch(finalUrl,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
+    const r=await fetch(url,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
     if(!r.ok){
       let detail='';
       try{detail=(await r.text()).slice(0,180)}catch(e){}
