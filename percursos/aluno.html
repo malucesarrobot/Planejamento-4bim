@@ -399,6 +399,11 @@ function installCognitiveStyle(d){
     }
     .malu-stepbar strong{font-size:14px}
     .malu-stepbar button{min-width:108px}
+    .malu-stepbar .malu-step-status{display:flex;flex-direction:column;align-items:center;text-align:center;line-height:1.25}
+    .malu-stepbar .malu-step-status small{font-size:11px;color:#69758a;font-weight:700;margin-top:2px}
+    .malu-stepbar .malu-next-pending{border-color:#d79535;background:#fff8e9;color:#7a4a0a}
+    .malu-stepbar .malu-next-finish{background:#2e8b72!important;color:#fff!important;border-color:#2e8b72!important}
+    .malu-pending-focus{outline:4px solid #f2b84b!important;outline-offset:3px}
     .malu-hidden-step{display:none!important}
     .wordsearch-grid{
       display:grid;gap:5px;justify-content:center;margin:16px auto;
@@ -427,20 +432,18 @@ function installCognitiveStyle(d){
   d.head.appendChild(style);
 }
 
-function installOneQuestionMode(d){
+function installOneQuestionMode(d,w,activityId){
   const qs=[...d.querySelectorAll(".question")];
   if(qs.length<2) return;
+  const realQs=qs.filter(q=>q.dataset.extra!=="wordsearch");
   let idx=0;
-  qs.forEach((q,i)=>q.classList.toggle("malu-hidden-step",i!==0));
 
-  const finishBtn=[...d.querySelectorAll("button")].find(b=>{
-    const t=(b.textContent||"").trim();
-    return b.id==="fim" || /^(Finalizar|Concluir)$/i.test(t);
-  });
-  const conclude=finishBtn
-    ? (finishBtn.closest(".card") || finishBtn.parentElement)
-    : [...d.querySelectorAll(".card")].find(card=>/Concluir atividade/i.test(card.textContent||""));
+  const finishBtn=d.getElementById("finish") || d.getElementById("fim") ||
+    [...d.querySelectorAll("button")].find(b=>/^(Finalizar|Finalizar atividade)$/i.test((b.textContent||"").trim()));
+  const conclude=finishBtn ? (finishBtn.closest(".card") || finishBtn.parentElement) : null;
   if(conclude) conclude.classList.add("malu-hidden-step");
+
+  qs.forEach((q,i)=>q.classList.toggle("malu-hidden-step",i!==0));
 
   const holder=d.createElement("div");
   holder.className="malu-stepbar";
@@ -448,42 +451,89 @@ function installOneQuestionMode(d){
   holder.setAttribute("aria-label","Navegação entre questões");
   holder.innerHTML=`
     <button type="button" id="maluPrev">← Anterior</button>
-    <strong id="maluStepLabel">Questão 1</strong>
+    <span class="malu-step-status"><strong id="maluStepLabel">Questão 1</strong><small id="maluStepHint"></small></span>
     <button type="button" id="maluNext">Próxima →</button>
   `;
-  qs[qs.length-1].parentElement.insertBefore(holder,qs[qs.length-1].nextSibling);
+  d.body.appendChild(holder);
 
   const prev=holder.querySelector("#maluPrev");
   const next=holder.querySelector("#maluNext");
   const label=holder.querySelector("#maluStepLabel");
-  const realQs=qs.filter(q=>q.dataset.extra!=="wordsearch");
+  const hint=holder.querySelector("#maluStepHint");
 
+  function doneSet(){
+    const state=(w && (w.S||w.st)) || null;
+    if(state && state.done && typeof state.done.has==="function") return state.done;
+    return null;
+  }
+  function questionDone(q){
+    const set=doneSet();
+    if(set && q.id) return set.has(q.id);
+    if(q.dataset.extra==="wordsearch") return true;
+    if(q.querySelector(".correct")) return true;
+    const selects=[...q.querySelectorAll("select")];
+    if(selects.length && selects.every(s=>s.disabled)) return true;
+    return false;
+  }
+  function unresolved(){
+    return realQs.filter(q=>!questionDone(q));
+  }
+  function currentRealNumber(q){
+    const n=realQs.indexOf(q);
+    return n>=0?n+1:null;
+  }
+  function clearFocus(){
+    qs.forEach(q=>q.classList.remove("malu-pending-focus"));
+  }
+  function goToQuestion(q){
+    const target=qs.indexOf(q);
+    if(target<0) return;
+    idx=target;
+    show();
+    q.classList.add("malu-pending-focus");
+    setTimeout(()=>q.classList.remove("malu-pending-focus"),1800);
+  }
   function show(){
+    clearFocus();
     qs.forEach((q,i)=>q.classList.toggle("malu-hidden-step",i!==idx));
-    const current=qs[idx];
-    const isExtra=current.dataset.extra==="wordsearch";
-    const realIndex=realQs.indexOf(current);
+    const current=qs[idx], isExtra=current.dataset.extra==="wordsearch";
+    const n=currentRealNumber(current);
+    const missing=unresolved();
+    const isLast=idx===qs.length-1;
 
     prev.disabled=idx===0;
-    if(idx===qs.length-1){
-      next.disabled=true;
-      next.textContent="Fim das questões";
-    }else{
+    label.textContent=isExtra ? "Desafio de palavras" : `Questão ${n} de ${realQs.length}`;
+    hint.textContent=isExtra ? "atividade opcional de vocabulário" : (questionDone(current) ? "✓ questão resolvida" : "resolva esta questão antes de finalizar");
+
+    next.classList.remove("malu-next-pending","malu-next-finish");
+    if(!isLast){
       next.disabled=false;
       next.textContent="Próxima →";
+      next.onclick=()=>{idx++;show();};
+    }else if(missing.length){
+      next.disabled=false;
+      next.classList.add("malu-next-pending");
+      next.textContent=missing.length===1 ? "Revisar 1 pendência" : `Revisar ${missing.length} pendências`;
+      next.onclick=()=>goToQuestion(missing[0]);
+      hint.textContent=missing.length===1
+        ? "falta resolver 1 questão"
+        : `faltam resolver ${missing.length} questões`;
+    }else{
+      next.disabled=false;
+      next.classList.add("malu-next-finish");
+      next.textContent="Finalizar atividade ✓";
+      next.onclick=()=>{
+        if(finishBtn && typeof finishBtn.click==="function") finishBtn.click();
+        else if(w && typeof w.finish==="function") w.finish();
+      };
+      hint.textContent="todas as questões obrigatórias foram resolvidas";
     }
-
-    label.textContent=isExtra
-      ? "Desafio de palavras"
-      : `Questão ${realIndex+1} de ${realQs.length}`;
-
-    if(conclude) conclude.classList.toggle("malu-hidden-step",idx!==qs.length-1);
-
     current.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
   prev.addEventListener("click",()=>{if(idx>0){idx--;show();}});
-  next.addEventListener("click",()=>{if(idx<qs.length-1){idx++;show();}});
+  const observer=new MutationObserver(()=>show());
+  realQs.forEach(q=>observer.observe(q,{subtree:true,attributes:true,attributeFilter:["class","disabled"]}));
   show();
 }
 function createWordSearch(d,activityId,words){
@@ -635,12 +685,50 @@ function installStudentNotebook(d,activityId){
   else container.insertBefore(box,container.firstChild);
 }
 
+function installCompletionBridge(d,w,activityId){
+  if(!w || w.__percursosFinishWrapped) return;
+  const original=typeof w.finish==="function" ? w.finish : null;
+  if(original){
+    w.finish=function(){
+      const state=w.S||w.st||null;
+      const total=Number(w.TOTAL)||d.querySelectorAll(".question:not(.wordsearch-extra)").length;
+      const doneCount=state && state.done && typeof state.done.size==="number" ? state.done.size : 0;
+      if(total && doneCount<total){
+        const missing=[];
+        for(let i=1;i<=total;i++){
+          const qid="q"+i;
+          if(!(state&&state.done&&state.done.has&&state.done.has(qid))) missing.push(qid);
+        }
+        if(missing.length){
+          const first=d.getElementById(missing[0]);
+          if(first){
+            first.classList.add("malu-pending-focus");
+            first.scrollIntoView({behavior:"smooth",block:"center"});
+            setTimeout(()=>first.classList.remove("malu-pending-focus"),1800);
+          }
+          alert(missing.length===1 ? "Falta resolver 1 questão: "+missing[0].toUpperCase()+"." : "Faltam resolver "+missing.length+" questões: "+missing.map(x=>x.toUpperCase()).join(", ")+".");
+          return;
+        }
+      }
+      const out=original.apply(this,arguments);
+      setTimeout(()=>{
+        try{
+          if(window.__percursosFrameFinished) window.__percursosFrameFinished(activityId,d,w);
+        }catch(e){}
+      },80);
+      return out;
+    };
+  }
+  w.__percursosFinishWrapped=true;
+}
+
 function enhanceStudentActivity(d,w,activityId){
   installCognitiveStyle(d);
   installStudentNotebook(d,activityId);
   createWordSearch(d,activityId,WORDSEARCH_CONFIG[activityId]);
   installRetryShuffle(d);
-  installOneQuestionMode(d);
+  installOneQuestionMode(d,w,activityId);
+  installCompletionBridge(d,w,activityId);
 }
 
 function openActivity(id,btn){
@@ -833,15 +921,62 @@ async function markComplete(id,record,d){
   const payload={schema:1,student_name:student.name,turma:student.turma,activity_id:id,series:meta.series,discipline:meta.discipline,week:meta.week,title:meta.title,finished_at:(record&&record.finished_at)||new Date().toISOString(),total_attempts:(record&&record.total_attempts)||null,first_try_rate:(record&&record.first_try_rate)||null,attempts_by_question:attempts,question_details:qd,user_agent:navigator.userAgent.slice(0,180)};
   await sendResult(payload);
 }
-function latestRecord(){
-  let best=null,bt=0;
-  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!/_records$/i.test(k))continue;try{const a=JSON.parse(localStorage.getItem(k)||'[]');if(!Array.isArray(a))continue;for(const r of a){if(norm(r.student_name||r.aluno||r.name)!==norm(student.name))continue;if(r.turma&&norm(r.turma)!==norm(student.turma))continue;const t=Date.parse(r.finished_at||r.finishedAt||'')||0;if(t>bt){best=r;bt=t}}}catch(e){}}
-  return best;
+function recordFromFrame(w){
+  const state=(w&&(w.S||w.st))||null;
+  const attempts=state&&state.att?state.att:{};
+  const vals=Object.values(attempts).map(Number).filter(Number.isFinite);
+  const total=vals.reduce((a,b)=>a+b,0);
+  const first=vals.filter(x=>x===1).length;
+  const count=vals.length||Number(w&&w.TOTAL)||0;
+  return {
+    student_name:student.name,
+    turma:student.turma,
+    finished_at:new Date().toISOString(),
+    total_attempts:total||null,
+    first_try_rate:count?Math.round(first/count*100):null,
+    attempts_by_question:attempts
+  };
 }
-function watchCompletion(id,d){
+function latestRecord(w){
+  let best=null,bt=-1;
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||!/_records$/i.test(k))continue;
+    try{
+      const a=JSON.parse(localStorage.getItem(k)||'[]');
+      if(!Array.isArray(a))continue;
+      for(let j=0;j<a.length;j++){
+        const r=a[j];
+        if(norm(r.student_name||r.aluno||r.name)!==norm(student.name))continue;
+        if(r.turma&&norm(r.turma)!==norm(student.turma))continue;
+        const t=Date.parse(r.finished_at||r.finishedAt||'')||j;
+        if(t>=bt){best=r;bt=t}
+      }
+    }catch(e){}
+  }
+  const fallback=recordFromFrame(w);
+  if(!best) return fallback;
+  return Object.assign(fallback,best,{finished_at:best.finished_at||fallback.finished_at,attempts_by_question:best.attempts_by_question||fallback.attempts_by_question});
+}
+function watchCompletion(id,d,w){
   let sent=false;
-  function check(){if(sent)return;const res=d.getElementById('studentResult')||d.querySelector('[id*="studentResult"],.student-result');const txt=(res?res.textContent:d.body.textContent)||'';if((res&&!res.classList.contains('hidden')&&/conclu/i.test(txt))||/Atividade concluída/i.test(txt)){sent=true;setTimeout(()=>markComplete(id,latestRecord(),d),80)}}
-  const mo=new MutationObserver(check);mo.observe(d.body,{subtree:true,childList:true,attributes:true,characterData:true});check();
+  async function send(){
+    if(sent)return;
+    sent=true;
+    await markComplete(id,latestRecord(w),d);
+  }
+  window.__percursosFrameFinished=function(doneId,doneDoc,doneWin){
+    if(doneId===id) send();
+  };
+  function check(){
+    if(sent)return;
+    const res=d.getElementById('studentResult')||d.getElementById('resultado')||d.querySelector('[id*="studentResult"],.student-result');
+    const txt=(res?res.textContent:'')||'';
+    if(res&&!res.classList.contains('hidden')&&/conclu|atividade conclu/i.test(txt)) send();
+  }
+  const mo=new MutationObserver(check);
+  mo.observe(d.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class"],characterData:true});
+  check();
 }
 function studentOnly(d){
   [...d.querySelectorAll('button,a')].forEach(el=>{if(/^Professora$/i.test(el.textContent.trim())||el.id==='navProf')el.style.display='none'});
@@ -849,7 +984,7 @@ function studentOnly(d){
 }
 const oldEnter=window.enterStudent;window.enterStudent=function(){oldEnter.apply(this,arguments);if(accessMode==='student'){paintProgress();pullRemoteProgress();flushPending()}};
 const oldHome=window.goHome;window.goHome=function(){oldHome.apply(this,arguments);paintProgress();pullRemoteProgress()};
-const oldOpen=window.openActivity;window.openActivity=function(id,btn){currentActivityId=id;const f=document.getElementById('frame');const onload=()=>{try{const d=f.contentDocument;studentOnly(d);watchCompletion(id,d)}catch(e){}};f.addEventListener('load',onload,{once:true});return oldOpen.apply(this,arguments)};
+const oldOpen=window.openActivity;window.openActivity=function(id,btn){currentActivityId=id;const f=document.getElementById('frame');const onload=()=>{try{const d=f.contentDocument,w=f.contentWindow;studentOnly(d);watchCompletion(id,d,w)}catch(e){}};f.addEventListener('load',onload,{once:true});return oldOpen.apply(this,arguments)};
 window.addEventListener('online',flushPending);setTimeout(flushPending,1200);
 })();
 </script>
