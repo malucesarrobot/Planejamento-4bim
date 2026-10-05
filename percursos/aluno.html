@@ -1036,12 +1036,14 @@ document.getElementById("entryClass").addEventListener("keydown",e=>{
 <script>
 (function(){
 'use strict';
-const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026';
+const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
+const FALLBACK_DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026';
 const PUBLIC_KEY_B64='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr5epPHYuI30AMeSMbxJBjxrbV3LX9uA73QEsbgq5vGxTaAeNeFF7DUqrH6h3InBOGtTdUfv+W+JDeavSwhN4y3i/Sdu3v7z7RqmJyf3xvHhaveS8RUA2Q3xn72oMBx3R97Blf1m/jPYOYZEApYgFgXkDY26+1Rinijy7xIid/SZdI7jWOueWJK0Ynj6zN3TOj9Ska+zrVhJycGsnSrMw4B3gh0U0cgvA4wzef4UGVQy6CJEd5+HkkQ4og2Sei6hoSeOWENjfprZGgXBN3UJDgIt/EcjzWt4110FZ/3IOHoLFLWyO9F7n+YykSm0Ace6vYt3O3BUzoCX264T5vvmkqwIDAQAB';
 const AAD=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 const PROGRESS_KEY='malu-adaptar-progress-v2';
 const PENDING_KEY='malu-adaptar-pending-v1';
 const HASH_SALT='MALU-ADAPTAR-CEPI-MARAJO-2026';
+const volatileProgress={};
 let currentActivityId='';
 let publicKeyPromise=null;
 function b64ToBytes(s){const b=atob(s);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
@@ -1053,8 +1055,18 @@ function showToast(msg,err){const t=document.getElementById('maluSyncToast');if(
 async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function studentHash(){return sha256(HASH_SALT+'|'+norm(student&&student.name)+'|'+norm(student&&student.turma))}
 function studentBucket(){if(!student||!student.name)return '';return norm(student.name)+'|'+norm(student.turma)}
-function loadLocalProgress(){const all=safeJSON(PROGRESS_KEY,{});return all[studentBucket()]||{}}
-function saveLocalProgress(p){const all=safeJSON(PROGRESS_KEY,{});all[studentBucket()]=p;saveJSON(PROGRESS_KEY,all)}
+function loadLocalProgress(){
+  const bucket=studentBucket();
+  const all=safeJSON(PROGRESS_KEY,{});
+  return Object.assign({},all[bucket]||{},volatileProgress[bucket]||{});
+}
+function saveLocalProgress(p){
+  const bucket=studentBucket();
+  volatileProgress[bucket]=Object.assign({},p);
+  const all=safeJSON(PROGRESS_KEY,{});
+  all[bucket]=p;
+  saveJSON(PROGRESS_KEY,all);
+}
 function activityMeta(id){
   const btn=[...document.querySelectorAll('.activity-btn')].find(b=>(b.getAttribute('onclick')||'').includes("openActivity('"+id+"'"));
   const txt=(btn?btn.textContent:id).replace(/\s*✓ concluída\s*$/,'').trim();
@@ -1074,7 +1086,22 @@ function paintProgress(){
   card.innerHTML='<div class="malu-progress-head"><strong>Meu progresso: '+done+' de '+btns.length+' aulas concluídas</strong><span>'+(btns.length-done)+' faltam</span></div><div class="malu-progress-list">'+(names.length?'Já concluídas: '+names.map(x=>'<span>'+escapeHtml(x)+'</span>').join(' · '):'Você ainda não concluiu nenhuma atividade nesta série.')+'</div>';
 }
 async function pullRemoteProgress(){
-  try{const h=await studentHash();const r=await fetch(DB_URL+'/progress/'+h+'.json',{cache:'no-store'});if(!r.ok)return;const remote=await r.json()||{};const local=loadLocalProgress();Object.keys(remote).forEach(k=>{if(!local[k]||String(remote[k].finished_at||'')>String(local[k].finished_at||''))local[k]=remote[k]});saveLocalProgress(local);paintProgress()}catch(e){}
+  try{
+    const h=await studentHash();
+    const local=loadLocalProgress();
+    for(const base of [DB_URL,FALLBACK_DB_URL]){
+      try{
+        const r=await fetch(base+'/progress/'+h+'.json',{cache:'no-store'});
+        if(!r.ok)continue;
+        const remote=await r.json()||{};
+        Object.keys(remote).forEach(k=>{
+          if(!local[k]||String(remote[k].finished_at||'')>String(local[k].finished_at||''))local[k]=remote[k];
+        });
+      }catch(e){}
+    }
+    saveLocalProgress(local);
+    paintProgress();
+  }catch(e){}
 }
 async function importPublicKey(){if(!publicKeyPromise)publicKeyPromise=crypto.subtle.importKey('spki',b64ToBytes(PUBLIC_KEY_B64),{name:'RSA-OAEP',hash:'SHA-256'},false,['encrypt']);return publicKeyPromise}
 async function encryptPayload(payload){
@@ -1101,6 +1128,17 @@ async function firebaseRequest(url,options){
     throw e;
   }finally{clearTimeout(to)}
 }
+async function firebaseWrite(path,options){
+  let firstError=null;
+  for(const base of [DB_URL,FALLBACK_DB_URL]){
+    try{
+      return await firebaseRequest(base+path,options);
+    }catch(e){
+      if(!firstError)firstError=e;
+    }
+  }
+  throw firstError||new Error('não foi possível gravar no banco');
+}
 async function flushPending(options){
   const silent=!!(options&&options.silent);
   const q=safeJSON(PENDING_KEY,[]);
@@ -1108,7 +1146,7 @@ async function flushPending(options){
   const remain=[];let sent=0,lastError='';
   for(const env of q){
     try{
-      const ack=await firebaseRequest(DB_URL+'/results.json',{
+      const ack=await firebaseWrite('/results.json',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify(env)
@@ -1147,7 +1185,7 @@ async function markComplete(id,record,d){
 
   studentHash().then(async h=>{
     try{
-      await firebaseRequest(DB_URL+'/progress/'+h+'/'+id+'.json',{
+      await firebaseWrite('/progress/'+h+'/'+id+'.json',{
         method:'PUT',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify(p[id])
@@ -1237,8 +1275,8 @@ function watchCompletion(id,d,w){
     const result=await markComplete(id,latestRecord(w),d);
     if(result&&result.ok)showFinishedUI('sent');
     else{
-      showFinishedUI('pending');
-      sent=false;
+      /* A conclusão local é definitiva. O envio remoto fica apenas na fila de sincronização. */
+      showFinishedUI('pending','atividade concluída ✓ · envio à professora será tentado novamente');
     }
   }
   window.__percursosFrameFinished=function(doneId,doneDoc,doneWin){
