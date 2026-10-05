@@ -45,7 +45,15 @@ async function fetchResults(url,required){
   try{
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);
     try{
-      const r=await fetch(url+'/results.json',{cache:'no-store',signal:ctl.signal});
+      let finalUrl=url+'/results.json';
+      try{
+        const user=firebase.auth().currentUser;
+        if(user){
+          const token=await user.getIdToken();
+          finalUrl+=(finalUrl.includes('?')?'&':'?')+'auth='+encodeURIComponent(token);
+        }
+      }catch(e){}
+      const r=await fetch(finalUrl,{cache:'no-store',signal:ctl.signal});
       if(!r.ok)throw new Error((r.status===401||r.status===403?'banco recusou o acesso':'HTTP '+r.status));
       return await r.json()||{};
     }finally{clearTimeout(to)}
