@@ -31,7 +31,7 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const ALLOWED_EMAILS=new Set(['malu.cesar@gmail.com','prof.malufc@gmail.com','patriciacunhaoliveiro39@gmail.com']);
 const AUTO_UNLOCK_B64='aFF6cXhaUHhwWV9lN2lAV2VGOTA=';
-const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1',SALT='8i9BVuCClxbzNEkSE3xqvA==',KEY_IV='E79xUQwMGHpDOLKh',ENC_PRIVATE='3BfjWt7zpt3NZq9je/O4OtJqKMe5dYm/hQ8XjrgquJgq1DalA6mtjbY2lxBO7ISFIN16MkMg1EDo3QaFbm5P6ZhuCNtc6G7w4v5Z/DnD01zoryPfFXDco0ONF7hNhueAvTiju/GSkX2RDS7mntCxC33MAIZK+7J2ndjaILs9iopfetBkqF13YyO7wfbfn7oY0eAlyaID4BPEw6ebY0USjC8WPXwYirzQ//IrZkgGeLqDVJBWA/+AJ0SjX3UwrQIXzz3KB0V5CdNFCkyFbFQtchQgoL7ruVlJOflKpkgNBugZaMvboJNV2whQiHUXGDKDDyB9UBjoz/oMGucDNuRQIaBRqnBiPzYETgtq9Io+sVnxvlU+g/V7k/mTxAWr+0BFPSShciEqVN8/vY7rOL966h3hyaMMTtmppFY8lrN365w+XrSzxzgogtJ5WfWB59Qnz2EtAAo4SZoIBa+SmF6aTI3Ket2yQ6LXS6+eZ6Iohu48FZWbcgx9Sz5z9VZGecnHc2893kl/CUQqZ/WfmNDdOglgtPldGusoGUCVrNXlwFZeV6aiO5Xs+sFunjgi59CFPIVpBlxu/O96/yZlKNeEZybQ2mXNEXRP7lRJZBEFeuQHo0VKQxO5++Sbe+kwu2g6MqUdQJfGamh1uDD4Tis2MJxt0Put3o37GSxFQ4f0EXFSOE1Y03z8ehaqJnJRENh6PHJhuX8rpwRtvqSZ/f2S8Nb4rbb2vWTYWlvr1ujesTsHyo/gA7IkSGoPGLg47vgphSXpqmjlZ9QQznD+O8X/PALDjkgZltkO2hx6TdguacMPuXoq6tHPyJOIfkt893xoF5x6s653CmqjlB8OzfR1Uc1IaPHx2Jq4TjeAdmed8fjHYRxsh80K+ePnfeFoS+TjhwUYwZgD0GEig5mdUYn7v5UXCfZi4C7/CcKplNqf6TPhHVw1f9pTKwPifJiEU5wpSdXDHT72O6tqc7d7nla7sFAf2PHFIFVxt1hIMqBUe669zXZMKM3Y9uge+SCmMMnRsnpT6rTqF8Wkwg9bN4WONR2Ty+EEyZrdC8AaXlVd+l5us4/TFiSY04/cOmtU+EW3MUn1zKJVFe4bAUDnff2owpdjf9dyBZdhtH32YPmU18uJoMZGHDOgXDGSlfsjM+OIdVY1cX0jy5XxqfhFIAE9I0mUyaS9ujBmMcV4r8QcbR95TApbpdMx4OhP6S8XrkiNq3jpSy5RNhD+l7WBRfsBj6NxR3IAyyWwJQip5pgb7veCfgTWC233zCP9P8fGrwG5bs3MGeOkrMrwGckyMwXG4PrleI9GxPH5I0gc+IpXhaPSOtE37QQV/y1Nu5q4qEWCg6T3RZ1dmTE/h+ULkXbvIQKb1COVavQuhjq+PoMwLPs+SRSc+5OtTyfRxfgg7o0askrgKhW1WO3S0n4x5Akf1SWezL9nuh+CBpptCClk3+zoYs8wLBIhcMbmJr7UCwQ132aE6TdGektbibZDXSa0xXo5fUJEZ+u0PPPWAZSmT9Cdj4+C6TAIcwGXpbPGc/+++nQy9k6WmkvJMSAd6RKzbCTRm4P0nV02PE755Xv3kBPs+KJZ8F1ScBMWSrSGhidQ0xZRSiLHmNs6bz475XDripd5u3dly9KGv01eGNWPn9K1zqw=';
+const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026',LEGACY_DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1',SALT='8i9BVuCClxbzNEkSE3xqvA==',KEY_IV='E79xUQwMGHpDOLKh',ENC_PRIVATE='3BfjWt7zpt3NZq9je/O4OtJqKMe5dYm/hQ8XjrgquJgq1DalA6mtjbY2lxBO7ISFIN16MkMg1EDo3QaFbm5P6ZhuCNtc6G7w4v5Z/DnD01zoryPfFXDco0ONF7hNhueAvTiju/GSkX2RDS7mntCxC33MAIZK+7J2ndjaILs9iopfetBkqF13YyO7wfbfn7oY0eAlyaID4BPEw6ebY0USjC8WPXwYirzQ//IrZkgGeLqDVJBWA/+AJ0SjX3UwrQIXzz3KB0V5CdNFCkyFbFQtchQgoL7ruVlJOflKpkgNBugZaMvboJNV2whQiHUXGDKDDyB9UBjoz/oMGucDNuRQIaBRqnBiPzYETgtq9Io+sVnxvlU+g/V7k/mTxAWr+0BFPSShciEqVN8/vY7rOL966h3hyaMMTtmppFY8lrN365w+XrSzxzgogtJ5WfWB59Qnz2EtAAo4SZoIBa+SmF6aTI3Ket2yQ6LXS6+eZ6Iohu48FZWbcgx9Sz5z9VZGecnHc2893kl/CUQqZ/WfmNDdOglgtPldGusoGUCVrNXlwFZeV6aiO5Xs+sFunjgi59CFPIVpBlxu/O96/yZlKNeEZybQ2mXNEXRP7lRJZBEFeuQHo0VKQxO5++Sbe+kwu2g6MqUdQJfGamh1uDD4Tis2MJxt0Put3o37GSxFQ4f0EXFSOE1Y03z8ehaqJnJRENh6PHJhuX8rpwRtvqSZ/f2S8Nb4rbb2vWTYWlvr1ujesTsHyo/gA7IkSGoPGLg47vgphSXpqmjlZ9QQznD+O8X/PALDjkgZltkO2hx6TdguacMPuXoq6tHPyJOIfkt893xoF5x6s653CmqjlB8OzfR1Uc1IaPHx2Jq4TjeAdmed8fjHYRxsh80K+ePnfeFoS+TjhwUYwZgD0GEig5mdUYn7v5UXCfZi4C7/CcKplNqf6TPhHVw1f9pTKwPifJiEU5wpSdXDHT72O6tqc7d7nla7sFAf2PHFIFVxt1hIMqBUe669zXZMKM3Y9uge+SCmMMnRsnpT6rTqF8Wkwg9bN4WONR2Ty+EEyZrdC8AaXlVd+l5us4/TFiSY04/cOmtU+EW3MUn1zKJVFe4bAUDnff2owpdjf9dyBZdhtH32YPmU18uJoMZGHDOgXDGSlfsjM+OIdVY1cX0jy5XxqfhFIAE9I0mUyaS9ujBmMcV4r8QcbR95TApbpdMx4OhP6S8XrkiNq3jpSy5RNhD+l7WBRfsBj6NxR3IAyyWwJQip5pgb7veCfgTWC233zCP9P8fGrwG5bs3MGeOkrMrwGckyMwXG4PrleI9GxPH5I0gc+IpXhaPSOtE37QQV/y1Nu5q4qEWCg6T3RZ1dmTE/h+ULkXbvIQKb1COVavQuhjq+PoMwLPs+SRSc+5OtTyfRxfgg7o0askrgKhW1WO3S0n4x5Akf1SWezL9nuh+CBpptCClk3+zoYs8wLBIhcMbmJr7UCwQ132aE6TdGektbibZDXSa0xXo5fUJEZ+u0PPPWAZSmT9Cdj4+C6TAIcwGXpbPGc/+++nQy9k6WmkvJMSAd6RKzbCTRm4P0nV02PE755Xv3kBPs+KJZ8F1ScBMWSrSGhidQ0xZRSiLHmNs6bz475XDripd5u3dly9KGv01eGNWPn9K1zqw=';
 const AAD_KEY=new TextEncoder().encode('MALU-ADAPTAR-PRIVATE-KEY-v1'),AAD_RESULT=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 let privateKey=null,records=[],timer=null,authUser=null;
 
@@ -41,7 +41,42 @@ function fmtDate(s){const d=new Date(s);return isNaN(d)?'—':d.toLocaleString('
 function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
 async function unlock(password){const mat=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveKey']);const aes=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(SALT),iterations:250000,hash:'SHA-256'},mat,{name:'AES-GCM',length:256},false,['decrypt']);const pkcs8=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(KEY_IV),additionalData:AAD_KEY},aes,b64ToBytes(ENC_PRIVATE));return crypto.subtle.importKey('pkcs8',pkcs8,{name:'RSA-OAEP',hash:'SHA-256'},false,['decrypt'])}
 async function decryptEnvelope(env){const raw=await crypto.subtle.decrypt({name:'RSA-OAEP'},privateKey,b64ToBytes(env.ek));const aes=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['decrypt']);const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(env.iv),additionalData:AAD_RESULT},aes,b64ToBytes(env.ct));return JSON.parse(new TextDecoder().decode(plain))}
-async function load(){const st=document.getElementById('syncStatus');st.textContent='Atualizando…';st.className='status';try{const r=await fetch(DB_URL+'/results.json',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const obj=await r.json()||{};const out=[];for(const [id,env] of Object.entries(obj)){try{const x=await decryptEnvelope(env);x._id=id;out.push(x)}catch(e){}}records=out.sort((a,b)=>Date.parse(b.finished_at)-Date.parse(a.finished_at));fillTurmas();render();st.textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · atualização automática a cada 5 s';st.className='status ok'}catch(e){st.textContent='Não foi possível atualizar: '+e.message;st.className='status err'}}
+async function fetchResults(url,required){
+  try{
+    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);
+    try{
+      const r=await fetch(url+'/results.json',{cache:'no-store',signal:ctl.signal});
+      if(!r.ok)throw new Error((r.status===401||r.status===403?'banco recusou o acesso':'HTTP '+r.status));
+      return await r.json()||{};
+    }finally{clearTimeout(to)}
+  }catch(e){
+    if(required)throw e;
+    return {};
+  }
+}
+async function load(){
+  const st=document.getElementById('syncStatus');st.textContent='Atualizando…';st.className='status';
+  try{
+    const [obj,legacy]=await Promise.all([fetchResults(DB_URL,true),fetchResults(LEGACY_DB_URL,false)]);
+    const out=[];let unreadable=0;
+    const all=[
+      ...Object.entries(legacy).map(([id,env])=>['legacy:'+id,env]),
+      ...Object.entries(obj).map(([id,env])=>[id,env])
+    ];
+    for(const [id,env] of all){
+      try{const x=await decryptEnvelope(env);x._id=id;out.push(x)}
+      catch(e){unreadable++}
+    }
+    records=out.sort((a,b)=>Date.parse(b.finished_at)-Date.parse(a.finished_at));
+    fillTurmas();render();
+    const now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    st.textContent='Atualizado às '+now+' · atualização automática a cada 5 s'+(unreadable?' · '+unreadable+' registro(s) não puderam ser lidos':'');
+    st.className=unreadable?'status err':'status ok';
+  }catch(e){
+    st.textContent='Não foi possível atualizar: '+(e&&e.message?e.message:'falha de conexão');
+    st.className='status err';
+  }
+}
 function fillTurmas(){const sel=document.getElementById('turma'),cur=sel.value;const vals=[...new Set(records.map(r=>r.turma).filter(Boolean))].sort();sel.innerHTML='<option value="">Todas</option>'+vals.map(v=>'<option>'+esc(v)+'</option>').join('');sel.value=vals.includes(cur)?cur:''}
 function retryList(r){const qd=r.question_details||{};return Object.entries(qd).filter(([k,v])=>Number(v.attempts)>1).sort((a,b)=>b[1].attempts-a[1].attempts)}
 function render(){const q=norm(document.getElementById('q').value),disc=document.getElementById('disc').value,turma=document.getElementById('turma').value;const filtered=records.filter(r=>(!disc||r.discipline===disc)&&(!turma||r.turma===turma)&&(!q||norm([r.student_name,r.turma,r.discipline,r.title].join(' ')).includes(q)));document.getElementById('stResults').textContent=records.length;document.getElementById('stStudents').textContent=new Set(records.map(r=>norm(r.student_name)+'|'+norm(r.turma))).size;document.getElementById('stRecent').textContent=records.filter(r=>Date.now()-Date.parse(r.finished_at)<3600000).length;document.getElementById('stRetry').textContent=records.reduce((n,r)=>n+retryList(r).length,0);const body=document.getElementById('rows');body.innerHTML=filtered.map(r=>{const retries=retryList(r);const det=retries.length?'<details><summary>'+retries.length+' questão(ões)</summary>'+retries.map(([qid,v])=>'<div class="question"><strong>'+esc(qid.toUpperCase())+' · '+v.attempts+' tentativas</strong><div>'+esc(v.prompt)+'</div></div>').join('')+'</details>':'<span class="sub">Nenhuma</span>';const perf=(r.first_try_rate!=null?'<strong>'+esc(r.first_try_rate)+'%</strong> na 1ª tentativa':'—')+(r.total_attempts!=null?'<div class="sub">'+esc(r.total_attempts)+' tentativas no total</div>':'');return '<tr><td><strong>'+esc(r.student_name)+'</strong></td><td>'+esc(r.turma)+'</td><td><span class="badge">'+esc(r.discipline)+'</span><div><strong>'+esc(r.title||r.activity_id)+'</strong></div></td><td>'+fmtDate(r.finished_at)+'</td><td>'+perf+'</td><td class="'+(retries.length?'retry':'')+'">'+det+'</td></tr>'}).join('');document.getElementById('empty').classList.toggle('hidden',filtered.length>0)}
