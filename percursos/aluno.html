@@ -38,6 +38,30 @@
 .discipline-key .phil{background:#f1efff;color:#5547a9}
 .discipline-key .soc{background:#eaf8f4;color:#176f61}
 
+
+/* Modo de atividade em tela cheia para celular/tablet */
+#mobileActivityBack{display:none}
+@media (max-width:1100px), (pointer:coarse){
+  body.activity-open{overflow:hidden;background:#fff}
+  body.activity-open>header{display:none!important}
+  body.activity-open>main.wrap{max-width:none!important;padding:0!important;margin:0!important}
+  body.activity-open .layout{display:block!important}
+  body.activity-open .sidebar{display:none!important}
+  body.activity-open .viewer{
+    min-height:100dvh!important;height:100dvh!important;
+    border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff
+  }
+  body.activity-open iframe{
+    display:block!important;width:100%!important;height:100dvh!important;min-height:100dvh!important;
+    border:0!important
+  }
+  body.activity-open #mobileActivityBack{
+    display:block!important;position:fixed;z-index:100000;left:7px;top:max(7px,env(safe-area-inset-top));
+    min-height:38px;padding:7px 10px;border-radius:999px;
+    background:rgba(255,255,255,.94);box-shadow:0 4px 16px rgba(30,45,70,.18);
+    font-size:13px
+  }
+}
 </style></head><body><header><div class="wrap brand">
 <div class="brand-lockup"><svg class="percursos-logo" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
   <path d="M7 10.5c6.3 0 10.7 1.6 15 5v22c-4.3-3.4-8.7-5-15-5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
@@ -420,13 +444,44 @@ function installCognitiveStyle(d){
     .ws-word{padding:6px 9px;border-radius:999px;background:#f3f5fa;font-size:13px;font-weight:800}
     .ws-word.found{text-decoration:line-through;background:#e8f7ef;color:#24672a}
     .ws-note{font-size:13px;color:#69758a}
-    @media(max-width:560px){
-      body{font-size:16px}
-      .question{padding:16px}
-      .wordsearch-grid{gap:3px;grid-template-columns:repeat(var(--ws-size),minmax(25px,1fr))}
-      .ws-cell{font-size:15px;border-radius:6px}
-      .malu-stepbar{align-items:stretch;flex-wrap:wrap}
-      .malu-stepbar button{flex:1}
+    .malu-touch-help{
+      margin:10px 0;padding:9px 11px;border-radius:12px;
+      background:#eef4ff;color:#38506f;font-size:13px;font-weight:800
+    }
+    .malu-tap-selected{
+      outline:4px solid #665bff!important;outline-offset:2px!important;
+      box-shadow:0 0 0 5px #665bff22!important
+    }
+    @media(max-width:1100px), (pointer:coarse){
+      body{font-size:16px;line-height:1.45;padding-bottom:62px!important}
+      body>header{display:none!important}
+      .wrap{max-width:none!important;padding:8px!important}
+      .card{margin:8px 0!important;padding:10px!important;border-radius:14px!important}
+      .question{padding:12px!important;border-radius:16px!important;margin:8px 0!important}
+      .question h3{font-size:1.05rem!important;line-height:1.32!important;margin-bottom:10px!important}
+      .context{font-size:14px!important;line-height:1.4!important}
+      .choice,.primary,.secondary,.good{min-height:44px!important;font-size:15px!important;padding:9px 11px!important}
+      select,input{min-height:44px!important;font-size:15px!important}
+      .wordsearch-grid{gap:3px;grid-template-columns:repeat(var(--ws-size),minmax(24px,1fr))}
+      .ws-cell{font-size:14px;border-radius:6px}
+      .malu-stepbar{
+        left:0!important;transform:none!important;bottom:0!important;
+        width:100%!important;max-width:none!important;
+        border-radius:0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;
+        padding:5px 6px max(5px,env(safe-area-inset-bottom))!important;
+        gap:5px!important;flex-wrap:nowrap!important;align-items:center!important
+      }
+      .malu-stepbar button{
+        min-width:0!important;min-height:40px!important;padding:7px 9px!important;
+        font-size:13px!important;flex:0 0 auto!important
+      }
+      .malu-stepbar .malu-step-status{flex:1 1 auto!important;min-width:0!important}
+      .malu-stepbar .malu-step-status strong{font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+      .malu-stepbar .malu-step-status small{display:none!important}
+      .drag-bank{gap:7px!important}
+      .token,.target,.slot,.bucket{touch-action:manipulation!important}
+      .token{padding:10px!important;min-height:42px!important}
+      .target,.slot,.bucket{padding:11px!important;min-height:48px!important}
     }
   `;
   d.head.appendChild(style);
@@ -750,16 +805,111 @@ function installCompletionBridge(d,w,activityId){
   w.__percursosFinishWrapped=true;
 }
 
+function installTapDragSupport(d,w){
+  const tokens=[...d.querySelectorAll('.token[draggable="true"],.token[draggable=true]')];
+  const targets=[...d.querySelectorAll('[ondrop]')];
+  if(!tokens.length || !targets.length) return;
+
+  const coarse=!!(w&&w.matchMedia&&w.matchMedia('(pointer:coarse)').matches);
+  let selected=null;
+
+  function clearSelection(){
+    tokens.forEach(t=>{
+      t.classList.remove('malu-tap-selected');
+      t.setAttribute('aria-pressed','false');
+    });
+    selected=null;
+  }
+  function choose(tok){
+    if(tok.classList.contains('used')) return;
+    clearSelection();
+    selected=tok;
+    tok.classList.add('malu-tap-selected');
+    tok.setAttribute('aria-pressed','true');
+  }
+  function place(target){
+    if(!selected || selected.classList.contains('used')) return;
+    const token=selected;
+    try{
+      const ev=new w.Event('drop',{bubbles:true,cancelable:true});
+      Object.defineProperty(ev,'dataTransfer',{value:{
+        getData:()=>token.id,
+        setData:()=>{},
+        dropEffect:'move',
+        effectAllowed:'move'
+      }});
+      target.dispatchEvent(ev);
+    }catch(e){
+      console.error('Percursos: falha no toque para relacionar',e);
+    }
+    clearSelection();
+  }
+
+  tokens.forEach((tok,i)=>{
+    if(!tok.id) tok.id='maluTapToken'+i;
+    tok.setAttribute('role','button');
+    tok.setAttribute('aria-pressed','false');
+    tok.tabIndex=0;
+    if(coarse) tok.draggable=false;
+    tok.addEventListener('click',e=>{e.preventDefault();choose(tok)});
+    tok.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(tok)}
+    });
+  });
+
+  targets.forEach(target=>{
+    target.setAttribute('role','button');
+    target.tabIndex=0;
+    target.addEventListener('click',e=>{
+      if(!selected) return;
+      e.preventDefault();
+      place(target);
+    });
+    target.addEventListener('keydown',e=>{
+      if((e.key==='Enter'||e.key===' ')&&selected){e.preventDefault();place(target)}
+    });
+  });
+
+  const questions=[...new Set(tokens.map(t=>t.closest('.question')).filter(Boolean))];
+  questions.forEach(q=>{
+    if(q.querySelector('.malu-touch-help')) return;
+    const h=q.querySelector('h3');
+    if(!h) return;
+    const note=d.createElement('div');
+    note.className='malu-touch-help';
+    note.textContent='No celular ou tablet: toque em um cartão e depois toque no destino.';
+    h.insertAdjacentElement('afterend',note);
+  });
+}
+
 function enhanceStudentActivity(d,w,activityId){
   installCognitiveStyle(d);
   installStudentNotebook(d,activityId);
   createWordSearch(d,activityId,WORDSEARCH_CONFIG[activityId]);
   installRetryShuffle(d);
+  installTapDragSupport(d,w);
   installOneQuestionMode(d,w,activityId);
   installCompletionBridge(d,w,activityId);
 }
 
+function ensureMobileActivityBack(){
+  let b=document.getElementById('mobileActivityBack');
+  if(b) return b;
+  b=document.createElement('button');
+  b.id='mobileActivityBack';
+  b.type='button';
+  b.textContent='← Aulas';
+  b.setAttribute('aria-label','Voltar às minhas aulas');
+  b.addEventListener('click',()=>goHome());
+  document.body.appendChild(b);
+  return b;
+}
+
 function openActivity(id,btn){
+  if(accessMode==="student"){
+    document.body.classList.add("activity-open");
+    ensureMobileActivityBack();
+  }
   document.querySelectorAll(".activity-btn").forEach(b=>b.classList.remove("active"));
   if(btn) btn.classList.add("active");
   home.style.display="none";
@@ -839,6 +989,7 @@ function openActivity(id,btn){
 }
 
 function goHome(){
+  document.body.classList.remove("activity-open");
   document.querySelectorAll(".activity-btn").forEach(b=>b.classList.remove("active"));
   frame.classList.add("hidden");
   frame.srcdoc="";
@@ -846,6 +997,7 @@ function goHome(){
 }
 
 function resetAccess(){
+  document.body.classList.remove("activity-open");
   accessMode=null;
   student={name:"",turma:"",series:""};
   library.classList.add("hidden");
