@@ -598,8 +598,20 @@ function installOneQuestionMode(d,w,activityId){
       next.classList.add("malu-next-finish");
       next.textContent="Finalizar atividade ✓";
       next.onclick=()=>{
-        if(finishBtn && typeof finishBtn.click==="function") finishBtn.click();
-        else if(w && typeof w.finish==="function") w.finish();
+        /* Chama finish() diretamente: .click() não dispara quando o botão original está disabled. */
+        try{
+          if(w && typeof w.finish==="function") w.finish();
+          else if(finishBtn && typeof finishBtn.click==="function"){
+            finishBtn.disabled=false;
+            finishBtn.click();
+          }
+        }catch(e){ console.error("Percursos: falha ao finalizar atividade",activityId,e); }
+        /* Fallback: garante o registro mesmo se a atividade antiga não emitir evento de conclusão. */
+        setTimeout(()=>{
+          try{
+            if(window.__percursosFrameFinished) window.__percursosFrameFinished(activityId,d,w);
+          }catch(e){}
+        },120);
       };
       hint.textContent="todas as questões obrigatórias foram resolvidas";
     }
