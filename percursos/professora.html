@@ -10,22 +10,9 @@
 </svg><div><h1>Percursos de Aprendizagem</h1><div class="sub">Painel docente · resultados em tempo real</div></div></div><button id="logout" class="hidden">Sair</button></div></header><main class="wrap">
 <section id="loginCard" class="card login">
   <h2>Acesso docente</h2>
-  <p class="sub">Entre com uma conta Google autorizada. Os resultados dos estudantes permanecem criptografados no banco.</p>
+  <p class="sub">Entre com uma conta Google autorizada para abrir o painel.</p>
   <button id="googleLogin" class="google-btn"><span class="google-g">G</span>Entrar com Google</button>
   <p id="googleStatus" class="status"></p>
-  <div id="keyStep" class="hidden">
-    <div class="identity"><strong id="signedEmail"></strong><span>Conta autorizada.</span></div>
-    <div class="sep"></div>
-    <label for="pass">Chave de leitura</label>
-    <input id="pass" type="password" autocomplete="current-password" placeholder="Digite a chave do painel">
-    <label style="display:flex;align-items:center;gap:8px;font-weight:700;margin:10px 0 4px">
-      <input id="rememberDevice" type="checkbox" style="width:auto;min-width:18px;min-height:18px" checked>
-      Lembrar neste aparelho
-    </label>
-    <p class="sub">Em aparelho pessoal, marque esta opção e a chave será solicitada apenas uma vez. Em computador compartilhado, desmarque.</p>
-    <button id="unlockBtn" class="primary">Abrir painel</button>
-    <p id="keyStatus" class="status"></p>
-  </div>
 </section>
 <section id="app" class="hidden"><div class="grid"><div class="stat"><strong id="stResults">0</strong><span class="sub">atividades concluídas</span></div><div class="stat"><strong id="stStudents">0</strong><span class="sub">alunos diferentes</span></div><div class="stat"><strong id="stRecent">0</strong><span class="sub">conclusões na última hora</span></div><div class="stat"><strong id="stRetry">0</strong><span class="sub">questões com retomada</span></div></div><div class="card"><div class="filters"><div><label>Buscar aluno ou aula</label><input id="q" placeholder="Digite nome, turma ou tema"></div><div><label>Disciplina</label><select id="disc"><option value="">Todas</option><option>História</option><option>Filosofia</option><option>Sociologia</option></select></div><div><label>Turma</label><select id="turma"><option value="">Todas</option></select></div><button id="refresh">Atualizar agora</button></div><p id="syncStatus" class="status">Aguardando leitura…</p></div><div class="card tablewrap"><table><thead><tr><th>Aluno</th><th>Turma</th><th>Disciplina / aula</th><th>Concluiu</th><th>Desempenho</th><th>Retomadas</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="sub hidden">Nenhum resultado encontrado.</p></div></section></main>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -43,6 +30,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const ALLOWED_EMAILS=new Set(['malu.cesar@gmail.com','prof.malufc@gmail.com','patriciacunhaoliveiro39@gmail.com']);
+const AUTO_UNLOCK_B64='aFF6cXhaUHhwWV9lN2lAV2VGOTA=';
 const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1',SALT='8i9BVuCClxbzNEkSE3xqvA==',KEY_IV='E79xUQwMGHpDOLKh',ENC_PRIVATE='3BfjWt7zpt3NZq9je/O4OtJqKMe5dYm/hQ8XjrgquJgq1DalA6mtjbY2lxBO7ISFIN16MkMg1EDo3QaFbm5P6ZhuCNtc6G7w4v5Z/DnD01zoryPfFXDco0ONF7hNhueAvTiju/GSkX2RDS7mntCxC33MAIZK+7J2ndjaILs9iopfetBkqF13YyO7wfbfn7oY0eAlyaID4BPEw6ebY0USjC8WPXwYirzQ//IrZkgGeLqDVJBWA/+AJ0SjX3UwrQIXzz3KB0V5CdNFCkyFbFQtchQgoL7ruVlJOflKpkgNBugZaMvboJNV2whQiHUXGDKDDyB9UBjoz/oMGucDNuRQIaBRqnBiPzYETgtq9Io+sVnxvlU+g/V7k/mTxAWr+0BFPSShciEqVN8/vY7rOL966h3hyaMMTtmppFY8lrN365w+XrSzxzgogtJ5WfWB59Qnz2EtAAo4SZoIBa+SmF6aTI3Ket2yQ6LXS6+eZ6Iohu48FZWbcgx9Sz5z9VZGecnHc2893kl/CUQqZ/WfmNDdOglgtPldGusoGUCVrNXlwFZeV6aiO5Xs+sFunjgi59CFPIVpBlxu/O96/yZlKNeEZybQ2mXNEXRP7lRJZBEFeuQHo0VKQxO5++Sbe+kwu2g6MqUdQJfGamh1uDD4Tis2MJxt0Put3o37GSxFQ4f0EXFSOE1Y03z8ehaqJnJRENh6PHJhuX8rpwRtvqSZ/f2S8Nb4rbb2vWTYWlvr1ujesTsHyo/gA7IkSGoPGLg47vgphSXpqmjlZ9QQznD+O8X/PALDjkgZltkO2hx6TdguacMPuXoq6tHPyJOIfkt893xoF5x6s653CmqjlB8OzfR1Uc1IaPHx2Jq4TjeAdmed8fjHYRxsh80K+ePnfeFoS+TjhwUYwZgD0GEig5mdUYn7v5UXCfZi4C7/CcKplNqf6TPhHVw1f9pTKwPifJiEU5wpSdXDHT72O6tqc7d7nla7sFAf2PHFIFVxt1hIMqBUe669zXZMKM3Y9uge+SCmMMnRsnpT6rTqF8Wkwg9bN4WONR2Ty+EEyZrdC8AaXlVd+l5us4/TFiSY04/cOmtU+EW3MUn1zKJVFe4bAUDnff2owpdjf9dyBZdhtH32YPmU18uJoMZGHDOgXDGSlfsjM+OIdVY1cX0jy5XxqfhFIAE9I0mUyaS9ujBmMcV4r8QcbR95TApbpdMx4OhP6S8XrkiNq3jpSy5RNhD+l7WBRfsBj6NxR3IAyyWwJQip5pgb7veCfgTWC233zCP9P8fGrwG5bs3MGeOkrMrwGckyMwXG4PrleI9GxPH5I0gc+IpXhaPSOtE37QQV/y1Nu5q4qEWCg6T3RZ1dmTE/h+ULkXbvIQKb1COVavQuhjq+PoMwLPs+SRSc+5OtTyfRxfgg7o0askrgKhW1WO3S0n4x5Akf1SWezL9nuh+CBpptCClk3+zoYs8wLBIhcMbmJr7UCwQ132aE6TdGektbibZDXSa0xXo5fUJEZ+u0PPPWAZSmT9Cdj4+C6TAIcwGXpbPGc/+++nQy9k6WmkvJMSAd6RKzbCTRm4P0nV02PE755Xv3kBPs+KJZ8F1ScBMWSrSGhidQ0xZRSiLHmNs6bz475XDripd5u3dly9KGv01eGNWPn9K1zqw=';
 const AAD_KEY=new TextEncoder().encode('MALU-ADAPTAR-PRIVATE-KEY-v1'),AAD_RESULT=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 let privateKey=null,records=[],timer=null,authUser=null;
@@ -60,15 +48,42 @@ function render(){const q=norm(document.getElementById('q').value),disc=document
 
 function showGoogleError(msg){const st=document.getElementById('googleStatus');st.textContent=msg;st.className='status err'}
 function signInWithGoogle(){const st=document.getElementById('googleStatus');st.textContent='Abrindo Google…';st.className='status';const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});firebase.auth().signInWithPopup(provider).catch(e=>{if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){return firebase.auth().signInWithRedirect(provider)}showGoogleError(e.message||e.code)})}
-async function tryUnlock(password){const st=document.getElementById('keyStatus');st.textContent='Abrindo resultados…';st.className='status';try{privateKey=await unlock(password);const remember=document.getElementById('rememberDevice')?.checked!==false;if(remember){localStorage.setItem('percursos-doc-key',password);sessionStorage.removeItem('percursos-doc-key')}else{sessionStorage.setItem('percursos-doc-key',password);localStorage.removeItem('percursos-doc-key')}document.getElementById('loginCard').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');await load();clearInterval(timer);timer=setInterval(load,5000)}catch(e){privateKey=null;sessionStorage.removeItem('percursos-doc-key');localStorage.removeItem('percursos-doc-key');st.textContent='Chave de leitura incorreta.';st.className='status err'}}
-function allowUser(user){authUser=user;const email=(user.email||'').toLowerCase();if(!ALLOWED_EMAILS.has(email)){showGoogleError('A conta '+email+' não está autorizada.');document.getElementById('keyStep').classList.add('hidden');setTimeout(()=>firebase.auth().signOut(),1200);return}document.getElementById('googleLogin').classList.add('hidden');document.getElementById('googleStatus').textContent='';document.getElementById('signedEmail').textContent=email;document.getElementById('keyStep').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');const cached=localStorage.getItem('percursos-doc-key')||sessionStorage.getItem('percursos-doc-key');if(cached){document.getElementById('pass').value=cached;const cb=document.getElementById('rememberDevice');if(cb)cb.checked=!!localStorage.getItem('percursos-doc-key');tryUnlock(cached)}}
+async function openAuthorizedPanel(){
+  const st=document.getElementById('googleStatus');
+  st.textContent='Abrindo painel…';
+  st.className='status';
+  try{
+    privateKey=await unlock(atob(AUTO_UNLOCK_B64));
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('logout').classList.remove('hidden');
+    await load();
+    clearInterval(timer);
+    timer=setInterval(load,5000);
+  }catch(e){
+    privateKey=null;
+    st.textContent='Não foi possível abrir os resultados. Atualize a página e tente novamente.';
+    st.className='status err';
+  }
+}
+function allowUser(user){
+  authUser=user;
+  const email=(user.email||'').toLowerCase();
+  if(!ALLOWED_EMAILS.has(email)){
+    showGoogleError('A conta '+email+' não está autorizada.');
+    setTimeout(()=>firebase.auth().signOut(),1200);
+    return;
+  }
+  document.getElementById('googleLogin').classList.add('hidden');
+  document.getElementById('googleStatus').textContent='Conta autorizada: '+email;
+  document.getElementById('logout').classList.remove('hidden');
+  openAuthorizedPanel();
+}
 firebase.auth().getRedirectResult().catch(()=>{});
-firebase.auth().onAuthStateChanged(user=>{if(!user){authUser=null;privateKey=null;clearInterval(timer);document.getElementById('app').classList.add('hidden');document.getElementById('loginCard').classList.remove('hidden');document.getElementById('keyStep').classList.add('hidden');document.getElementById('googleLogin').classList.remove('hidden');document.getElementById('logout').classList.add('hidden');return}allowUser(user)});
+firebase.auth().onAuthStateChanged(user=>{if(!user){authUser=null;privateKey=null;clearInterval(timer);document.getElementById('app').classList.add('hidden');document.getElementById('loginCard').classList.remove('hidden');document.getElementById('googleLogin').classList.remove('hidden');document.getElementById('googleStatus').textContent='';document.getElementById('logout').classList.add('hidden');return}allowUser(user)});
 
 document.getElementById('googleLogin').addEventListener('click',signInWithGoogle);
-document.getElementById('unlockBtn').addEventListener('click',()=>tryUnlock(document.getElementById('pass').value));
-document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock(e.target.value)});
 document.getElementById('refresh').addEventListener('click',load);
 ['q','disc','turma'].forEach(id=>document.getElementById(id).addEventListener(id==='q'?'input':'change',render));
-document.getElementById('logout').addEventListener('click',()=>{sessionStorage.removeItem('percursos-doc-key');privateKey=null;records=[];clearInterval(timer);firebase.auth().signOut()});
+document.getElementById('logout').addEventListener('click',()=>{privateKey=null;records=[];clearInterval(timer);firebase.auth().signOut()});
 </script></body></html>
