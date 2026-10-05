@@ -710,10 +710,18 @@ function installCompletionBridge(d,w,activityId){
   const original=typeof w.finish==="function" ? w.finish : null;
   if(original){
     w.finish=function(){
-      const state=w.S||w.st||null;
-      const total=Number(w.TOTAL)||d.querySelectorAll(".question:not(.wordsearch-extra)").length;
+      let state=null,total=0;
+      try{ state=w.S||w.st||null; }catch(e){}
+      if(!state && typeof w.eval==="function"){
+        try{ state=w.eval("typeof S!=='undefined' ? S : (typeof st!=='undefined' ? st : null)"); }catch(e){}
+      }
+      try{ total=Number(w.TOTAL)||0; }catch(e){}
+      if(!total && typeof w.eval==="function"){
+        try{ total=Number(w.eval("typeof TOTAL!=='undefined' ? TOTAL : 0"))||0; }catch(e){}
+      }
+      if(!total) total=d.querySelectorAll(".question:not(.wordsearch-extra)").length;
       const doneCount=state && state.done && typeof state.done.size==="number" ? state.done.size : 0;
-      if(total && doneCount<total){
+      if(state && total && doneCount<total){
         const missing=[];
         for(let i=1;i<=total;i++){
           const qid="q"+i;
