@@ -462,7 +462,16 @@ function installOneQuestionMode(d,w,activityId){
   const hint=holder.querySelector("#maluStepHint");
 
   function doneSet(){
-    const state=(w && (w.S||w.st)) || null;
+    let state=null;
+    try{ state=(w && (w.S||w.st)) || null; }catch(e){}
+    /* As atividades antigas declaram o estado com let S/let st.
+       Bindings globais criados com let não viram propriedades de window,
+       então lemos o binding lexical no próprio contexto do iframe. */
+    if(!state && w && typeof w.eval==="function"){
+      try{
+        state=w.eval("typeof S!=='undefined' ? S : (typeof st!=='undefined' ? st : null)");
+      }catch(e){}
+    }
     if(state && state.done && typeof state.done.has==="function") return state.done;
     return null;
   }
@@ -471,8 +480,19 @@ function installOneQuestionMode(d,w,activityId){
     if(set && q.id) return set.has(q.id);
     if(q.dataset.extra==="wordsearch") return true;
     if(q.querySelector(".correct")) return true;
+
     const selects=[...q.querySelectorAll("select")];
     if(selects.length && selects.every(s=>s.disabled)) return true;
+
+    const ordered=[...q.querySelectorAll(".order li")];
+    if(ordered.length && ordered.every(li=>li.classList.contains("field-correct"))) return true;
+
+    const fields=[...q.querySelectorAll("input,textarea")].filter(el=>el.type!=="hidden");
+    if(fields.length && fields.every(el=>el.disabled) && q.querySelector(".field-correct")) return true;
+
+    const tokens=[...q.querySelectorAll(".token")];
+    if(tokens.length && tokens.every(t=>t.classList.contains("used") || t.disabled)) return true;
+
     return false;
   }
   function unresolved(){
@@ -922,12 +942,20 @@ async function markComplete(id,record,d){
   await sendResult(payload);
 }
 function recordFromFrame(w){
-  const state=(w&&(w.S||w.st))||null;
+  let state=null,totalQuestions=0;
+  try{state=(w&&(w.S||w.st))||null}catch(e){}
+  if(!state&&w&&typeof w.eval==='function'){
+    try{state=w.eval("typeof S!=='undefined' ? S : (typeof st!=='undefined' ? st : null)")}catch(e){}
+  }
+  try{totalQuestions=Number(w&&w.TOTAL)||0}catch(e){}
+  if(!totalQuestions&&w&&typeof w.eval==='function'){
+    try{totalQuestions=Number(w.eval("typeof TOTAL!=='undefined' ? TOTAL : 0"))||0}catch(e){}
+  }
   const attempts=state&&state.att?state.att:{};
   const vals=Object.values(attempts).map(Number).filter(Number.isFinite);
   const total=vals.reduce((a,b)=>a+b,0);
   const first=vals.filter(x=>x===1).length;
-  const count=vals.length||Number(w&&w.TOTAL)||0;
+  const count=vals.length||totalQuestions;
   return {
     student_name:student.name,
     turma:student.turma,
