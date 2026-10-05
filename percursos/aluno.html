@@ -494,7 +494,6 @@ function installOneQuestionMode(d,w,activityId){
     setTimeout(()=>q.classList.remove("malu-pending-focus"),1800);
   }
   function show(){
-    clearFocus();
     qs.forEach((q,i)=>q.classList.toggle("malu-hidden-step",i!==idx));
     const current=qs[idx], isExtra=current.dataset.extra==="wordsearch";
     const n=currentRealNumber(current);
@@ -513,11 +512,12 @@ function installOneQuestionMode(d,w,activityId){
     }else if(missing.length){
       next.disabled=false;
       next.classList.add("malu-next-pending");
-      next.textContent=missing.length===1 ? "Revisar 1 pendência" : `Revisar ${missing.length} pendências`;
+      const missingIds=missing.map(q=>q.id ? q.id.toUpperCase() : "questão");
+      next.textContent=missing.length===1 ? "Ir para "+missingIds[0] : "Revisar pendências";
       next.onclick=()=>goToQuestion(missing[0]);
       hint.textContent=missing.length===1
-        ? "falta resolver 1 questão"
-        : `faltam resolver ${missing.length} questões`;
+        ? "Falta resolver: "+missingIds[0]
+        : "Faltam resolver: "+missingIds.join(", ");
     }else{
       next.disabled=false;
       next.classList.add("malu-next-finish");
