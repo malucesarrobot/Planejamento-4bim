@@ -306,7 +306,13 @@
 
 
   // Restore title, notebook and activity from text-only patches. No saved HTML is executed.
-  function readEdits(id) { return C.parseEdits(fieldFor(id).value); }
+  function readEdits(id) {
+    const raw=fieldFor(id).value,data=C.parseEdits(raw),revision=$(id).dataset.contentRevision;
+    if(!revision)return data;
+    const saved=raw?JSON.parse(raw):{};
+    if(saved.revision!==revision)return {...C.parseEdits(''),revision,previousContent:saved};
+    return {...data,revision,previousContent:saved.previousContent};
+  }
   function applyCardEdits(id) {
     const card=$(id),base=bases.get(id);let data;
     try {

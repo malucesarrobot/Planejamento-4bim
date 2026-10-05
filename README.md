@@ -117,3 +117,5 @@ A preparação é acessada exclusivamente pela aba Preparar aula. A faixa duplic
 Exames apresenta registros objetivos de ocorrência. A explicação completa do vínculo fica em Relação com a aula. Treino autoral foi removido; são listados apenas temas reais já cobrados com fonte verificável.
 
 Exames: temas reais do Enem já catalogados e cinco propostas oficiais complementares (PAS/UnB, PAES/UEMA e FUVEST), relacionadas às semanas com indicação de relação direta ou tangencial. O treino autoral foi retirado; explicações ficam em blocos expansíveis.
+
+5/10/2026: migradas as seis semanas de História do 9º ano do arquivo revisado fornecido pela professora, com trilha, caderno, fundamentação, fontes, avaliação e atividades alinhadas. Demais séries e IDs das anotações preservados. Edições textuais da antiga sequência ficam salvas e não são reaplicadas aos novos temas; ao editar a nova sequência, a versão anterior é conservada no registro de edição. A referência Revisa Goiás permanece identificada como edição 2025, sem inventar código GO- do 4º bimestre/2026.

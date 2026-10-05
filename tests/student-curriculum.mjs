@@ -20,7 +20,7 @@ await page.route('https://fonts.googleapis.com/**',r=>r.abort());
 await page.route('https://fonts.gstatic.com/**',r=>r.abort());
 await page.addInitScript(()=>{
   window.print=()=>{};
-  // A patch written against the previous notebook structure must still apply.
+  // Keep old edits saved, without applying them to the replacement topics.
   localStorage.setItem('malu-ux-s9-historia-semana-1-edits',JSON.stringify({version:1,title:null,notebook:{'1.1.0':'Etiqueta salva antes desta revisão'},activity:{}}));
 });
 await mkdir('test-results',{recursive:true});
@@ -30,7 +30,10 @@ try {
   await page.waitForSelector('body.ux-ready');
   assert.equal(await page.locator('article.week-card .student-curriculum').count(),60);
   assert.equal(await page.locator('textarea[data-save]').count(),451);
-  assert.equal(await page.locator('#s9-historia-semana-1 .registro-node').first().textContent(),'Etiqueta salva antes desta revisão');
+  const revisedTitles=['Redemocratização e Constituição de 1988','Nova República: democracia, economia e conflitos sociais','Guerra Fria: um mundo bipolar','Fim da Guerra Fria e nova ordem mundial','Descolonização da Ásia e Conferência de Bandung','Descolonização da África e pan-africanismo'];
+  for(let i=0;i<6;i++){const id='s9-historia-semana-'+(i+1);assert.equal(await page.locator('#'+id+' .week-head h3').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id+' .atv-titulo').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id).getAttribute('data-content-revision'),'revisagoias-20261005');}
+  assert.notEqual(await page.locator('#s9-historia-semana-1 .registro-node').first().textContent(),'Etiqueta salva antes desta revisão');
+  assert.match(await page.locator('textarea[data-save="ux-s9-historia-semana-1-edits"]').inputValue(),/Etiqueta salva antes desta revisão/);
   const data=await page.locator('article.week-card').evaluateAll(cards=>cards.map(c=>{
     const expected={bncc:[],matriz:[]};
     for(const section of c.querySelectorAll('.plan-grid > .meta-curric')){
@@ -45,7 +48,7 @@ try {
     return {id:c.id,expected,actual};
   }));
   for(const item of data)assert.deepEqual(item.actual,item.expected,item.id);
-  console.log('PASS all 60 notebooks reproduce their existing BNCC and Matrix codes; legacy edits still apply');
+  console.log('PASS all 60 notebooks reproduce their existing BNCC and Matrix codes; old 9th-grade edits remain saved without overwriting the revised content');
 
   let c=await card();
   await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
@@ -55,9 +58,8 @@ try {
   await page.locator('.lesson-options > summary').click();
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
   assert.equal(await page.locator('#projectionPage .projection-refs').isVisible(),false);
-  assert.match(await page.locator('#projectionPage .student-curriculum').textContent(),/GO-EF09HI22-C/);
-  await page.locator('#projectionPage .student-skill summary').first().click();
-  assert.equal(await page.locator('#projectionPage .student-skill-text').first().isVisible(),true);
+  assert.match(await page.locator('#projectionPage .student-curriculum').textContent(),/EF09HI22/);
+  assert.equal(await page.locator('#projectionPage [data-code-kind=matriz] .student-code-missing').count(),1);
   await page.screenshot({path:'test-results/mobile-codes-projection.png'});
   await page.locator('#projectionClose').click();
   await page.locator('#uxWeekChoices button').nth(1).click();c=await card();
