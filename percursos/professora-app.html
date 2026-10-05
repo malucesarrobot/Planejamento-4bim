@@ -10,26 +10,48 @@ iframe{display:block;width:100%;height:100%;border:0}
 </style>
 </head>
 <body>
-<iframe id="app" src="professora.html?v=20261005-1559" title="Painel da professora"></iframe>
+<iframe id="app" src="professora.html?v=20261005-1612" title="Painel da professora"></iframe>
 <script>
 (function(){
-  const OLD1='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
-  const OLD2='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026';
-  const NEW='https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026';
-  const f=document.getElementById('app');
-  f.addEventListener('load',()=>{
+  function normalizeDbUrl(input){
+    let s=String(input);
+    s=s.replace(
+      "https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1",
+      "https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026"
+    ).replace(
+      "https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026",
+      "https://canto-das-pretas-default-rtdb.firebaseio.com/percursos2026"
+    );
+    return s;
+  }
+
+  function addAuth(url,token){
+    if(!token || !url.startsWith("https://canto-das-pretas-default-rtdb.firebaseio.com/")) return url;
+    const sep=url.includes("?")?"&":"?";
+    return url+sep+"auth="+encodeURIComponent(token);
+  }
+
+  const f=document.getElementById("app");
+  f.addEventListener("load",()=>{
     try{
       const w=f.contentWindow;
       if(!w || w.__percursosFetchBridge)return;
       const nativeFetch=w.fetch.bind(w);
-      w.fetch=function(input,init){
-        if(typeof input==='string'){
-          input=input.replace(OLD1,NEW).replace(OLD2,NEW);
+      w.fetch=async function(input,init){
+        if(typeof input==="string"){
+          let url=normalizeDbUrl(input);
+          let token="";
+          try{
+            const user=w.firebase && w.firebase.auth ? w.firebase.auth().currentUser : null;
+            if(user) token=await user.getIdToken();
+          }catch(e){}
+          url=addAuth(url,token);
+          return nativeFetch(url,init);
         }
         return nativeFetch(input,init);
       };
       w.__percursosFetchBridge=true;
-    }catch(e){console.error('Falha ao ativar leitura dos Percursos',e)}
+    }catch(e){console.error("Falha ao ativar leitura dos Percursos",e)}
   });
 })();
 </script>
