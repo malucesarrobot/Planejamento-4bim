@@ -810,6 +810,8 @@ function openActivity(id,btn){
         }
 
         enhanceStudentActivity(d,w,id);
+        studentOnly(d);
+        watchCompletion(id,d,w);
       }else if(accessMode==="teacher"){
         if(typeof w.view==="function"){
           try{
@@ -881,7 +883,7 @@ document.getElementById("entryClass").addEventListener("keydown",e=>{
 <script>
 (function(){
 'use strict';
-const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
+const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptarPercursos2026';
 const PUBLIC_KEY_B64='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr5epPHYuI30AMeSMbxJBjxrbV3LX9uA73QEsbgq5vGxTaAeNeFF7DUqrH6h3InBOGtTdUfv+W+JDeavSwhN4y3i/Sdu3v7z7RqmJyf3xvHhaveS8RUA2Q3xn72oMBx3R97Blf1m/jPYOYZEApYgFgXkDY26+1Rinijy7xIid/SZdI7jWOueWJK0Ynj6zN3TOj9Ska+zrVhJycGsnSrMw4B3gh0U0cgvA4wzef4UGVQy6CJEd5+HkkQ4og2Sei6hoSeOWENjfprZGgXBN3UJDgIt/EcjzWt4110FZ/3IOHoLFLWyO9F7n+YykSm0Ace6vYt3O3BUzoCX264T5vvmkqwIDAQAB';
 const AAD=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 const PROGRESS_KEY='malu-adaptar-progress-v2';
@@ -930,24 +932,83 @@ async function encryptPayload(payload){
   const ek=await crypto.subtle.encrypt({name:'RSA-OAEP'},pub,raw);
   return {v:1,ek:bytesToB64(ek),iv:bytesToB64(iv),ct:bytesToB64(ct),activity_id:payload.activity_id,discipline:payload.discipline,series:payload.series,created_at:Date.now()};
 }
-async function flushPending(){
-  const q=safeJSON(PENDING_KEY,[]); if(!q.length)return;
-  const remain=[];
-  for(const env of q){try{const r=await fetch(DB_URL+'/results.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(env)});if(!r.ok)throw new Error('HTTP '+r.status)}catch(e){remain.push(env)}}
-  saveJSON(PENDING_KEY,remain); if(!remain.length)showToast('Resultado enviado à professora ✓',false);
+async function firebaseRequest(url,options){
+  const ctl=new AbortController();
+  const to=setTimeout(()=>ctl.abort(),15000);
+  try{
+    const r=await fetch(url,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
+    if(!r.ok){
+      let detail='';
+      try{detail=(await r.text()).slice(0,180)}catch(e){}
+      throw new Error((r.status===401||r.status===403?'o banco recusou o acesso':'HTTP '+r.status)+(detail?' · '+detail:''));
+    }
+    try{return await r.json()}catch(e){return null}
+  }catch(e){
+    if(e&&e.name==='AbortError') throw new Error('sem resposta do banco');
+    throw e;
+  }finally{clearTimeout(to)}
+}
+async function flushPending(options){
+  const silent=!!(options&&options.silent);
+  const q=safeJSON(PENDING_KEY,[]);
+  if(!q.length)return {ok:true,sent:0,pending:0};
+  const remain=[];let sent=0,lastError='';
+  for(const env of q){
+    try{
+      const ack=await firebaseRequest(DB_URL+'/results.json',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(env)
+      });
+      if(!ack||!ack.name)throw new Error('o banco não confirmou a gravação');
+      sent++;
+    }catch(e){
+      remain.push(env);
+      lastError=e&&e.message?e.message:'falha de conexão';
+    }
+  }
+  saveJSON(PENDING_KEY,remain);
+  if(!silent){
+    if(!remain.length)showToast('Resultado enviado à professora ✓',false);
+    else showToast('Atividade concluída. Envio à professora pendente: '+lastError,true);
+  }
+  return {ok:remain.length===0,sent,pending:remain.length,error:lastError};
 }
 async function sendResult(payload){
-  try{const env=await encryptPayload(payload);const q=safeJSON(PENDING_KEY,[]);q.push(env);saveJSON(PENDING_KEY,q);await flushPending()}catch(e){showToast('A atividade foi salva neste aparelho. O envio será tentado novamente quando houver internet.',true)}
+  try{
+    const env=await encryptPayload(payload);
+    const q=safeJSON(PENDING_KEY,[]);
+    q.push(env);
+    saveJSON(PENDING_KEY,q);
+    return await flushPending();
+  }catch(e){
+    showToast('A atividade foi salva neste aparelho. O envio será tentado novamente quando houver internet.',true);
+    return {ok:false,sent:0,pending:safeJSON(PENDING_KEY,[]).length,error:e&&e.message?e.message:'falha de envio'};
+  }
 }
 async function markComplete(id,record,d){
-  if(!student||!student.name||!id)return;
+  if(!student||!student.name||!id)return {ok:false,error:'aluno não identificado'};
   const meta=activityMeta(id);const p=loadLocalProgress();
-  p[id]={finished_at:(record&&record.finished_at)||new Date().toISOString(),total_attempts:(record&&record.total_attempts)||null,first_try_rate:(record&&record.first_try_rate)||null};saveLocalProgress(p);paintProgress();
-  studentHash().then(async h=>{try{await fetch(DB_URL+'/progress/'+h+'/'+id+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(p[id])})}catch(e){}});
+  p[id]={finished_at:(record&&record.finished_at)||new Date().toISOString(),total_attempts:(record&&record.total_attempts)||null,first_try_rate:(record&&record.first_try_rate)||null,sync:'pending'};
+  saveLocalProgress(p);paintProgress();
+
+  studentHash().then(async h=>{
+    try{
+      await firebaseRequest(DB_URL+'/progress/'+h+'/'+id+'.json',{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(p[id])
+      });
+    }catch(e){}
+  });
+
   const qd={};const attempts=(record&&record.attempts_by_question)||{};
   Object.keys(attempts).forEach(qid=>{const el=d&&d.getElementById?d.getElementById(qid):null;const prompt=el?(el.querySelector('h3,legend')||el).textContent.trim().replace(/\s+/g,' ').slice(0,420):qid;qd[qid]={attempts:Number(attempts[qid])||0,prompt}});
   const payload={schema:1,student_name:student.name,turma:student.turma,activity_id:id,series:meta.series,discipline:meta.discipline,week:meta.week,title:meta.title,finished_at:(record&&record.finished_at)||new Date().toISOString(),total_attempts:(record&&record.total_attempts)||null,first_try_rate:(record&&record.first_try_rate)||null,attempts_by_question:attempts,question_details:qd,user_agent:navigator.userAgent.slice(0,180)};
-  await sendResult(payload);
+  const result=await sendResult(payload);
+  p[id].sync=result&&result.ok?'sent':'pending';
+  saveLocalProgress(p);paintProgress();
+  return result;
 }
 function recordFromFrame(w){
   let state=null,totalQuestions=0;
@@ -996,7 +1057,7 @@ function latestRecord(w){
 }
 function watchCompletion(id,d,w){
   let sent=false;
-  function showFinishedUI(){
+  function showFinishedUI(state,message){
     const holder=d.querySelector('.malu-stepbar');
     if(!holder)return;
     const prev=holder.querySelector('#maluPrev');
@@ -1005,7 +1066,9 @@ function watchCompletion(id,d,w){
     const hint=holder.querySelector('#maluStepHint');
     if(prev){prev.disabled=true;prev.style.visibility='hidden'}
     if(label)label.textContent='Atividade concluída ✓';
-    if(hint)hint.textContent='resultado salvo';
+    if(hint){
+      hint.textContent=message||(state==='sent'?'resultado enviado à professora':state==='pending'?'salvo neste aparelho · envio pendente':'enviando resultado à professora…');
+    }
     if(next){
       next.disabled=false;
       next.classList.remove('malu-next-pending');
@@ -1017,8 +1080,13 @@ function watchCompletion(id,d,w){
   async function send(){
     if(sent)return;
     sent=true;
-    showFinishedUI();
-    await markComplete(id,latestRecord(w),d);
+    showFinishedUI('sending');
+    const result=await markComplete(id,latestRecord(w),d);
+    if(result&&result.ok)showFinishedUI('sent');
+    else{
+      showFinishedUI('pending');
+      sent=false;
+    }
   }
   window.__percursosFrameFinished=function(doneId,doneDoc,doneWin){
     if(doneId===id) send();
@@ -1027,7 +1095,7 @@ function watchCompletion(id,d,w){
     const res=d.getElementById('studentResult')||d.getElementById('resultado')||d.querySelector('[id*="studentResult"],.student-result');
     const txt=(res?res.textContent:'')||'';
     if(res&&!res.classList.contains('hidden')&&/conclu|atividade conclu/i.test(txt)){
-      showFinishedUI();
+      showFinishedUI(sent?'sending':'pending');
       if(!sent) send();
     }
   }
@@ -1041,8 +1109,11 @@ function studentOnly(d){
 }
 const oldEnter=window.enterStudent;window.enterStudent=function(){oldEnter.apply(this,arguments);if(accessMode==='student'){paintProgress();pullRemoteProgress();flushPending()}};
 const oldHome=window.goHome;window.goHome=function(){oldHome.apply(this,arguments);paintProgress();pullRemoteProgress()};
-const oldOpen=window.openActivity;window.openActivity=function(id,btn){currentActivityId=id;const f=document.getElementById('frame');const onload=()=>{try{const d=f.contentDocument,w=f.contentWindow;studentOnly(d);watchCompletion(id,d,w)}catch(e){}};f.addEventListener('load',onload,{once:true});return oldOpen.apply(this,arguments)};
-window.addEventListener('online',flushPending);setTimeout(flushPending,1200);
+const oldOpen=window.openActivity;window.openActivity=function(id,btn){currentActivityId=id;return oldOpen.apply(this,arguments)};
+window.addEventListener('online',()=>flushPending());
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')flushPending({silent:true})});
+setInterval(()=>{if(document.visibilityState==='visible')flushPending({silent:true})},30000);
+setTimeout(()=>flushPending({silent:true}),1200);
 })();
 </script>
 </body></html>
