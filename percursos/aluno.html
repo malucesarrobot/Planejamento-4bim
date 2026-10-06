@@ -1043,6 +1043,7 @@ document.getElementById("entryClass").addEventListener("keydown",e=>{
 <div id="maluSyncToast" role="status" aria-live="polite"></div>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1158,12 +1159,10 @@ async function flushPending(options){
   const remain=[];let sent=0,lastError='';
   for(const env of q){
     try{
-      const ack=await firebaseWrite('/results.json',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(env)
-      });
-      if(!ack||!ack.name)throw new Error('o banco não confirmou a gravação');
+      const user=await ensureStudentAuth();
+      if(!user)throw new Error('não foi possível autenticar o aluno');
+      const ref=await firebase.database().ref('results').push(env);
+      if(!ref||!ref.key)throw new Error('o banco não confirmou a gravação');
       sent++;
     }catch(e){
       remain.push(env);
@@ -1278,7 +1277,7 @@ function watchCompletion(id,d,w){
     if(result&&result.ok)showFinishedUI('sent');
     else{
       /* A conclusão local é definitiva. O envio remoto fica apenas na fila de sincronização. */
-      showFinishedUI('pending','atividade concluída ✓ · envio à professora será tentado novamente');
+      showFinishedUI('pending','atividade concluída ✓ · envio pendente'+(result&&result.error?' · '+result.error:''));
     }
   }
   window.__percursosFrameFinished=function(doneId,doneDoc,doneWin){
