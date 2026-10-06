@@ -1041,14 +1041,16 @@ document.getElementById("entryClass").addEventListener("keydown",e=>{
 #maluSyncToast.err{background:#8b2d2d}
 </style>
 <div id="maluSyncToast" role="status" aria-live="polite"></div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
 (function(){
 'use strict';
-const DB_URL='https://planejamento-4bim-default-rtdb.firebaseio.com/planejamento4bim/maluAdaptar-v1';
+const DB_URL='https://percursos-754d6-default-rtdb.firebaseio.com';
 const PUBLIC_KEY_B64='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr5epPHYuI30AMeSMbxJBjxrbV3LX9uA73QEsbgq5vGxTaAeNeFF7DUqrH6h3InBOGtTdUfv+W+JDeavSwhN4y3i/Sdu3v7z7RqmJyf3xvHhaveS8RUA2Q3xn72oMBx3R97Blf1m/jPYOYZEApYgFgXkDY26+1Rinijy7xIid/SZdI7jWOueWJK0Ynj6zN3TOj9Ska+zrVhJycGsnSrMw4B3gh0U0cgvA4wzef4UGVQy6CJEd5+HkkQ4og2Sei6hoSeOWENjfprZGgXBN3UJDgIt/EcjzWt4110FZ/3IOHoLFLWyO9F7n+YykSm0Ace6vYt3O3BUzoCX264T5vvmkqwIDAQAB';
 const AAD=new TextEncoder().encode('MALU-ADAPTAR-RESULT-v1');
 const PROGRESS_KEY='malu-adaptar-progress-v2';
-const PENDING_KEY='malu-adaptar-pending-v1';
+const PENDING_KEY='percursos-results-pending-v1';
 const HASH_SALT='MALU-ADAPTAR-CEPI-MARAJO-2026';
 const volatileProgress={};
 let currentActivityId='';
@@ -1093,19 +1095,8 @@ function paintProgress(){
   card.innerHTML='<div class="malu-progress-head"><strong>Meu progresso: '+done+' de '+btns.length+' aulas concluídas</strong><span>'+(btns.length-done)+' faltam</span></div><div class="malu-progress-list">'+(names.length?'Já concluídas: '+names.map(x=>'<span>'+escapeHtml(x)+'</span>').join(' · '):'Você ainda não concluiu nenhuma atividade nesta série.')+'</div>';
 }
 async function pullRemoteProgress(){
-  try{
-    const h=await studentHash();
-    const local=loadLocalProgress();
-    const r=await fetch(DB_URL+'/progress/'+h+'.json',{cache:'no-store'});
-    if(r.ok){
-      const remote=await r.json()||{};
-      Object.keys(remote).forEach(k=>{
-        if(!local[k]||String(remote[k].finished_at||'')>String(local[k].finished_at||''))local[k]=remote[k];
-      });
-    }
-    saveLocalProgress(local);
-    paintProgress();
-  }catch(e){}
+  /* O progresso do estudante fica somente neste aparelho. */
+  paintProgress();
 }
 async function importPublicKey(){if(!publicKeyPromise)publicKeyPromise=crypto.subtle.importKey('spki',b64ToBytes(PUBLIC_KEY_B64),{name:'RSA-OAEP',hash:'SHA-256'},false,['encrypt']);return publicKeyPromise}
 async function encryptPayload(payload){
@@ -1116,11 +1107,36 @@ async function encryptPayload(payload){
   const ek=await crypto.subtle.encrypt({name:'RSA-OAEP'},pub,raw);
   return {v:1,ek:bytesToB64(ek),iv:bytesToB64(iv),ct:bytesToB64(ct),activity_id:payload.activity_id,discipline:payload.discipline,series:payload.series,created_at:Date.now()};
 }
+const firebaseConfig={
+  apiKey:"AIzaSyDjxPzcMZcnW679kERfSkMOFY98Ncrtd58",
+  authDomain:"percursos-754d6.firebaseapp.com",
+  databaseURL:"https://percursos-754d6-default-rtdb.firebaseio.com",
+  projectId:"percursos-754d6",
+  storageBucket:"percursos-754d6.firebasestorage.app",
+  messagingSenderId:"304874200719",
+  appId:"1:304874200719:web:e05949c4c71d40a542dafa"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+let studentAuthPromise=null;
+async function ensureStudentAuth(){
+  const auth=firebase.auth();
+  if(auth.currentUser) return auth.currentUser;
+  if(!studentAuthPromise){
+    studentAuthPromise=auth.signInAnonymously()
+      .then(cred=>cred.user)
+      .finally(()=>{studentAuthPromise=null});
+  }
+  return studentAuthPromise;
+}
 async function firebaseRequest(url,options){
+  const user=await ensureStudentAuth();
+  if(!user) throw new Error('não foi possível autenticar o aluno');
+  const token=await user.getIdToken();
+  const finalUrl=url+(url.includes('?')?'&':'?')+'auth='+encodeURIComponent(token);
   const ctl=new AbortController();
   const to=setTimeout(()=>ctl.abort(),15000);
   try{
-    const r=await fetch(url,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
+    const r=await fetch(finalUrl,Object.assign({cache:'no-store',signal:ctl.signal},options||{}));
     if(!r.ok){
       let detail='';
       try{detail=(await r.text()).slice(0,180)}catch(e){}
@@ -1178,16 +1194,6 @@ async function markComplete(id,record,d){
   const meta=activityMeta(id);const p=loadLocalProgress();
   p[id]={finished_at:(record&&record.finished_at)||new Date().toISOString(),total_attempts:(record&&record.total_attempts)||null,first_try_rate:(record&&record.first_try_rate)||null,sync:'pending'};
   saveLocalProgress(p);paintProgress();
-
-  studentHash().then(async h=>{
-    try{
-      await firebaseWrite('/progress/'+h+'/'+id+'.json',{
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(p[id])
-      });
-    }catch(e){}
-  });
 
   const qd={};const attempts=(record&&record.attempts_by_question)||{};
   Object.keys(attempts).forEach(qid=>{const el=d&&d.getElementById?d.getElementById(qid):null;const prompt=el?(el.querySelector('h3,legend')||el).textContent.trim().replace(/\s+/g,' ').slice(0,420):qid;qd[qid]={attempts:Number(attempts[qid])||0,prompt}});
