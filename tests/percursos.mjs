@@ -38,19 +38,20 @@ try{
  assert.match(source,/"f1s2": \["DIREITOS", "DIGNIDADE"/);
 
  await page.route('https://**/*',r=>r.abort());
- await page.route('http://percursos.test/app',r=>r.fulfill({contentType:'text/html',body:source}));
+ const isolatedSource=source.replace('function loadLocalProgress(){','window.testLoadProgress=loadLocalProgress;window.testSaveProgress=saveLocalProgress;window.testSetSender=sender=>sendResult=sender;\nfunction loadLocalProgress(){');
+ await page.route('http://percursos.test/app',r=>r.fulfill({contentType:'text/html',body:isolatedSource}));
  await page.goto('http://percursos.test/app');
  await page.evaluate(()=>{
   accessMode='student';student={name:'Teste',turma:'2ª série A',series:'2'};
-  sendResult=async payload=>{window.testPayload=payload;return {ok:true}};
-  saveLocalProgress({s2s1:{sync:'sent',finished_at:'2026-09-01'}});
+  testSetSender(async payload=>{window.testPayload=payload;return {ok:true}});
+  testSaveProgress({s2s1:{sync:'sent',finished_at:'2026-09-01'}});
   openActivity('s2s1');
  });
  const frame=page.frames().find(f=>f!==page.mainFrame());
  await frame.waitForSelector('#q1');
  await frame.evaluate(()=>{for(let i=0;i<Q.length;i++)one(i,0);finish()});
  await page.waitForFunction(()=>window.testPayload);
- const saved=await page.evaluate(()=>({progress:loadLocalProgress(),payload:window.testPayload}));
+ const saved=await page.evaluate(()=>({progress:testLoadProgress(),payload:window.testPayload}));
  assert.equal(saved.progress.s2s1.finished_at,'2026-09-01');
  assert.equal(saved.progress['s2s1@20261006'].sync,'sent');
  assert.equal(saved.payload.content_revision,'20261006');
