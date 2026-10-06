@@ -32,7 +32,7 @@ await mkdir('test-results',{recursive:true});
 const browser=await chromium.launch({headless:true});
 const ctx=await browser.newContext({viewport:{width:1280,height:900},acceptDownloads:true});
 const page=await ctx.newPage();const errors=[];
-page.on('pageerror',e=>errors.push(e.message));
+page.on('pageerror',e=>{errors.push(e.message);console.log('BROWSER ERROR',e.stack)});
 await page.route('https://fonts.googleapis.com/**',r=>r.abort());
 await page.route('https://fonts.gstatic.com/**',r=>r.abort());
 await page.addInitScript(()=>{
