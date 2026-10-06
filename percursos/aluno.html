@@ -1117,10 +1117,11 @@ const firebaseConfig={
   messagingSenderId:"304874200719",
   appId:"1:304874200719:web:e05949c4c71d40a542dafa"
 };
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const STUDENT_APP_NAME='percursosAluno';
+const studentApp=firebase.apps.find(a=>a.name===STUDENT_APP_NAME) || firebase.initializeApp(firebaseConfig,STUDENT_APP_NAME);
 let studentAuthPromise=null;
 async function ensureStudentAuth(){
-  const auth=firebase.auth();
+  const auth=studentApp.auth();
   if(auth.currentUser) return auth.currentUser;
   if(!studentAuthPromise){
     studentAuthPromise=auth.signInAnonymously()
@@ -1161,7 +1162,7 @@ async function flushPending(options){
     try{
       const user=await ensureStudentAuth();
       if(!user)throw new Error('não foi possível autenticar o aluno');
-      const ref=await firebase.database().ref('results').push(env);
+      const ref=await studentApp.database().ref('results').push(env);
       if(!ref||!ref.key)throw new Error('o banco não confirmou a gravação');
       sent++;
     }catch(e){
