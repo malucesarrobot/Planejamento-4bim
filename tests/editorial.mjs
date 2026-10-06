@@ -19,7 +19,7 @@ try {
  const bibliography=await page.evaluate(()=>window.MaluBibliographyData);assert.equal(Object.keys(bibliography.lessons).length,60);
  for(const l of Object.values(bibliography.lessons)){assert.ok(l.focus.length>80);assert.ok(l.entries.length>=1);}
  const occurrences={...data.occurrences,...data.essayOccurrences};assert.equal(Object.keys(data.essayOccurrences).length,5);
- const redLessons=Object.values(data.exams).filter(l=>l.connections.some(c=>occurrences[c.ref].tipo==='Redação'));assert.ok(redLessons.length>=30);
+ const redLessons=Object.values(data.exams).filter(l=>l.connections.some(c=>occurrences[c.ref].tipo==='Redação'));assert.ok(redLessons.length>=32);
  assert.equal(data.exams['s3-filosofia-semana-1'].connections.filter(c=>occurrences[c.ref].tipo==='Redação').length,1);
  const research=JSON.parse(await readFile('review/exames-2016-2025.json','utf8'));
  assert.deepEqual(Object.values(data.occurrences),research,'published occurrences must preserve the reviewed research');
