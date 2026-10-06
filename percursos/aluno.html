@@ -594,7 +594,14 @@ function installOneQuestionMode(d,w,activityId){
       next.classList.add("malu-next-finish");
       next.textContent="Finalizar atividade ✓";
       next.onclick=()=>{
-        /* Chama finish() diretamente: .click() não dispara quando o botão original está disabled. */
+        /* Registra primeiro no Percursos. O salvamento não depende do finish() interno da atividade. */
+        try{
+          if(typeof window.__percursosCompleteActivity==="function"){
+            window.__percursosCompleteActivity(activityId,d,w);
+          }
+        }catch(e){ console.error("Percursos: falha ao registrar conclusão",activityId,e); }
+
+        /* Mantém a finalização visual e os registros internos da atividade original. */
         try{
           if(w && typeof w.finish==="function") w.finish();
           else if(finishBtn && typeof finishBtn.click==="function"){
@@ -602,7 +609,8 @@ function installOneQuestionMode(d,w,activityId){
             finishBtn.click();
           }
         }catch(e){ console.error("Percursos: falha ao finalizar atividade",activityId,e); }
-        /* Fallback: garante o registro mesmo se a atividade antiga não emitir evento de conclusão. */
+
+        /* Compatibilidade com atividades antigas; a rotina central elimina duplicidade. */
         setTimeout(()=>{
           try{
             if(window.__percursosFrameFinished) window.__percursosFrameFinished(activityId,d,w);
@@ -1203,6 +1211,21 @@ async function markComplete(id,record,d){
   saveLocalProgress(p);paintProgress();
   return result;
 }
+window.__percursosCompleteActivity=function(id,d,w){
+  if(!id || !d) return Promise.resolve({ok:false,error:'atividade não identificada'});
+  if(d.__percursosCompletionPromise) return d.__percursosCompletionPromise;
+
+  /* markComplete grava o progresso local antes de iniciar qualquer operação de rede. */
+  let p;
+  try{
+    p=markComplete(id,recordFromFrame(w),d);
+  }catch(e){
+    p=Promise.resolve({ok:false,error:e&&e.message?e.message:'falha ao registrar conclusão'});
+  }
+  d.__percursosCompletionPromise=Promise.resolve(p);
+  return d.__percursosCompletionPromise;
+};
+
 function recordFromFrame(w){
   let state=null,totalQuestions=0;
   try{state=(w&&(w.S||w.st))||null}catch(e){}
@@ -1274,7 +1297,7 @@ function watchCompletion(id,d,w){
     if(sent)return;
     sent=true;
     showFinishedUI('sending');
-    const result=await markComplete(id,recordFromFrame(w),d);
+    const result=await window.__percursosCompleteActivity(id,d,w);
     if(result&&result.ok)showFinishedUI('sent');
     else{
       /* A conclusão local é definitiva. O envio remoto fica apenas na fila de sincronização. */
