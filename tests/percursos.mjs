@@ -38,6 +38,7 @@ try{
  assert.match(source,/"f1s2": \["DIREITOS", "DIGNIDADE"/);
 
  await page.route('https://**/*',r=>r.abort());
+ await page.addInitScript(()=>{window.firebase={apps:[],initializeApp:()=>({auth:()=>({currentUser:{uid:'isolated-test'}})})}});
  const isolatedSource=source.replace('function loadLocalProgress(){','window.testLoadProgress=loadLocalProgress;window.testSaveProgress=saveLocalProgress;window.testSetSender=sender=>sendResult=sender;\nfunction loadLocalProgress(){');
  await page.route('http://percursos.test/app',r=>r.fulfill({contentType:'text/html',body:isolatedSource}));
  await page.goto('http://percursos.test/app');
