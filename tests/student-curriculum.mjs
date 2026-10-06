@@ -45,6 +45,17 @@ try {
     assert.doesNotMatch(await lesson.textContent(),/Epicuro|ataraxia|aponia|estoicismo|ceticismo/i);
   }
   assert.match(await page.locator('textarea[data-save="ux-s1-filosofia-semana-1-edits"]').inputValue(),/Aula antiga de lógica/);
+  const revisedViolenceLessons=[['s1-sociologia-semana-5','Violências física e psicológica: reconhecer e distinguir'],['s1-sociologia-semana-6','Violências simbólica e institucional: poder e direitos'],['s2-filosofia-semana-1','Humanidade, natureza e racionalidade instrumental']];
+  for(const [id,title] of revisedViolenceLessons){
+    const lesson=page.locator('#'+id);
+    assert.equal(await lesson.locator('.week-head h3').textContent(),title);
+    assert.equal(await lesson.getAttribute('data-content-revision'),'violencias-razao-20261006');
+    assert.equal(await lesson.locator('.atv-q li').count(),3);
+    assert.match(await lesson.locator('.atv-check').textContent(),/3 a 4 linhas/);
+  }
+  assert.match(await page.locator('#s2-filosofia-semana-1 .prof-panel').textContent(),/3º bimestre/);
+  assert.match(await page.locator('#s1-sociologia-semana-6 .student-curriculum').textContent(),/GO-EMCHS503B/);
+  console.log('PASS two Sociology weeks teach four violence mechanisms; Philosophy applies instrumental rationality as prior-learning review; all three use brief records');
   const matrix=JSON.parse(await page.locator('#matrizTextos').textContent())['GO-EMCHS606A'];
   assert.match(matrix,/pensamento kantiano/);assert.match(matrix,/Axel Honneth/);
   console.log('PASS six Philosophy lessons follow the supplied 2026 matrix; old edits stay saved without restoring the wrong topics');
