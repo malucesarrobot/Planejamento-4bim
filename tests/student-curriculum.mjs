@@ -35,11 +35,11 @@ try {
   for(let i=0;i<6;i++){const id='s9-historia-semana-'+(i+1);assert.equal(await page.locator('#'+id+' .week-head h3').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id+' .atv-titulo').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id).getAttribute('data-content-revision'),'revisagoias-20261005');}
   assert.notEqual(await page.locator('#s9-historia-semana-1 .registro-node').first().textContent(),'Etiqueta salva antes desta revisão');
   assert.match(await page.locator('textarea[data-save="ux-s9-historia-semana-1-edits"]').inputValue(),/Etiqueta salva antes desta revisão/);
-  const philosophyTitles=['Direitos civis, políticos e sociais','DUDH: universalidade, igualdade e diversidade','Kant: dignidade e pessoa como fim','Kant: autonomia, dever e respeito','Honneth: reconhecimento e pertencimento','Reconhecimento, exclusão e defesa dos direitos'];
+  const philosophyTitles=['Direitos civis, políticos e sociais',"Direitos humanos: dignidade, liberdade e igualdade","Diversidade e violação de direitos","Honneth: por que precisamos de reconhecimento?","Honneth: direitos e estima social","Reconhecimento e justiça social"];
   for(let i=0;i<6;i++){
     const lesson=page.locator('#s1-filosofia-semana-'+(i+1));
     assert.equal(await lesson.locator('.week-head h3').textContent(),philosophyTitles[i]);
-    assert.equal(await lesson.getAttribute('data-content-revision'),'matriz-filosofia1-20261006');
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===0?'matriz-filosofia1-20261006':'filosofia1-honneth-20261006');
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS606A/);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/EM13CHS605/);
     assert.doesNotMatch(await lesson.textContent(),/Epicuro|ataraxia|aponia|estoicismo|ceticismo/i);
