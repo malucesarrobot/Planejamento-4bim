@@ -1,0 +1,19 @@
+{
+  "id": "./professora.html",
+  "name": "Percursos — Painel docente",
+  "short_name": "Percursos Docente",
+  "lang": "pt-BR",
+  "start_url": "./professora.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#23836e",
+  "icons": [
+    {
+      "src": "icon-docente.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
