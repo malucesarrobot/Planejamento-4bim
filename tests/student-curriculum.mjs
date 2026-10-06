@@ -56,6 +56,19 @@ try {
   assert.match(await page.locator('#s2-filosofia-semana-1 .prof-panel').textContent(),/3º bimestre/);
   assert.match(await page.locator('#s1-sociologia-semana-6 .student-curriculum').textContent(),/GO-EMCHS503B/);
   console.log('PASS two Sociology weeks teach four violence mechanisms; Philosophy applies instrumental rationality as prior-learning review; all three use brief records');
+  for(let i=1;i<=6;i++){
+    const lesson=page.locator('#s3-filosofia-semana-'+i);
+    assert.equal(await lesson.getAttribute('data-content-revision'),'filosofia3-natureza-20261006');
+    assert.equal(await lesson.locator('.atv-q li').count(),3);
+    assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS306A/);
+  }
+  const integratedTable=page.locator('#s3-filosofia-semana-6 .atv-aluno .registro-tabela');
+  assert.equal(await integratedTable.locator('tbody tr').count(),4);
+  assert.match(await integratedTable.textContent(),/Escravismo/);
+  assert.match(await integratedTable.textContent(),/Feudalismo/);
+  assert.match(await integratedTable.textContent(),/Capitalismo/);
+  assert.match(await integratedTable.textContent(),/Socialismo/);
+  console.log('PASS six Philosophy lessons integrate society and nature with brief records and a contextualized four-model comparison');
   const matrix=JSON.parse(await page.locator('#matrizTextos').textContent())['GO-EMCHS606A'];
   assert.match(matrix,/pensamento kantiano/);assert.match(matrix,/Axel Honneth/);
   console.log('PASS six Philosophy lessons follow the supplied 2026 matrix; old edits stay saved without restoring the wrong topics');
