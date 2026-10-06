@@ -118,19 +118,19 @@ try{
   await page.locator('#uxSeries').selectOption('s1');await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#uxWeekChoices button').nth(2).click();
   await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
   const kant=page.locator('article.week-card:visible');
-  for(const term of ['Diversidade','Preconceito','Discriminação','Exclusão'])assert.equal(await kant.locator('.ux-glossary').getByText(term,{exact:true}).isVisible(),true);
-  assert.match(await kant.locator('.atv-aluno').textContent(),/barreiras/);
-  assert.match(await kant.locator('.atv-prof').textContent(),/formatos acessíveis/);
-  assert.match(await kant.locator('.ux-glossary').textContent(),/participação/);
+  for(const term of ['Dignidade','Pessoa como fim em si mesma','Autonomia moral','Dever e imperativo categórico','Preço e dignidade'])assert.equal(await kant.locator('.ux-glossary').getByText(term,{exact:true}).isVisible(),true);
+  assert.match(await kant.locator('.atv-aluno').textContent(),/dignidade/);
+  assert.match(await kant.locator('.atv-prof').textContent(),/manipula a decisão/);
+  assert.match(await kant.locator('.ux-glossary').textContent(),/autonomia/);
   assert.doesNotMatch(await kant.textContent(),/Epicuro|ataraxia|aponia/);
-  await kant.locator('.ux-study').scrollIntoViewIfNeeded();await page.screenshot({path:'test-results/mobile-diversity-study.png'});
+  await kant.locator('.ux-study').scrollIntoViewIfNeeded();await page.screenshot({path:'test-results/mobile-kant-study.png'});
   await page.locator('#wkProject').click();
   for(const material of ['pergunta','conteudo','caderno','atividade','fontes']) {
     await page.locator('[data-lesson-material='+material+']').click();
     assert.equal(await page.locator('#projectionPage .ux-study').count(),0,'preparation must not leak into any projection material');
   }
   await page.locator('#projectionClose').click();
-  console.log('PASS 60 substantive teacher supplements, explicit evidence limits and source provenance, diversity, discrimination and barriers to participation, no preparation leakage');
+  console.log('PASS 60 substantive teacher supplements, explicit evidence limits and source provenance, Kant dignity and autonomy, no preparation leakage');
   console.log('PASS 60 teacher glossaries, full concept coverage, art definitions and examples, linked references and no projection leakage');
   assert.deepEqual(errors,[]);
   console.log('PASS one-tap classroom launch, independent materials visible on mobile, student-only content, direct source opening, scroll return, free choice and restored selection');

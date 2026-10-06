@@ -29,7 +29,7 @@ try {
  for(const exam of Object.values(data.essayOccurrences)){assert.equal(exam.tipo,'Redação');assert.match(exam.fonte,/^https:\/\/(cdn.cebraspe.org.br|www.uema.br|www.fuvest.br)\//);}
  assert.ok(data.exams['s3-filosofia-semana-3'].connections.every(c=>c.relation==='Tangencial'),'do not invent nominal Jonas questions');
  assert.ok(data.exams['s2-filosofia-semana-4'].connections.every(c=>c.relation==='Tangencial'),'Kopenawa is not Krenak');
- assert.match(data.exams['s1-filosofia-semana-3'].theme,/Diversidade/);assert.ok(data.exams['s1-filosofia-semana-3'].connections.every(c=>c.relation==='Tangencial'),'essay themes do not imply nominal author questions');
+ assert.match(data.exams['s1-filosofia-semana-3'].theme,/Kant/);assert.ok(data.exams['s1-filosofia-semana-3'].connections.every(c=>c.relation==='Tangencial'),'essay themes do not imply nominal author questions');
  assert.equal(data.exams['s1-historia-semana-1'],undefined,'do not force contemporary themes onto feudalism');
  const ref=data.exams['s2-sociologia-semana-2'].connections[0].ref;assert.match(data.occurrences[ref].tema,/Crenshaw/);assert.equal(data.occurrences[ref].ano,2023);
  await page.locator('#uxSeries').selectOption('s3');await page.locator('#uxSubject').selectOption('filosofia');
