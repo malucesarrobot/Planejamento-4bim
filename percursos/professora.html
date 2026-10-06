@@ -17,6 +17,7 @@
 <section id="app" class="hidden"><div class="grid"><div class="stat"><strong id="stResults">0</strong><span class="sub">atividades concluídas</span></div><div class="stat"><strong id="stStudents">0</strong><span class="sub">alunos diferentes</span></div><div class="stat"><strong id="stRecent">0</strong><span class="sub">conclusões na última hora</span></div><div class="stat"><strong id="stRetry">0</strong><span class="sub">questões com retomada</span></div></div><div class="card"><div class="filters"><div><label>Buscar aluno ou aula</label><input id="q" placeholder="Digite nome, turma ou tema"></div><div><label>Disciplina</label><select id="disc"><option value="">Todas</option><option>História</option><option>Filosofia</option><option>Sociologia</option></select></div><div><label>Turma</label><select id="turma"><option value="">Todas</option></select></div><button id="refresh">Atualizar agora</button></div><p id="syncStatus" class="status">Aguardando leitura…</p></div><div class="card tablewrap"><table><thead><tr><th>Aluno</th><th>Turma</th><th>Disciplina / aula</th><th>Concluiu</th><th>Desempenho</th><th>Retomadas</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="sub hidden">Nenhum resultado encontrado.</p></div></section></main>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 'use strict';
 const firebaseConfig={
@@ -43,18 +44,15 @@ async function unlock(password){const mat=await crypto.subtle.importKey('raw',ne
 async function decryptEnvelope(env){const raw=await crypto.subtle.decrypt({name:'RSA-OAEP'},privateKey,b64ToBytes(env.ek));const aes=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['decrypt']);const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(env.iv),additionalData:AAD_RESULT},aes,b64ToBytes(env.ct));return JSON.parse(new TextDecoder().decode(plain))}
 async function fetchResults(url,required){
   try{
-    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);
-    try{
-      const user=firebase.auth().currentUser;
-      if(!user) throw new Error('sessão Google não encontrada');
-      const token=await user.getIdToken();
-      const finalUrl=url+'/results.json?auth='+encodeURIComponent(token);
-      const r=await fetch(finalUrl,{cache:'no-store',signal:ctl.signal});
-      if(!r.ok)throw new Error((r.status===401||r.status===403?'banco recusou o acesso':'HTTP '+r.status));
-      return await r.json()||{};
-    }finally{clearTimeout(to)}
+    const user=firebase.auth().currentUser;
+    if(!user) throw new Error('sessão Google não encontrada');
+    const snap=await firebase.database().ref('results').once('value');
+    return snap.val()||{};
   }catch(e){
-    if(required)throw e;
+    const msg=(e&&e.code==='PERMISSION_DENIED')
+      ? 'banco recusou a leitura para '+((firebase.auth().currentUser&&firebase.auth().currentUser.email)||'esta conta')
+      : (e&&e.message?e.message:'falha de leitura');
+    if(required)throw new Error(msg);
     return {};
   }
 }
