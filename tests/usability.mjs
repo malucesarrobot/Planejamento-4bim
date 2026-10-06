@@ -179,7 +179,7 @@ try {
   console.log('PASS mobile controls, no horizontal overflow and editor access');
 
   let unavailable=false, patchGate=null, patchStarted=false; const patches=[];
-  const remoteEdit={version:1,title:'Título recebido de outro aparelho',notebook:{},activity:{}};
+  const remoteEdit={version:1,title:'Título recebido de outro aparelho',notebook:{},activity:{},revision:await card.getAttribute('data-content-revision')};
   const remote={notes:{['ux-'+chosen+'-edits']:{v:JSON.stringify(remoteEdit),t:Date.now()+100000}},aulas:{}};
   await page.route('https://planejamento-4bim-default-rtdb.firebaseio.com/**',async route=>{
     if(unavailable)return route.abort();
