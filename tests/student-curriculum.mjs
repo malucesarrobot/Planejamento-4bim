@@ -22,6 +22,7 @@ await page.addInitScript(()=>{
   window.print=()=>{};
   // Keep old edits saved, without applying them to the replacement topics.
   localStorage.setItem('malu-ux-s9-historia-semana-1-edits',JSON.stringify({version:1,title:null,notebook:{'1.1.0':'Etiqueta salva antes desta revisão'},activity:{}}));
+  localStorage.setItem('malu-ux-s1-filosofia-semana-1-edits',JSON.stringify({version:1,title:'Aula antiga de lógica',notebook:{},activity:{}}));
 });
 await mkdir('test-results',{recursive:true});
 async function card(){return page.locator('article.week-card:visible');}
@@ -34,6 +35,19 @@ try {
   for(let i=0;i<6;i++){const id='s9-historia-semana-'+(i+1);assert.equal(await page.locator('#'+id+' .week-head h3').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id+' .atv-titulo').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id).getAttribute('data-content-revision'),'revisagoias-20261005');}
   assert.notEqual(await page.locator('#s9-historia-semana-1 .registro-node').first().textContent(),'Etiqueta salva antes desta revisão');
   assert.match(await page.locator('textarea[data-save="ux-s9-historia-semana-1-edits"]').inputValue(),/Etiqueta salva antes desta revisão/);
+  const philosophyTitles=['Direitos civis, políticos e sociais','DUDH: universalidade, igualdade e diversidade','Kant: dignidade e pessoa como fim','Kant: autonomia, dever e respeito','Honneth: reconhecimento e pertencimento','Reconhecimento, exclusão e defesa dos direitos'];
+  for(let i=0;i<6;i++){
+    const lesson=page.locator('#s1-filosofia-semana-'+(i+1));
+    assert.equal(await lesson.locator('.week-head h3').textContent(),philosophyTitles[i]);
+    assert.equal(await lesson.getAttribute('data-content-revision'),'matriz-filosofia1-20261006');
+    assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS606A/);
+    assert.match(await lesson.locator('.student-curriculum').textContent(),/EM13CHS605/);
+    assert.doesNotMatch(await lesson.textContent(),/Epicuro|ataraxia|aponia|estoicismo|ceticismo/i);
+  }
+  assert.match(await page.locator('textarea[data-save="ux-s1-filosofia-semana-1-edits"]').inputValue(),/Aula antiga de lógica/);
+  const matrix=JSON.parse(await page.locator('#matrizTextos').textContent())['GO-EMCHS606A'];
+  assert.match(matrix,/pensamento kantiano/);assert.match(matrix,/Axel Honneth/);
+  console.log('PASS six Philosophy lessons follow the supplied 2026 matrix; old edits stay saved without restoring the wrong topics');
   const data=await page.locator('article.week-card').evaluateAll(cards=>cards.map(c=>{
     const expected={bncc:[],matriz:[]};
     for(const section of c.querySelectorAll('.plan-grid > .meta-curric')){

@@ -7,11 +7,11 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromiu
 try {
  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://**',r=>r.abort());
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('body.ux-ready');
- assert.equal(await page.locator('.ux-exam-connections').count(),74);
+ assert.equal(await page.locator('.ux-exam-connections').count(),82);
  assert.equal(await page.locator('.ux-teacher-guide summary').filter({hasText:'Perguntas difíceis'}).count(),60);
  assert.equal(await page.locator('article.week-card .ux-board-model').count(),60);
  assert.equal(await page.locator('article.week-card .ux-study-example h5').filter({hasText:'Analogia para começar'}).count(),6);
- const data=await page.evaluate(()=>window.MaluEditorialData);assert.equal(Object.keys(data.exams).length,37);
+ const data=await page.evaluate(()=>window.MaluEditorialData);assert.equal(Object.keys(data.exams).length,41);
  assert.equal(Object.keys(data.exams).filter(id=>id.startsWith('s3-')).length,18);
  assert.equal(Object.keys(data.occurrences).length,59);
  assert.equal(await page.locator('.prof-panel .ux-bibliography').count(),60);
@@ -29,7 +29,7 @@ try {
  for(const exam of Object.values(data.essayOccurrences)){assert.equal(exam.tipo,'Redação');assert.match(exam.fonte,/^https:\/\/(cdn.cebraspe.org.br|www.uema.br|www.fuvest.br)\//);}
  assert.ok(data.exams['s3-filosofia-semana-3'].connections.every(c=>c.relation==='Tangencial'),'do not invent nominal Jonas questions');
  assert.ok(data.exams['s2-filosofia-semana-4'].connections.every(c=>c.relation==='Tangencial'),'Kopenawa is not Krenak');
- assert.equal(data.exams['s1-filosofia-semana-3'],undefined,'do not force unrelated questions onto Epicurus');
+ assert.match(data.exams['s1-filosofia-semana-3'].theme,/Kant/);assert.ok(data.exams['s1-filosofia-semana-3'].connections.every(c=>c.relation==='Tangencial'),'essay themes do not imply nominal Kant questions');
  assert.equal(data.exams['s1-historia-semana-1'],undefined,'do not force contemporary themes onto feudalism');
  const ref=data.exams['s2-sociologia-semana-2'].connections[0].ref;assert.match(data.occurrences[ref].tema,/Crenshaw/);assert.equal(data.occurrences[ref].ano,2023);
  await page.locator('#uxSeries').selectOption('s3');await page.locator('#uxSubject').selectOption('filosofia');
@@ -61,5 +61,5 @@ try {
   await page.locator('#projectionClose').click();
  }
  await page.locator('#uxSubject').selectOption('filosofia');await page.locator('#wkProject').click();await page.locator('[data-lesson-material=esquema]').click();await page.screenshot({path:'test-results/editorial-board-mobile.png'});await page.locator('[data-lesson-material=exames]').click();await page.screenshot({path:'test-results/projected-exams-mobile.png'});await page.locator('[data-lesson-material=caderno]').click();await page.screenshot({path:'test-results/compact-projection-mobile.png'});await page.locator('#projectionClose').click();await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();await page.locator('article.week-card:visible .ux-bibliography').scrollIntoViewIfNeeded();await page.screenshot({path:'test-results/bibliography-mobile.png'});
- assert.deepEqual(errors,[]);console.log('PASS 59 sourced records, 37 lesson mappings, precise author distinctions, direct proof links, teacher export, unchanged saves and projection isolation');
+ assert.deepEqual(errors,[]);console.log('PASS 59 sourced records, 41 lesson mappings, precise author distinctions, direct proof links, teacher export, unchanged saves and projection isolation');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
