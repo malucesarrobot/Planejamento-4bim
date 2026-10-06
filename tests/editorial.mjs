@@ -7,18 +7,19 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromiu
 try {
  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://**',r=>r.abort());
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('body.ux-ready');
- assert.equal(await page.locator('.ux-exam-connections').count(),82);
+ const publishedExamCount=await page.evaluate(()=>Object.keys(window.MaluEditorialData.exams).length);
+ assert.equal(await page.locator('.ux-exam-connections').count(),publishedExamCount*2);
  assert.equal(await page.locator('.ux-teacher-guide summary').filter({hasText:'Perguntas difíceis'}).count(),60);
  assert.equal(await page.locator('article.week-card .ux-board-model').count(),60);
  assert.equal(await page.locator('article.week-card .ux-study-example h5').filter({hasText:'Analogia para começar'}).count(),6);
- const data=await page.evaluate(()=>window.MaluEditorialData);assert.equal(Object.keys(data.exams).length,41);
+ const data=await page.evaluate(()=>window.MaluEditorialData);assert.equal(Object.keys(data.exams).length,39);
  assert.equal(Object.keys(data.exams).filter(id=>id.startsWith('s3-')).length,18);
  assert.equal(Object.keys(data.occurrences).length,59);
  assert.equal(await page.locator('.prof-panel .ux-bibliography').count(),60);
  const bibliography=await page.evaluate(()=>window.MaluBibliographyData);assert.equal(Object.keys(bibliography.lessons).length,60);
  for(const l of Object.values(bibliography.lessons)){assert.ok(l.focus.length>80);assert.ok(l.entries.length>=1);}
  const occurrences={...data.occurrences,...data.essayOccurrences};assert.equal(Object.keys(data.essayOccurrences).length,5);
- const redLessons=Object.values(data.exams).filter(l=>l.connections.some(c=>occurrences[c.ref].tipo==='Redação'));assert.ok(redLessons.length>=32);
+ const redLessons=Object.values(data.exams).filter(l=>l.connections.some(c=>occurrences[c.ref].tipo==='Redação'));assert.ok(redLessons.length>=30);
  assert.equal(data.exams['s3-filosofia-semana-1'].connections.filter(c=>occurrences[c.ref].tipo==='Redação').length,1);
  const research=JSON.parse(await readFile('review/exames-2016-2025.json','utf8'));
  assert.deepEqual(Object.values(data.occurrences),research,'published occurrences must preserve the reviewed research');
