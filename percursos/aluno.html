@@ -1310,6 +1310,8 @@ function watchCompletion(id,d,w){
     if(doneId===id) send();
   };
   function check(){
+    /* Updating the completion UI also emits DOM mutations; process completion once. */
+    if(sent)return;
     const res=d.getElementById('studentResult')||d.getElementById('resultado')||d.querySelector('[id*="studentResult"],.student-result');
     const txt=(res?res.textContent:'')||'';
     if(res&&!res.classList.contains('hidden')&&/conclu|atividade conclu/i.test(txt)){
