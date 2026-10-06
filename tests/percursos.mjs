@@ -48,7 +48,8 @@ try{
   openActivity('s2s1');
  });
  const frame=page.frames().find(f=>f!==page.mainFrame());
- await frame.waitForSelector('#q1');
+ await frame.waitForSelector('#q1',{state:'attached'});
+ assert.equal(await frame.locator('.question:not(.malu-hidden-step)').count(),1);
  await frame.evaluate(()=>{for(let i=0;i<Q.length;i++)one(i,0);finish()});
  await page.waitForFunction(()=>window.testPayload);
  const saved=await page.evaluate(()=>({progress:testLoadProgress(),payload:window.testPayload}));
