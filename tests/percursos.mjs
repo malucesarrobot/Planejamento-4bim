@@ -14,6 +14,8 @@ try{
   await page.goto('http://percursos.test/'+id);
   const actual=await page.evaluate(()=>({questions:Q,key:K,title:document.querySelector('#login h2').textContent}));
   assert.equal(actual.questions.length,3,id);
+  assert.equal(await page.locator('#atividade .meta').first().textContent(),'Semana '+id.at(-1));
+  assert.ok(await page.locator('.sources a').count());
   assert.match(actual.key,/_20261006_records$/);
   assert.ok(source.includes('Semana '+id.at(-1)+' — '+actual.title.replaceAll('&','&amp;')),id+' menu');
   await page.locator('#nome').fill('Estudante de teste');
