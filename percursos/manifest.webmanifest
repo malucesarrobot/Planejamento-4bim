@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Percursos de Aprendizagem",
+  "short_name": "Percursos",
+  "lang": "pt-BR",
+  "start_url": "./aluno.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#6f63ff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
