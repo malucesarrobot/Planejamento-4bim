@@ -8,6 +8,7 @@ const revised=['s1s5','s1s6',...Array.from({length:6},(_,i)=>'s2s'+(i+1)),'f2s1'
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
+page.on('console',m=>{if(m.type()==='error'&&/Percursos: falha/.test(m.text()))errors.push(m.text())});
 try{
  for(const id of revised){
   await page.route('http://percursos.test/'+id,r=>r.fulfill({contentType:'text/html',body:units[id]}));

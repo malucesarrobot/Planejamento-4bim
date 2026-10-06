@@ -1327,6 +1327,9 @@ function studentOnly(d){
   [...d.querySelectorAll('button,a')].forEach(el=>{if(/^Professora$/i.test(el.textContent.trim())||el.id==='navProf')el.style.display='none'});
   const prof=d.getElementById('prof')||d.getElementById('p');if(prof)prof.classList.add('hidden');
 }
+/* The activity loader runs in the preceding script and needs these hooks. */
+window.watchCompletion=watchCompletion;
+window.studentOnly=studentOnly;
 const oldEnter=window.enterStudent;window.enterStudent=function(){oldEnter.apply(this,arguments);if(accessMode==='student'){paintProgress();pullRemoteProgress();flushPending()}};
 const oldHome=window.goHome;window.goHome=function(){oldHome.apply(this,arguments);paintProgress();pullRemoteProgress()};
 const oldOpen=window.openActivity;window.openActivity=function(id,btn){currentActivityId=id;return oldOpen.apply(this,arguments)};
