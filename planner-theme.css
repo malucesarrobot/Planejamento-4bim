@@ -316,3 +316,37 @@ body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7
   body.ux-ready .ux-panel{padding:14px!important}
  }
 }
+
+/* Cores de disciplina e formas de caderno. */
+@media screen{
+ body.ux-ready{--subject-ink:#724e8e;--subject-soft:#f0e5f8;--subject-pale:#fcf8ff;--subject-edge:#c9afd9}
+ body.ux-ready[data-discipline=historia]{--subject-ink:#865036;--subject-soft:#f9e5d5;--subject-pale:#fffaf4;--subject-edge:#ddb191}
+ body.ux-ready[data-discipline=sociologia]{--subject-ink:#3e6a50;--subject-soft:#e2efdf;--subject-pale:#f7fcf4;--subject-edge:#a8c8a5}
+ body.ux-ready{background-color:var(--subject-pale)!important;background-image:radial-gradient(circle at 96% 30%,var(--subject-soft) 0,transparent 28%),radial-gradient(circle at 3% 76%,var(--subject-soft) 0,transparent 26%)!important;background-attachment:fixed}
+ body.ux-ready .hero{background:var(--subject-soft)!important;border-bottom:1px solid var(--subject-edge);position:relative;overflow:hidden}
+ body.ux-ready .hero h1{color:var(--subject-ink)!important;position:relative;z-index:1}
+ body.ux-ready .hero::before{display:block;right:8%;top:-25px;width:120px;height:120px;border:2px dashed var(--subject-edge);background:transparent;opacity:.55;transform:rotate(18deg);border-radius:30px}
+ body.ux-ready .hero::after{display:block;right:2%;top:28px;width:65px;height:65px;background:var(--subject-edge);border:0;border-radius:50%;opacity:.35}
+ body.ux-ready .toolbar,body.ux-ready .weekbar{background:var(--subject-pale)!important}
+ body.ux-ready .ux-choice-row:first-child{padding-right:0}
+ body.ux-ready .week-head{background:linear-gradient(115deg,var(--subject-pale),var(--subject-soft))!important;border-top-color:var(--subject-edge);position:relative;overflow:hidden}
+ body.ux-ready .week-head h3{color:var(--subject-ink)!important;position:relative}
+ body.ux-ready .week-head::after{content:"";position:absolute;right:-18px;top:-32px;width:90px;height:90px;border:2px dashed var(--subject-edge);border-radius:50%;opacity:.35;pointer-events:none}
+ body.ux-ready .week-head>span:first-child{background:var(--subject-soft)!important;color:var(--subject-ink)!important}
+ body.ux-ready .ux-tabs{background:var(--subject-soft)!important}
+ body.ux-ready .ux-tabs button[aria-selected=true]{color:var(--subject-ink)!important;border-color:var(--subject-edge)!important}
+ body.ux-ready .ux-week-number[aria-pressed=true]{background:var(--subject-ink)!important;border-color:var(--subject-ink)!important}
+ body.ux-ready .weekbar #wkTrack,body.ux-ready .weekbar #wkProject{display:inline-flex;align-items:center;justify-content:center;width:104px;height:44px;min-height:44px;box-sizing:border-box;padding:5px 8px!important;font-size:.76rem!important;line-height:1.2;border-radius:10px;border:1px solid var(--subject-edge)!important;text-decoration:none;white-space:nowrap;flex:0 0 104px}
+ body.ux-ready .weekbar #wkTrack{background:var(--subject-soft)!important;color:var(--subject-ink)!important}
+ body.ux-ready .weekbar #wkProject{background:var(--subject-ink)!important;color:#fff!important}
+ body.ux-ready .ux-study{background:var(--subject-pale)!important;border-color:var(--subject-edge);border-left-color:var(--subject-edge)}
+ body.ux-ready .track-item{background:var(--subject-pale);border-color:var(--subject-edge);border-left-color:var(--subject-ink)}
+ body.ux-ready .track-num{background:var(--subject-soft);color:var(--subject-ink)}
+ @media(max-width:760px){
+  body.ux-ready .ux-choice-row:first-child{padding-right:54px}
+  body.ux-ready .hero::before{width:62px;height:62px;right:7%;top:-22px}
+  body.ux-ready .hero::after{width:30px;height:30px;right:2%;top:35px}
+  body.ux-ready .weekbar #wkTrack,body.ux-ready .weekbar #wkProject{width:100px;flex-basis:100px}
+  body.ux-ready .ux-week-context{gap:6px}
+ }
+}
