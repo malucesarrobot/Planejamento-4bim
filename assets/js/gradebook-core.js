@@ -22,7 +22,10 @@
     }
     for(const [id,a] of Object.entries(source.alunos)){
       if(!a||typeof a.nome!=='string'||!next.turmas[a.turmaId])continue;
-      next.alunos[id]={id,nome:a.nome,numero:a.numero||null,turmaId:a.turmaId,ativo:a.ativo!==false,matricula:a.matricula==null?'':String(a.matricula).trim()};students++;
+      const previous=next.alunos[id]||{}, official=a.siapVerificadoEm?a:previous.siapVerificadoEm?previous:null;
+      next.alunos[id]={...previous,id,nome:official?.nome||a.nome,numero:a.numero||null,turmaId:a.turmaId,ativo:official?official.ativo!==false:a.ativo!==false,matricula:official?.matricula|| (a.matricula==null?'':String(a.matricula).trim())};
+      if(official){next.alunos[id].siapVerificadoEm=official.siapVerificadoEm;next.alunos[id].situacaoSiap=official.situacaoSiap;}
+      students++;
     }
     if(!classes||!students)throw Error('O arquivo não contém turmas e alunos válidos.');
     return {next,classes,students};
