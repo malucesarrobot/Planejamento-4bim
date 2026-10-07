@@ -354,32 +354,32 @@ body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7
 /* Quadro sem comandos ou referências no rodapé. */
 @media screen{#projectionView #projectionRefs,#projectionView .projection-refs{display:none!important}}
 
-/* Caderno criativo: cor viva, títulos expressivos e espaço para ler. */
+/* Caderno lúdico: menta, baunilha e pêssego com texto bem contrastado. */
 @media screen{
- body.ux-ready{--subject-ink:#7042b4;--subject-soft:#eee2ff;--subject-pale:#faf7ff;--subject-edge:#b89ade;--subject-pop:#8654d7}
- body.ux-ready[data-discipline=historia]{--subject-ink:#ae3f29;--subject-soft:#ffe2cf;--subject-pale:#fff9f3;--subject-edge:#efa276;--subject-pop:#da5938}
- body.ux-ready[data-discipline=sociologia]{--subject-ink:#14694f;--subject-soft:#d7f0df;--subject-pale:#f6fcf5;--subject-edge:#86c6a0;--subject-pop:#238060}
- body.ux-ready{background-image:radial-gradient(circle at 97% 20%,var(--subject-soft) 0,transparent 35%),radial-gradient(circle at 0 80%,#fff0be 0,transparent 30%)!important}
+ body.ux-ready{--subject-ink:#685520;--subject-soft:#fff1b5;--subject-pale:#fffdf2;--subject-edge:#e4d28b;--subject-pop:#d8bc67}
+ body.ux-ready[data-discipline=historia]{--subject-ink:#765028;--subject-soft:#ffe0b5;--subject-pale:#fffaf1;--subject-edge:#e5bf8a;--subject-pop:#e2b074}
+ body.ux-ready[data-discipline=sociologia]{--subject-ink:#315f49;--subject-soft:#d4efdc;--subject-pale:#f6fcf5;--subject-edge:#abd2b9;--subject-pop:#8fbea0}
+ body.ux-ready{background-image:radial-gradient(circle at 97% 20%,var(--subject-soft) 0,transparent 35%),radial-gradient(circle at 0 80%,#dff2e5 0,transparent 30%)!important}
  body.ux-ready .hero{border-top:5px solid var(--subject-pop);background:linear-gradient(110deg,var(--subject-soft),var(--subject-pale))!important;padding:20px 22px!important}
  body.ux-ready .hero h1{font:800 clamp(1.8rem,3.8vw,2.6rem)/1.12 "Trebuchet MS",ui-rounded,system-ui,sans-serif!important;letter-spacing:-.045em!important}
- body.ux-ready .hero::before{background:#f9cf58;border:0;width:68px;height:68px;top:16px;right:8%;opacity:.65;border-radius:17px;transform:rotate(-12deg)}
+ body.ux-ready .hero::before{background:#f5dfa0;border:0;width:68px;height:68px;top:16px;right:8%;opacity:.65;border-radius:17px;transform:rotate(-12deg)}
  body.ux-ready .hero::after{content:"✦";display:flex;align-items:center;justify-content:center;background:transparent;color:var(--subject-pop);font:50px/1 Georgia,serif;border:0;opacity:.55;right:2%;top:16px;width:54px;height:54px}
  body.ux-ready .toolbar{border-bottom-color:var(--subject-edge)}
  body.ux-ready .ux-segments button{background:#fff;border:1px solid #e8e1d9;color:#55515b}
- body.ux-ready .ux-segments button[aria-pressed=true]{background:var(--subject-ink);border-color:var(--subject-ink);color:#fff;box-shadow:0 3px 0 var(--subject-edge)}
- body.ux-ready .ux-segments [data-choice=historia][aria-pressed=true]{background:#ae3f29;color:#fff;border-color:#ae3f29}
- body.ux-ready .ux-segments [data-choice=filosofia][aria-pressed=true]{background:#7042b4;color:#fff;border-color:#7042b4}
- body.ux-ready .ux-segments [data-choice=sociologia][aria-pressed=true]{background:#14694f;color:#fff;border-color:#14694f}
- body.ux-ready .week-card{border-color:var(--subject-edge);border-radius:19px!important;box-shadow:0 5px 0 var(--subject-soft),0 14px 28px #533d2210!important}
- body.ux-ready .week-head{border-top:5px solid var(--subject-pop);border-radius:18px 18px 0 0!important;background:linear-gradient(115deg,var(--subject-soft),var(--subject-pale))!important}
+ body.ux-ready .ux-segments button[aria-pressed=true]{background:var(--subject-soft);border-color:var(--subject-edge);color:var(--subject-ink);box-shadow:0 3px 0 var(--subject-edge)}
+ body.ux-ready .ux-segments [data-choice=historia][aria-pressed=true]{background:#ffe0b5;color:#765028;border-color:#e5bf8a}
+ body.ux-ready .ux-segments [data-choice=filosofia][aria-pressed=true]{background:#fff1b5;color:#685520;border-color:#e4d28b}
+ body.ux-ready .ux-segments [data-choice=sociologia][aria-pressed=true]{background:#d4efdc;color:#315f49;border-color:#abd2b9}
+ body.ux-ready .week-card{border-color:var(--subject-edge);border-radius:24px!important;box-shadow:0 5px 0 var(--subject-soft),0 14px 28px #533d2210!important}
+ body.ux-ready .week-head{border-top:5px solid var(--subject-pop);border-radius:23px 23px 0 0!important;background:linear-gradient(115deg,var(--subject-soft),var(--subject-pale))!important}
  body.ux-ready .week-head h3{font:800 clamp(1.85rem,4.4vw,2.6rem)/1.14 "Trebuchet MS",ui-rounded,system-ui,sans-serif!important;letter-spacing:-.035em!important;max-width:24ch}
  body.ux-ready .week-head::after{border:2px dashed var(--subject-pop);opacity:.25}
- body.ux-ready .week-head>span:first-child{background:var(--subject-ink)!important;color:#fff!important;border-radius:7px 7px 7px 2px!important}
+ body.ux-ready .week-head>span:first-child{background:var(--subject-soft)!important;color:var(--subject-ink)!important;border-radius:7px 7px 7px 2px!important}
  body.ux-ready .week-head .ux-week-date{background:#fff5cf!important;color:#6b4c22!important}
  body.ux-ready .ux-week-number{background:#fff!important;border:1px solid var(--subject-edge)!important;color:var(--subject-ink)!important}
  body.ux-ready .ux-week-number[aria-pressed=true]{background:var(--subject-ink)!important;color:#fff!important;box-shadow:0 3px 0 var(--subject-edge)!important}
- body.ux-ready .weekbar #wkTrack{background:#fff!important;border:2px solid var(--subject-ink)!important}
- body.ux-ready .weekbar #wkProject{border:2px solid var(--subject-ink)!important;box-shadow:0 3px 0 var(--subject-edge)}
+ body.ux-ready .weekbar #wkTrack{background:#fff!important;border:2px solid var(--subject-edge)!important}
+ body.ux-ready .weekbar #wkProject{background:#d4efdc!important;color:#315f49!important;border:2px solid var(--subject-ink)!important;box-shadow:0 3px 0 var(--subject-edge)}
  body.ux-ready .ux-tabs{background:var(--subject-soft)!important;border:1px solid var(--subject-edge)}
  body.ux-ready .ux-tabs button[aria-selected=true]{background:#fff9f1!important;border:1px solid var(--subject-edge)!important;border-bottom:3px solid var(--subject-pop)!important;font-weight:800}
  body.ux-ready .ux-panel h4{font-family:"Trebuchet MS",system-ui,sans-serif;color:var(--subject-ink);font-weight:800}
@@ -388,7 +388,7 @@ body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7
  body.ux-ready .gancho{background:#fff1c6!important;border-color:#e9c464!important}
  body.ux-ready .prof-seal,body.ux-ready .prof-caderno[open]>.prof-seal{background:var(--subject-soft);color:var(--subject-ink)}
  body.ux-ready .study-track h3{font-family:"Trebuchet MS",system-ui,sans-serif!important;font-weight:800!important;color:var(--subject-ink)}
- body.ux-ready .track-num{background:var(--subject-ink);color:#fff}
+ body.ux-ready .track-num{background:var(--subject-soft);color:var(--subject-ink)}
  body.ux-ready #navTools>summary{background:var(--subject-soft);color:var(--subject-ink);border:1px solid var(--subject-edge)}
  body.ux-ready .gb-register-unit{background:var(--subject-ink);color:#fff;border:1px solid var(--subject-ink);border-radius:10px;min-height:44px;padding:7px 12px;cursor:pointer}
  @media(max-width:760px){
