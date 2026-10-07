@@ -8,3 +8,5 @@
 #navTools .gb-menu-notes{background:#e5def5;color:#604184;border-color:#bca3dc}
 
 .gb-settings{margin-top:16px;border-top:1px solid #e1dce7;padding-top:10px;color:#635c6b;font-size:.85rem}.gb-settings summary,.gb-calculation summary{cursor:pointer;padding:8px 0}.gb-settings-actions{display:grid;gap:8px;margin-top:8px}.gb-calculation{margin:10px 0;color:#635c6b;font-size:.85rem}.gb-controls>select{width:100%}
+
+.gb-attendance-list{display:grid;gap:8px;margin-top:12px}.gb-dialog button.gb-attendance-row{display:block;width:100%;text-align:left;padding:14px 12px;line-height:1.4;font-weight:600;border-radius:12px}.gb-attendance-row:focus-visible{outline:3px solid #67498b;outline-offset:2px}.gb-dialog select[hidden]{display:none!important}
