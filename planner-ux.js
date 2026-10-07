@@ -533,6 +533,6 @@
     planner.setSelection(saved.s,saved.d);current=saved.w;
   } else if(hashCard && hashCard.matches('article.week-card'))current=hash;
   document.body.classList.add('ux-ready');restoring=false;planner.updateSearch();refresh(current);
-  paintStorage();window.addEventListener('resize',toolbarHeight);
+  paintStorage();document.documentElement.classList.remove('planner-loading');window.addEventListener('resize',toolbarHeight);
   if(window.ResizeObserver)new ResizeObserver(toolbarHeight).observe($('navShell').parentElement);
 })();
