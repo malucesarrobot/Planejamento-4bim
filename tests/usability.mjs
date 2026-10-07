@@ -144,14 +144,14 @@ try {
   assert.equal(backup.notes['s9-historia-w1-obs'],'Anotação anterior preservada.');
   assert.ok(backup.notes['ux-'+chosen+'-edits']);
   assert.ok(backup.aulasDadas[chosen+'|3ªB']);
-  await page.locator('#navTools > summary').click();
+  await page.getByRole('button',{name:'Fechar menu',exact:true}).click();
   await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   page.once('dialog',d=>d.accept());await page.locator('#uxRestoreOriginal').click();
   assert.notEqual(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
   await tools();await page.locator('#importFile').setInputFiles('test-results/backup.json');
   await waitFor(async()=>await card.locator('.week-head h3').textContent()==='Aula exclusiva de teste');
   assert.equal(await page.locator('textarea[data-save="s9-historia-w1-obs"]').inputValue(),'Anotação anterior preservada.');
-  await page.locator('#navTools > summary').click();
+  await page.getByRole('button',{name:'Fechar menu',exact:true}).click();
   console.log('PASS backup export, restore original and import with legacy notes intact');
 
   await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxPrintCurrent').click();
