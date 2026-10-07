@@ -142,9 +142,9 @@ try {
 
   const mark=c.getByRole('checkbox',{name:'3ªB',exact:true});await mark.check();
   assert.match(await page.locator('#uxResume').textContent(),/1 de 6 semanas dadas/);
-  await page.locator('#uxUndo').click();
+  await mark.uncheck();
   assert.match(await page.locator('#uxResume').textContent(),/0 de 6 semanas dadas/);
-  console.log('PASS curriculum footer is protected from text editing and class progress updates with undo');
+  console.log('PASS curriculum footer is protected from text editing and class progress updates by unchecking');
 
   await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxPrintCurrent').click();
   await page.locator('#uxPrintScope').selectOption('all');
