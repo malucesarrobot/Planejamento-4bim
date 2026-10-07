@@ -534,6 +534,7 @@
     planner.setSelection(saved.s,saved.d);current=saved.w;
   } else if(hashCard && hashCard.matches('article.week-card'))current=hash;
   document.body.classList.add('ux-ready');restoring=false;planner.updateSearch();refresh(current);
+  window.MaluPlannerUnits={open(id,panel){const card=$(id),match=id.match(/^(s\d)-(historia|filosofia|sociologia)-semana-/);if(!card||!match)return false;planner.setSelection(match[1],match[2]);refresh(id);setPanel(card,['prepare','notebook','activity'].includes(panel)?panel:'notebook');history.replaceState(null,'','#'+id);card.scrollIntoView({block:'start'});return true;}};
   paintStorage();document.documentElement.classList.remove('planner-loading');window.addEventListener('resize',toolbarHeight);
   if(window.ResizeObserver)new ResizeObserver(toolbarHeight).observe($('navShell').parentElement);
 })();
