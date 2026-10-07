@@ -100,7 +100,7 @@
     }
   }
   let linkingRegistration=false,registrationChecked=false;
-  async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id])d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
+  async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&!data.alunos[id].siapVerificadoEm&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id])d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
   function activityForm(existing){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
     const origin=existing?.origem||draftOrigin||currentOrigin();
