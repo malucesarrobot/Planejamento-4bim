@@ -5,6 +5,7 @@
   let data=empty(),broken=false,selected='',view='notes';
   try{const saved=await window.MaluGradebookStorage.read(key);if(saved){data=JSON.parse(saved);if(data.version!==1||data.bimestre!==4||!Array.isArray(data.activities)||!data.turmas||!data.alunos||!data.scores||!data.attendance||!data.mediaModo)throw Error();}}
   catch(e){broken=true;data=empty();}
+  try{selected=await window.MaluGradebookStorage.read(key+'-class')||'';}catch(e){}
   const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
   const button=(text,fn)=>{const n=node('button',text);n.type='button';n.addEventListener('click',fn);return n;};
   const dialog=node('dialog',null,'gb-dialog');dialog.id='gradebook';dialog.setAttribute('aria-labelledby','gbTitle');
@@ -13,13 +14,16 @@
   const info=node('p','4º bimestre · 2026 · Salvo neste aparelho','gb-info');
   const status=node('p',null,'gb-status');status.setAttribute('role','status');
   const controls=node('div',null,'gb-controls'),select=node('select');select.setAttribute('aria-label','Turma, escola e disciplina');
-  select.addEventListener('change',()=>{selected=select.value;render();});
+  select.addEventListener('change',()=>{selected=select.value;window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();});
   const content=node('div',null,'gb-content');
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');
   const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
-  controls.append(select,login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));
-  info.textContent='4º bimestre · 2026';dialog.append(header,info,cloudInfo,controls,status,content,file);document.body.append(dialog);
+  controls.append(select);
+  const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
+  settingsActions.append(login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
+
+  info.textContent='4º bimestre · 2026';dialog.append(header,info,cloudInfo,controls,status,content,settings,file);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
@@ -44,7 +48,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    content.append(mode,button('Nova atividade',activityForm),node('p','Soma = pontos obtidos. Média = notas convertidas para 0–10, conforme o modo de cálculo. Na média, atividade sem lançamento vale zero; extras somam bônus, limitado a 10.','gb-help'));
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Nova atividade',()=>activityForm()),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -67,7 +71,7 @@
   }
   function activityForm(existing){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
-    const name=field('Atividade','text',existing?.nome||''),date=field('Data','date',existing?.data||today());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
+    const name=field('Atividade','text',existing?.nome||''),date=field('Data','date',existing?.data||bimestreToday());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
     const label=node('label','Tipo'),type=node('select');for(const t of ['Texto','Resumo','Estudo dirigido','Questões','Avaliação','Outra'])type.append(new Option(t,t));type.value=existing?.tipo||'Texto';label.append(type);form.append(label);
     const max=field('Valor máximo','number',existing?.valorMax||10),weight=field('Peso na média ponderada','number',existing?.peso||1);for(const n of [max,weight]){n.min='0.1';n.step='0.1';n.required=true;}
     const checkLabel=node('label','Registrar por execução (fez / não fez)'),check=node('input');check.type='checkbox';check.checked=!!existing?.checklist;checkLabel.append(check);form.append(checkLabel);
@@ -79,9 +83,10 @@
       if(existing&&!check.checked&&Object.values(data.scores).some(s=>Number(s[existing.id])>value)){message('O valor máximo é menor que uma pontuação já lançada.',true);return;}
       const a={id:existing?.id||crypto.randomUUID(),turmaId:selected,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked};if(await update(d=>{const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;}))render();});content.replaceChildren(form);
   }
+  function bimestreToday(){return today()<'2026-10-08'?'2026-10-08':today()>'2026-12-18'?'2026-12-18':today();}
   function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   function renderAttendance(){
-    const label=node('label','Data da aula'),date=node('input');date.type='date';date.min='2026-10-08';date.max='2026-12-18';date.value=today();label.append(date);content.append(label);
+    const label=node('label','Data da aula'),date=node('input');date.type='date';date.min='2026-10-08';date.max='2026-12-18';date.value=bimestreToday();label.append(date);content.append(label);
     const period=node('select');period.setAttribute('aria-label','Horário da chamada');content.append(period);
     const csv=node('input');csv.type='file';csv.accept='.csv,text/csv';csv.hidden=true;content.append(button('Importar chamada do Arlan',async()=>{try{message('Lendo a planilha do Arlan…');const r=await fetch(window.MaluArlan.url);if(!r.ok)throw Error();await applyArlan(await r.text());}catch(e){message('A leitura da planilha falhou. Use Importar CSV do Arlan com o arquivo da aba Frequencia_Diaria.',true);}}),button('Importar CSV do Arlan',()=>csv.click()),csv);csv.addEventListener('change',async()=>{try{if(csv.files[0])await applyArlan(await csv.files[0].text());}catch(e){message(e.message,true);}finally{csv.value='';}});
     const list=node('div');content.append(node('p','Presente em verde. Toque para marcar falta em vermelho. Salvar chamada confirma a presença dos demais alunos.','gb-help'),list);
