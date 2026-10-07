@@ -350,3 +350,6 @@ body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7
   body.ux-ready .ux-week-context{gap:6px}
  }
 }
+
+/* Quadro sem comandos ou referências no rodapé. */
+@media screen{#projectionView #projectionRefs,#projectionView .projection-refs{display:none!important}}
