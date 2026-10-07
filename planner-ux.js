@@ -122,6 +122,16 @@
   }
   $('uxUndo').addEventListener('click',()=>{ const fn=undoAction; undoAction=null; if(fn)fn(); $('uxUndo').hidden=true; });
   function closeTools() { $('navTools').open=false; }
+  const menuSummary=$('navTools').querySelector('summary');
+  menuSummary.textContent='☰';menuSummary.setAttribute('aria-label','Abrir menu lateral');menuSummary.title='Menu';
+  const menuClose=el('button','ux-menu-close','Fechar menu');menuClose.type='button';
+  menuClose.addEventListener('click',()=>{closeTools();menuSummary.focus();});
+  $('navTools').querySelector('.tools-panel').prepend(menuClose);
+  const menuBackdrop=el('button','ux-menu-backdrop');menuBackdrop.type='button';menuBackdrop.hidden=true;menuBackdrop.setAttribute('aria-label','Fechar menu lateral');
+  document.body.append(menuBackdrop);menuBackdrop.addEventListener('click',closeTools);
+  $('navTools').addEventListener('toggle',()=>{menuBackdrop.hidden=!$('navTools').open;menuSummary.setAttribute('aria-expanded',String($('navTools').open));});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('navTools').open){closeTools();menuSummary.focus();}});
+
   function activeSection() { const v=planner.getSelection(); return $(v.s+'-'+v.d); }
   function matches() { const section=activeSection(); return section ? [...section.querySelectorAll('article.week-card')].filter(c=>!c.classList.contains('hidden')) : []; }
   function weekNumber(card) { return Number(card.id.split('-semana-')[1]); }
