@@ -120,14 +120,20 @@ try {
   await mark.check();assert.equal(await mark.isChecked(),true);
   assert.match(await mark.getAttribute('title'),/^Aplicado em \d{2}\/\d{2}\/\d{4}$/);
   assert.equal(await other.isChecked(),false);
-  await page.locator('#uxUndo').click();assert.equal(await mark.isChecked(),false);
+  assert.equal(await page.locator('#uxFeedback').isVisible(),false);
+  await mark.uncheck();assert.equal(await mark.isChecked(),false);
   await mark.check();await other.check();await mark.uncheck();
   assert.equal(await other.isChecked(),true);
-  await page.locator('#uxUndo').click();assert.equal(await mark.isChecked(),true);
+  await mark.check();assert.equal(await mark.isChecked(),true);
+  await page.locator('#wkNext').click();
+  assert.equal(await page.locator('#uxFeedback').isVisible(),false);
+  assert.equal(await page.locator('article.week-card:visible input[data-ux-class="3ªB"]').isChecked(),false);
+  await page.locator('#wkPrev').click();
+  assert.equal(await mark.isChecked(),true);
   await page.reload();await page.waitForSelector('body.ux-ready');
   assert.equal(await page.locator('#uxSeries').inputValue(),'s3');
   assert.equal(await mark.isChecked(),true);assert.equal(await other.isChecked(),true);
-  console.log('PASS cancel, independent class checkboxes, undo and persisted completion');
+  console.log('PASS compact checkboxes, independent weeks, uncheck and persisted completion');
 
   await tools();
   const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Baixar cópia de segurança',exact:true}).click();
