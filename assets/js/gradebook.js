@@ -90,8 +90,8 @@
   }
   function showReport(student){
     content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',render),node('h3',student.nome));content.append(top);
-    const records=C.reportStudents(student,data.alunos);if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
-    for(const pupil of records.sort((a,b)=>classLabel(data.turmas[a.turmaId]||{}).localeCompare(classLabel(data.turmas[b.turmaId]||{}),'pt-BR'))){
+    const records=C.reportStudents(student,data.alunos);top.append(node('p','Boletim · disciplinas do aluno','gb-help'));if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
+    for(const pupil of records.sort((a,b)=>(a.turmaId===selected?-1:b.turmaId===selected?1:0)||classLabel(data.turmas[a.turmaId]||{}).localeCompare(classLabel(data.turmas[b.turmaId]||{}),'pt-BR'))){
       const t=data.turmas[pupil.turmaId];if(!t)continue;const avs=data.activities.filter(a=>a.turmaId===pupil.turmaId).sort((a,b)=>a.data.localeCompare(b.data)),scores=data.scores[pupil.id]||{},totals=C.result(avs,scores,data.mediaModo[pupil.turmaId]);
       const section=node('section',null,'gb-report-subject');section.append(node('h4',classLabel(t)),node('p','Média: '+fmt(totals.average)+' / 10 · Soma: '+fmt(totals.sum),'gb-report-average'));
       if(!avs.length)section.append(node('p','Nenhuma atividade cadastrada no 4º bimestre.','gb-help'));
@@ -101,9 +101,13 @@
   }
   let linkingRegistration=false,registrationChecked=false;
   async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&!data.alunos[id].siapVerificadoEm&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id])d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
+  function originMatchesClass(origin,t){const match=origin?.weekId?.match(/^s(\d+)-(historia|filosofia|sociologia)-/);return !!(match&&t&&Number(match[1])===Number.parseInt(t.serie||t.nome)&&({historia:'História',filosofia:'Filosofia',sociologia:'Sociologia'})[match[2]]===t.disciplina);}
   function activityForm(existing){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
-    const origin=existing?.origem||draftOrigin||currentOrigin();
+    const targetClass=selected,t=data.turmas[targetClass],visibleOrigin=currentOrigin();
+    const origin=existing?(existing.origem||null):(draftOrigin||(originMatchesClass(visibleOrigin,t)?visibleOrigin:null));
+    form.append(node('p','Registrar em: '+classLabel(t||{}),'gb-help'));
+    if(origin&&!originMatchesClass(origin,t))form.append(node('p','A unidade vinculada pertence a outra série ou disciplina. Escolha a turma correspondente antes de registrar.','gb-error'));
     const name=field('Atividade','text',existing?.nome||origin?.title||''),date=field('Data','date',existing?.data||bimestreToday());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
     const label=node('label','Tipo'),type=node('select');for(const t of ['Texto','Resumo','Estudo dirigido','Questões','Avaliação','Outra'])type.append(new Option(t,t));type.value=existing?.tipo||'Texto';label.append(type);form.append(label);
     const sourceLabel=node('label','O que registrar'),sourceChoice=node('select'),originCard=origin?.weekId&&document.getElementById(origin.weekId),bookReferences=[...originCard?.querySelectorAll('.book-activity')||[]].map(n=>n.textContent.trim()).filter(Boolean),bookReference=[...new Set(bookReferences)].join(' · ');
@@ -114,10 +118,10 @@
     const extraLabel=node('label','Atividade extra / bônus'),extra=node('input');extra.type='checkbox';extra.checked=!!existing?.extra;extraLabel.append(extra);form.append(extraLabel);
     form.append(node('p','No bônus por execução, o peso é o valor somado à média.','gb-help'));
     const submit=node('button','Salvar atividade');submit.type='submit';form.append(submit,button('Cancelar',()=>{draftOrigin=null;render();}));
-    form.addEventListener('submit',async e=>{e.preventDefault();if(!name.value.trim())return;const value=Number(max.value),peso=Number(weight.value);if(!(value>0&&peso>0&&Number.isFinite(value)&&Number.isFinite(peso)))return;
+    form.addEventListener('submit',async e=>{e.preventDefault();if(selected!==targetClass){message('A turma mudou. Abra o cadastro novamente.',true);return;}if(origin&&!originMatchesClass(origin,t)){message('Esta unidade não pertence à série e disciplina da turma selecionada.',true);return;}if(!name.value.trim())return;const value=Number(max.value),peso=Number(weight.value);if(!(value>0&&peso>0&&Number.isFinite(value)&&Number.isFinite(peso)))return;
       if(existing&&existing.checklist!==check.checked&&Object.values(data.scores).some(s=>s[existing.id]!=null)){message('Esta atividade já tem notas. Crie outra atividade para alterar o modo de registro.',true);return;}
       if(existing&&!check.checked&&Object.values(data.scores).some(s=>Number(s[existing.id])>value)){message('O valor máximo é menor que uma pontuação já lançada.',true);return;}
-      const a={id:existing?.id||crypto.randomUUID(),turmaId:selected,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked,origem:origin?{weekId:origin.weekId,title:origin.title,panel:sourceChoice.value==='book'?'notebook':sourceChoice.value,kind:sourceChoice.value==='book'?'book':'unit',bookReference:sourceChoice.value==='book'?bookReference:'',url:''}:null};if(await update(d=>{const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;})){draftOrigin=null;render();}});content.replaceChildren(form);
+      const a={id:existing?.id||crypto.randomUUID(),turmaId:targetClass,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked,origem:origin?{weekId:origin.weekId,title:origin.title,panel:sourceChoice.value==='book'?'notebook':sourceChoice.value,kind:sourceChoice.value==='book'?'book':'unit',bookReference:sourceChoice.value==='book'?bookReference:'',url:''}:null};if(await update(d=>{const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;})){draftOrigin=null;render();}});content.replaceChildren(form);
   }
   function bimestreToday(){return today()<'2026-10-08'?'2026-10-08':today()>'2026-12-18'?'2026-12-18':today();}
   function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
