@@ -44,11 +44,11 @@
     Object.values(data.turmas).sort((a,b)=>classLabel(a).localeCompare(classLabel(b),'pt-BR')).forEach(t=>select.append(new Option(classLabel(t),t.id)));
     if(!data.turmas[selected])selected='';select.value=selected;
   }
-  function open(which){plannerClass();view=which;document.getElementById('navTools').open=false;title.textContent=which==='notes'?'Notas e atividades':'Chamada';refreshClasses();render();dialog.showModal();if(broken)message('Não foi possível ler os dados locais. Nada foi sobrescrito.',true);}
+  function open(which){plannerClass();message('');view=which;document.getElementById('navTools').open=false;title.textContent=which==='notes'?'Notas e atividades':'Chamada';refreshClasses();render();dialog.showModal();if(broken)message('Não foi possível ler os dados locais. Nada foi sobrescrito.',true);}
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base',numeric:true})||a.id.localeCompare(b.id));}
   function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
-  function render(){content.replaceChildren();if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else renderAttendance();}
+  function render(){content.replaceChildren();if(view==='attendance'){renderAttendance();return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else renderAttendance();}
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
@@ -121,19 +121,37 @@
   }
   function bimestreToday(){return today()<'2026-10-08'?'2026-10-08':today()>'2026-12-18'?'2026-12-18':today();}
   function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  let attendanceDate='',attendanceSlot='';
   function renderAttendance(){
-    const label=node('label','Data da aula'),date=node('input');date.type='date';date.min='2026-10-08';date.max='2026-12-18';date.value=bimestreToday();label.append(date);content.append(label);
-    const period=node('select');period.setAttribute('aria-label','Horário da chamada');content.append(period);
+    const label=node('label','Data da aula'),date=node('input');date.type='date';date.min='2026-10-08';date.max='2026-12-18';date.value=attendanceDate||bimestreToday();attendanceDate=date.value;label.append(date);content.append(label);
+    const period={value:'dia'},daySchedule=node('div',null,'gb-day-schedule');daySchedule.setAttribute('role','group');daySchedule.setAttribute('aria-label','Aulas da data selecionada');content.append(daySchedule);
     const imports=node('details',null,'gb-settings');imports.append(node('summary','Importar chamada'));const importActions=node('div',null,'gb-settings-actions');imports.append(importActions);
     const csv=node('input');csv.type='file';csv.accept='.csv,text/csv';csv.hidden=true;importActions.append(button('Importar chamada do Arlan',async()=>{try{message('Lendo a planilha do Arlan…');const r=await fetch(window.MaluArlan.url);if(!r.ok)throw Error();await applyArlan(await r.text());}catch(e){message('A leitura da planilha falhou. Use Importar CSV do Arlan com o arquivo da aba Frequencia_Diaria.',true);}}),button('Importar CSV do Arlan',()=>csv.click()),csv);csv.addEventListener('change',async()=>{try{if(csv.files[0])await applyArlan(await csv.files[0].text());}catch(e){message(e.message,true);}finally{csv.value='';}});
     const list=node('div',null,'gb-attendance-list');content.append(list);
     async function applyArlan(text){try{const r=window.MaluArlan.plan(text,data,selected,date.value,window.MaluGradebookSchedule);if(r.pending.length){message('Nomes que exigem conferência: '+r.pending.join('; '),true);}if(!r.count){if(!r.pending.length)message('Nenhuma falta nova nesta data. Registros anteriores foram preservados.');return;}if(!confirm('Importar '+r.count+' falta(s) em '+date.value+'? '+r.skipped+' registro(s) preservado(s) e '+r.pending.length+' nome(s) pendente(s). Os demais alunos continuarão sem lançamento.'))return;if(await save(r.next)){paint();message(r.count+' falta(s) importada(s).'+(r.pending.length?' Conferir: '+r.pending.join('; '):''),!!r.pending.length);}}catch(e){message(e.message,true);}}
     function validDate(){if(!date.value||date.value<'2026-10-08'||date.value>'2026-12-18'){message('Escolha uma data entre 08/10 e 18/12, no 4º bimestre.',true);return false;}return true;}
-    content.append(button('Salvar chamada',async()=>{if(!validDate())return;const k=selected+'|'+date.value+'|'+period.value;if(await update(d=>{d.attendance[k]??={};for(const a of students())d.attendance[k][a.id]??='P';}))message('Chamada registrada.');}));
+    content.append(button('Salvar chamada',async()=>{if(!selected){message('Escolha uma aula ou turma.',true);return;}if(!validDate())return;const k=selected+'|'+date.value+'|'+period.value;if(await update(d=>{d.attendance[k]??={};for(const a of students())d.attendance[k][a.id]??='P';}))message('Chamada registrada.');}));
     const paint=()=>{list.replaceChildren();for(const a of students()){const choice=node('button');choice.type='button';const k=selected+'|'+date.value+'|'+period.value;
       const color=()=>{const absent=data.attendance[k]?.[a.id]==='F';choice.textContent=(absent?'✕ ':'✓ ')+a.nome;choice.className='gb-attendance-row '+(absent?'gb-absent':'gb-present');choice.setAttribute('aria-label',(absent?'Falta':'Presente')+' — '+a.nome);choice.setAttribute('aria-pressed',String(absent));};color();choice.disabled=!date.value;
       choice.addEventListener('click',async()=>{if(!validDate())return;choice.disabled=true;const value=data.attendance[k]?.[a.id]==='F'?'P':'F';await update(d=>{d.attendance[k]??={};d.attendance[k][a.id]=value;});color();choice.disabled=false;});list.append(choice);}if(!students().length)list.append(node('p','Importe os alunos desta turma para fazer a chamada.'));};
-    const periods=()=>{const t=data.turmas[selected],day=new Date(date.value+'T12:00:00').getDay();period.replaceChildren();period.append(new Option('Registro do dia','dia'));for(const h of (window.MaluGradebookSchedule||[]).filter(h=>h.dia===day&&Number.parseInt(t.serie)===h.serie&&t.letra===h.letra&&t.disciplina===h.disc&&t.unidade===h.unidade))period.append(new Option(h.ini+' a '+h.fim,h.ini));period.hidden=period.options.length===1;paint();};date.addEventListener('change',periods);period.addEventListener('change',paint);periods();content.append(imports);
+    const periods=()=>{
+      daySchedule.replaceChildren();const day=new Date(date.value+'T12:00:00').getDay();
+      const lessons=(window.MaluGradebookSchedule||[]).filter(h=>h.dia===day).map(h=>({h,t:Object.values(data.turmas).find(t=>Number.parseInt(t.serie)===h.serie&&t.letra===h.letra&&t.disciplina===h.disc&&t.unidade===h.unidade)})).filter(x=>x.t).sort((a,b)=>a.h.ini.localeCompare(b.h.ini)||classLabel(a.t).localeCompare(classLabel(b.t),'pt-BR'));
+      if(!selected&&lessons.length){selected=lessons[0].t.id;select.value=selected;}
+      const matching=lessons.filter(x=>x.t.id===selected);
+      if(!matching.some(x=>x.h.ini===attendanceSlot))attendanceSlot=matching[0]?.h.ini||'dia';
+      period.value=attendanceSlot;
+      for(const {h,t}of lessons){const active=t.id===selected&&h.ini===period.value;
+        const choice=button(h.ini+'–'+h.fim+' · '+t.nome+' · '+t.disciplina,()=>{attendanceDate=date.value;attendanceSlot=h.ini;selected=t.id;rememberClass(t);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});select.value=selected;message('');render();});
+        choice.className='gb-lesson-choice';choice.setAttribute('aria-pressed',String(active));daySchedule.append(choice);
+      }
+      if(!lessons.length)daySchedule.append(node('p','Nenhuma aula cadastrada para esta data.','gb-help'));
+      if(selected){const legacyKey=selected+'|'+date.value+'|dia';if(!matching.length||data.attendance[legacyKey]){
+        const avulso=button('Registro do dia · '+(data.turmas[selected]?.nome||''),()=>{attendanceSlot='dia';period.value='dia';for(const b of daySchedule.querySelectorAll('button'))b.setAttribute('aria-pressed',String(b===avulso));paint();});
+        avulso.className='gb-lesson-choice';avulso.setAttribute('aria-pressed',String(period.value==='dia'));daySchedule.append(avulso);
+      }}
+      paint();
+    };date.addEventListener('change',()=>{attendanceDate=date.value;attendanceSlot='';message('');periods();});periods();content.append(imports);
   }
   file.addEventListener('change',async()=>{const f=file.files[0];if(!f)return;try{if(f.size>32*1024*1024)throw Error('Arquivo grande demais. Use o backup JSON do Leciona.');const source=JSON.parse(await f.text());const {next,classes,students}=C.importRoster(source,data);if(!confirm('Importar '+students+' alunos e '+classes+' turmas? Notas e frequências antigas não serão trazidas. Seus lançamentos atuais serão preservados.'))return;if(await save(next)){refreshClasses();render();message(students+' alunos importados. Notas e chamada do bimestre anterior não foram copiadas.');}}catch(e){message(e.message,true);}finally{file.value='';}});
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
