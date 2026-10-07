@@ -22,10 +22,12 @@
     }
     for(const [id,a] of Object.entries(source.alunos)){
       if(!a||typeof a.nome!=='string'||!next.turmas[a.turmaId])continue;
-      next.alunos[id]={id,nome:a.nome,numero:a.numero||null,turmaId:a.turmaId,ativo:a.ativo!==false};students++;
+      next.alunos[id]={id,nome:a.nome,numero:a.numero||null,turmaId:a.turmaId,ativo:a.ativo!==false,matricula:a.matricula==null?'':String(a.matricula).trim()};students++;
     }
     if(!classes||!students)throw Error('O arquivo não contém turmas e alunos válidos.');
     return {next,classes,students};
   }
-  globalThis.MaluGradebookCore={result,importRoster};
+  function reportStudents(student,students){const registration=String(student.matricula||'').trim();return Object.values(students).filter(a=>a.ativo!==false&&(a.id===student.id||(registration&&String(a.matricula||'').trim()===registration)));}
+  function completed(activity,value){return activity.checklist?Number(value)>0:value!==null&&value!==undefined;}
+  globalThis.MaluGradebookCore={result,importRoster,reportStudents,completed};
 })();
