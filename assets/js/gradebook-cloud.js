@@ -1,8 +1,8 @@
 (() => {
   'use strict';
   const storage={
-    async read(key){let raw=null;try{raw=localStorage.getItem(key);}catch(e){}if(raw!==null)return raw;return this.idb(key);},
-    async write(key,value){try{localStorage.setItem(key,value);return;}catch(e){}await this.idb(key,value);try{localStorage.removeItem(key);}catch(e){}},
+    async read(key){let raw=null;try{if(!window.__maluStorageVolatile)raw=localStorage.getItem(key);}catch(e){}if(raw!==null)return raw;return this.idb(key);},
+    async write(key,value){try{if(window.__maluStorageVolatile)throw Error('Volatile storage');localStorage.setItem(key,value);return;}catch(e){}await this.idb(key,value);try{localStorage.removeItem(key);}catch(e){}},
     async idb(key,value){return new Promise((resolve,reject)=>{const request=indexedDB.open('malu-gradebook-storage',1);request.onupgradeneeded=()=>request.result.createObjectStore('records');request.onerror=()=>reject(request.error);request.onsuccess=()=>{const db=request.result,tx=db.transaction('records',value===undefined?'readonly':'readwrite'),req=value===undefined?tx.objectStore('records').get(key):tx.objectStore('records').put(value,key);let result;req.onsuccess=()=>{result=req.result;};tx.oncomplete=()=>{db.close();resolve(result??null);};tx.onerror=tx.onabort=()=>{db.close();reject(tx.error||Error('Armazenamento indisponível'));};};});}
   };
   window.MaluGradebookStorage=storage;
