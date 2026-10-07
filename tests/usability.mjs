@@ -59,7 +59,8 @@ try {
   assert.equal(await page.locator('textarea[data-save="s9-historia-w1-obs"]').inputValue(),'Anotação anterior preservada.');
   assert.equal(await page.locator('.study-track:visible').count(),1);
   assert.equal(await page.locator('article.week-card:visible .ux-week-date').textContent(),'01 a 09/10');
-  assert.match(await page.locator('#wkLabel').textContent(),/01 a 09\/10/);
+  assert.doesNotMatch(await page.locator('#wkLabel').textContent(),/01 a 09\/10/);
+  assert.match(await page.locator('article.week-card:visible .ux-week-date').textContent(),/01 a 09\/10/);
   assert.match(await page.locator('#guia').textContent(),/30\/11 a 18\/12/);
   assert.match(await page.locator('#guia').textContent(),/Calendário oficial SEDUC-GO/);
   console.log('PASS initial view, official SEDUC-GO dates, visible learning track and all legacy note fields preserved');
@@ -85,7 +86,7 @@ try {
   assert.equal(await card.locator('.atv-prof').isVisible(),false);
   console.log('PASS content tabs and teacher answers initially collapsed');
 
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   await page.locator('#uxEditTitle').fill('Aula exclusiva de teste');
   const edit=page.locator('#uxEditorPreview [contenteditable]').first();
   await edit.fill('Texto alterado com <img src=x onerror=alert(1)> como texto.');
@@ -111,7 +112,7 @@ try {
   assert.equal(await page.locator('#uxSeries option').count(),4);
   console.log('PASS compact series selection and search removed');
 
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   await page.locator('#uxEditTitle').fill('Alteração cancelada');
   page.once('dialog',d=>d.accept());await page.locator('#uxEditorCancel').click();
   assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
@@ -144,7 +145,7 @@ try {
   assert.ok(backup.notes['ux-'+chosen+'-edits']);
   assert.ok(backup.aulasDadas[chosen+'|3ªB']);
   await page.locator('#navTools > summary').click();
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   page.once('dialog',d=>d.accept());await page.locator('#uxRestoreOriginal').click();
   assert.notEqual(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
   await tools();await page.locator('#importFile').setInputFiles('test-results/backup.json');
@@ -153,7 +154,7 @@ try {
   await page.locator('#navTools > summary').click();
   console.log('PASS backup export, restore original and import with legacy notes intact');
 
-  await card.getByRole('button',{name:'Imprimir',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxPrintCurrent').click();
   await page.locator('#uxPrintScope').selectOption('discipline');
   await page.getByRole('button',{name:'Caderno dos alunos',exact:true}).click();
   await page.emulateMedia({media:'print'});
@@ -163,7 +164,7 @@ try {
   await page.pdf({path:'test-results/cadernos.pdf',format:'A4',printBackground:true});
   await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
   await page.emulateMedia({media:'screen'});assert.equal(await visibleCards(),1);
-  await card.getByRole('button',{name:'Imprimir',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxPrintCurrent').click();
   await page.locator('#uxPrintScope').selectOption('all');
   await page.getByRole('button',{name:'Atividade dos alunos',exact:true}).click();
   assert.equal(await page.locator('#atvPrint .atv-aluno').count(),60);
@@ -178,7 +179,7 @@ try {
   assert.equal(await page.locator('.lesson-quick-nav').count(),0);const box=await page.locator('.weekbar').boundingBox();assert.ok(box.width<=390);
   assert.equal(await card.locator('.ux-actions').evaluate(n=>getComputedStyle(n).position),'static');
   await page.screenshot({path:'test-results/mobile.png',fullPage:true});
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   assert.equal(await page.locator('#uxEditorSave').isVisible(),true);
   await page.screenshot({path:'test-results/mobile-editor.png'});
   await page.locator('#uxEditorCancel').click();
@@ -208,13 +209,13 @@ try {
   await page.locator('#syncClose').click();
   console.log('PASS mocked cross-device updates and offline status (no production database writes)');
   unavailable=false;
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   await page.locator('#uxEditTitle').fill('Primeira edição durante envio');
   await page.locator('#uxEditorSave').click();
   let release;patchStarted=false;patchGate=new Promise(r=>release=r);
   const syncing=page.evaluate(()=>window.MaluSync.syncNow());
   await waitFor(()=>patchStarted);
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   await page.locator('#uxEditTitle').fill('Segunda edição durante envio');
   await page.locator('#uxEditorSave').click();
   release();patchGate=null;await syncing;
@@ -227,7 +228,7 @@ try {
   await tools();await page.locator('#syncBtn').click();
   const sameCode=await page.locator('#syncCode').inputValue();
   await page.locator('#syncOff').click();await page.locator('#syncClose').click();
-  await card.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   await page.locator('#uxEditTitle').fill('Edição feita com sincronização desligada');
   await page.locator('#uxEditorSave').click();
   await tools();await page.locator('#syncBtn').click();
