@@ -25,3 +25,11 @@
  .gb-settings,.gb-calculation{font-size:.78rem}
  @media(max-width:600px){.gb-dialog{padding:12px}.gb-header{padding:8px 0}.gb-header h2{font-size:1.8rem}}
 }
+
+.gb-dialog .gb-student-link{border:0;background:transparent;padding:4px 0;text-align:left;color:#665083;text-decoration:underline dotted;text-underline-offset:4px;font-weight:600}
+.gb-report-header h3{font:700 1.5rem/1.2 Georgia,serif;color:#443451;margin:16px 0}
+.gb-report-subject{margin-top:14px;padding:14px;background:#f7f3fb;border:1px solid #e2d7ed;border-radius:12px}
+.gb-report-subject h4{margin:0 0 8px;font-size:1.05rem}.gb-report-average{font-weight:700;margin:8px 0}
+.gb-report-subject h5{font-size:.82rem;margin:12px 0 4px}.gb-report-done{color:#286143}.gb-report-pending{color:#92552d}
+.gb-dialog .gb-report-activity{display:block;width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:6px 0;text-decoration:underline dotted;text-underline-offset:3px}
+.gb-note-target{outline:3px solid #b7833f;outline-offset:-3px}
