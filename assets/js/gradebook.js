@@ -157,7 +157,7 @@
       if(!matching.some(x=>x.h.ini===attendanceSlot))attendanceSlot=matching[0]?.h.ini||'dia';
       period.value=attendanceSlot;
       for(const {h,t}of lessons){const active=t.id===selected&&h.ini===period.value;
-        const choice=button(h.ini+'–'+h.fim+' · '+t.nome+' · '+t.disciplina,()=>{attendanceDate=date.value;attendanceSlot=h.ini;selected=t.id;rememberClass(t);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});select.value=selected;message('');render();});
+        const choice=button(t.nome+' · '+t.disciplina+' · '+h.ini+'–'+h.fim,()=>{attendanceDate=date.value;attendanceSlot=h.ini;selected=t.id;rememberClass(t);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});select.value=selected;message('');render();});
         choice.className='gb-lesson-choice';choice.setAttribute('aria-pressed',String(active));daySchedule.append(choice);
       }
       if(!lessons.length)daySchedule.append(node('p','Nenhuma aula cadastrada para esta data.','gb-help'));
