@@ -155,8 +155,7 @@
     }
     const i=ids.indexOf(current),c=current && $(current);
     $('wkPrev').disabled=i<=0; $('wkNext').disabled=i<0 || i>=ids.length-1; $('wkProject').disabled=!c;if($('wkPrepare'))$('wkPrepare').disabled=!c;
-    const range=c ? seducWeekRange(c) : '';
-    $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+seriesSelect.selectedOptions[0].textContent+(range?' · '+range:'') : 'Nenhuma aula encontrada';
+    $('wkLabel').textContent=c ? 'Semana '+weekNumber(c)+' · '+seriesSelect.selectedOptions[0].textContent : 'Nenhuma aula encontrada';
     $('uxEmpty').hidden=!!c;
     $('searchCount').hidden=true;
     if(c){remembered.set(activeSection().id,c.id);const panel=panelMemory[activeSection().id];setPanel(c,['prepare','notebook','activity'].includes(panel)?panel:'prepare',false);}
@@ -245,8 +244,6 @@
     const head=card.querySelector('.week-head h3');head.tabIndex=-1;
     bases.set(card.id,{title:head.textContent,notebook:notebook.cloneNode(true),activity:activity.cloneNode(true)});
     const actions=el('div','ux-actions');actions.setAttribute('aria-label','Ações desta aula');
-    const edit=el('button',null,'Editar aula');edit.type='button';edit.addEventListener('click',()=>openEditor(card.id));
-    const print=el('button',null,'Imprimir');print.type='button';print.addEventListener('click',()=>openPrint(card.id));
     const checks=el('div','ux-class-checks');checks.setAttribute('role','group');checks.setAttribute('aria-label','Aplicado às turmas');
     for(const turma of C.CLASSES[card.id.split('-')[0]]) {
       const label=el('label','ux-class-check');
@@ -254,7 +251,7 @@
       check.addEventListener('change',()=>markGiven(card.id,turma,check.checked));
       label.append(check,document.createTextNode(turma));checks.appendChild(label);
     }
-    actions.append(edit,print,checks);card.querySelector('.week-head').after(actions);
+    actions.append(checks);card.querySelector('.week-head').after(actions);
     const tabs=el('div','ux-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Conteúdo da aula');
     const set={};
     for(const [key,label] of [['prepare','Preparar aula'],['notebook','Caderno dos alunos'],['activity','Atividade']]) {
@@ -287,7 +284,6 @@
     if(teacher){teacher.textContent='Fundamentação e roteiro da professora';teacher.parentElement.open=true;}
     const curriculum=set.prepare.querySelector('.ux-curriculum');if(curriculum)curriculum.open=true;
     if(glossary){const teacherBlock=set.prepare.querySelector('.prof-caderno');if(teacherBlock)teacherBlock.before(glossary);else set.prepare.prepend(glossary);}
-    const printRoute=el('button','ux-print-route','Imprimir roteiro da semana / PDF');printRoute.type='button';printRoute.addEventListener('click',()=>{printId=card.id;executePrint('prepare','week');});set.prepare.prepend(printRoute);
     const noteSpace=el('section','ux-print-note-space');noteSpace.appendChild(el('h4',null,'Anotações para a aula'));set.prepare.appendChild(noteSpace);
     card.append(set.prepare,set.notebook,set.activity);panels.set(card.id,set);setPanel(card,'prepare',false);
   }
@@ -304,6 +300,12 @@
   trackButton.addEventListener('click',()=>{const track=activeSection()?.querySelector('.study-track');if(track){track.tabIndex=-1;track.scrollIntoView({block:'start',behavior:'instant'});track.focus({preventScroll:true});}});
   const weekContext=el('div','ux-week-context');$('wkLabel').before(weekContext);weekContext.append($('wkLabel'),trackButton);
   const toolsPanel=$('navTools').querySelector('.tools-panel');
+  const lessonActions=toolsPanel.querySelector('.tools-actions');
+  const editLesson=el('button',null,'Editar aula');editLesson.type='button';editLesson.id='uxEditCurrent';
+  editLesson.addEventListener('click',()=>{if(current)openEditor(current);});
+  const printLesson=el('button',null,'Imprimir');printLesson.type='button';printLesson.id='uxPrintCurrent';
+  printLesson.addEventListener('click',()=>{if(current)openPrint(current);});
+  lessonActions.prepend(editLesson,printLesson);
   toolsPanel.prepend($('uxResume'),$('uxStorage'),$('guia'));
 
 
