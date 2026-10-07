@@ -38,6 +38,17 @@
   }
   let writes=Promise.resolve();
   function update(fn){const task=writes.then(()=>{const next=JSON.parse(JSON.stringify(data));fn(next);return save(next);});writes=task.catch(()=>{});return task;}
+
+  // Remoção solicitada após conferência do backup de 07/10/2026.
+  // IDs exatos evitam atingir outras atividades com nomes semelhantes.
+  const removedActivityIds=new Set(['2e89fe8f-9ee1-4dd1-a787-36b46c735f48','8201db89-f892-4de2-96b9-061d851ee448']);
+  function removeRequestedActivities(record){
+    const count=record.activities.length;
+    record.activities=record.activities.filter(a=>!removedActivityIds.has(a.id));
+    let changed=record.activities.length!==count;
+    for(const scores of Object.values(record.scores))for(const id of removedActivityIds)if(Object.hasOwn(scores,id)){delete scores[id];changed=true;}
+    return changed;
+  }
   function classLabel(t){return [t.nome||((t.serie||'')+(t.letra||'')),t.unidade,t.disciplina].filter(Boolean).join(' · ');}
   function refreshClasses(){
     select.replaceChildren();select.append(new Option('Selecione a turma',''));
@@ -159,7 +170,8 @@
   }
   file.addEventListener('change',async()=>{const f=file.files[0];if(!f)return;try{if(f.size>32*1024*1024)throw Error('Arquivo grande demais. Use o backup JSON do Leciona.');const source=JSON.parse(await f.text());const {next,classes,students}=C.importRoster(source,data);if(!confirm('Importar '+students+' alunos e '+classes+' turmas? Notas e frequências antigas não serão trazidas. Seus lançamentos atuais serão preservados.'))return;if(await save(next)){refreshClasses();render();message(students+' alunos importados. Notas e chamada do bimestre anterior não foram copiadas.');}}catch(e){message(e.message,true);}finally{file.value='';}});
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
-  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const hadClasses=Object.keys(data.turmas).length>0;data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}if(dialog.open&&(!hadClasses||!dialog.contains(document.activeElement))){refreshClasses();render();}else dialog.dataset.remoteChanged='1';if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
+  if(!broken&&(data.activities.some(a=>removedActivityIds.has(a.id))||Object.values(data.scores).some(scores=>[...removedActivityIds].some(id=>Object.hasOwn(scores,id)))))await update(removeRequestedActivities);
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next);const hadClasses=Object.keys(data.turmas).length>0;data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}if(dialog.open&&(!hadClasses||!dialog.contains(document.activeElement))){refreshClasses();render();}else dialog.dataset.remoteChanged='1';if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
   dialog.addEventListener('focusout',()=>{setTimeout(()=>{if(dialog.dataset.remoteChanged==='1'&&!dialog.querySelector('input:focus')){delete dialog.dataset.remoteChanged;refreshClasses();render();}},0);});
   async function exportBackup(){const raw=broken?await window.MaluGradebookStorage.read(key):JSON.stringify(data,null,2);const blob=new Blob([raw||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download='notas-chamada-4bimestre-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 })();
