@@ -16,7 +16,7 @@
   // Direct selection keeps the original select values as a compatibility bridge.
   const selectorRows=el('div','ux-direct-selectors');
   const directGroups=[];
-  for(const [select,label,shortLabels] of [[seriesSelect,'Série',{s9:'9º',s1:'1ª',s2:'2ª',s3:'3ª'}],[subjectSelect,'Disciplina',{}]]){
+  for(const [select,label,shortLabels] of [[subjectSelect,'Disciplina',{}],[seriesSelect,'Série',{s9:'9º',s1:'1ª',s2:'2ª',s3:'3ª'}]]){
     select.closest('label').classList.add('ux-sr');select.setAttribute('aria-hidden','true');select.tabIndex=-1;
     const row=el('div','ux-choice-row');row.setAttribute('role','group');row.setAttribute('aria-label',label);
     row.appendChild(el('span','ux-choice-label',label));
@@ -28,7 +28,8 @@
     row.appendChild(group);selectorRows.appendChild(row);directGroups.push({select,group});
   }
   $('navShell').prepend(selectorRows);
-  function paintSelectors(){for(const {select,group} of directGroups)for(const b of group.querySelectorAll('button')){b.setAttribute('aria-pressed',String(b.dataset.choice===select.value));b.disabled=!![...select.options].find(o=>o.value===b.dataset.choice)?.disabled;}}
+  $('wkProject').textContent='Projetar ▷';
+  function paintSelectors(){document.body.dataset.discipline=subjectSelect.value;for(const {select,group} of directGroups)for(const b of group.querySelectorAll('button')){b.setAttribute('aria-pressed',String(b.dataset.choice===select.value));b.disabled=!![...select.options].find(o=>o.value===b.dataset.choice)?.disabled;}}
   // Datas de referência alinhadas ao cronograma oficial SEDUC-GO 2026.
   // A SEDUC publica eventos e avaliações; as seis semanas abaixo são a organização do app encaixada nesse cronograma.
   const SEDUC_WEEK_RANGES = Object.freeze({
