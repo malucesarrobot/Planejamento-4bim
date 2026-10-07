@@ -6,3 +6,5 @@
 .gb-dialog .gb-absent{background:#fbe0df;color:#9d2525;border-color:#db8985;min-width:110px;font-weight:700}
 #navTools .gb-menu-attendance{background:#dcefe1;color:#195c34;border-color:#7ebc91}
 #navTools .gb-menu-notes{background:#e5def5;color:#604184;border-color:#bca3dc}
+
+.gb-settings{margin-top:16px;border-top:1px solid #e1dce7;padding-top:10px;color:#635c6b;font-size:.85rem}.gb-settings summary,.gb-calculation summary{cursor:pointer;padding:8px 0}.gb-settings-actions{display:grid;gap:8px;margin-top:8px}.gb-calculation{margin:10px 0;color:#635c6b;font-size:.85rem}.gb-controls>select{width:100%}
