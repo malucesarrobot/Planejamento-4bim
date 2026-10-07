@@ -27,7 +27,7 @@
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
   settingsActions.append(button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
-  info.textContent='4º bimestre · 2026';dialog.append(header,info,cloudInfo,controls,status,content,settings,file);document.body.append(dialog);
+  info.textContent='4º bimestre · 2026';settingsActions.prepend(info,cloudInfo);dialog.append(header,controls,status,content,settings,file);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
