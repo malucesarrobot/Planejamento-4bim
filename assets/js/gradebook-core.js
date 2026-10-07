@@ -17,8 +17,8 @@
     const next=JSON.parse(JSON.stringify(current));let classes=0,students=0;
     for(const [id,t] of Object.entries(source.turmas)){
       if(!t||typeof t!=='object')continue;
-      next.turmas[id]={...t,id};classes++;
-      const mode=source.mediaModo?.[id];if(['aritmetica','ponderada'].includes(mode))next.mediaModo[id]=mode;
+      if(!source.siapCorrection||!next.turmas[id])next.turmas[id]={...t,id};classes++;
+      const mode=source.mediaModo?.[id];if(!source.siapCorrection&&['aritmetica','ponderada'].includes(mode))next.mediaModo[id]=mode;
     }
     for(const [id,a] of Object.entries(source.alunos)){
       if(!a||typeof a.nome!=='string'||!next.turmas[a.turmaId])continue;
