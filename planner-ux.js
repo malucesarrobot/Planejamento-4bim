@@ -140,6 +140,8 @@
     paintSelectors();
   }
   function refresh(preferred, focus) {
+    $('uxFeedback').hidden=true; $('uxFeedbackText').textContent='';
+    undoAction=null; $('uxUndo').hidden=true;
     rememberSeries();
     const eligible=matches(), ids=eligible.map(c=>c.id);
     current=C.chooseWeek(ids,preferred || current);
@@ -365,10 +367,12 @@
     document.dispatchEvent(new CustomEvent('malu:aula',{detail:{key,date:date || null}}));refreshMarks();return true;
   }
   function markGiven(id,turma,checked) {
-    const key=id+'|'+turma,previous=window.__maluAulas.get()[key] || null;
+    const key=id+'|'+turma;
     const date=checked ? C.dateLocal(new Date()) : null;
     if(!setMark(key,date)){refreshMarks();return;}
-    feedback(date ? 'Semana marcada como dada para '+turma+'.' : 'Marcação retirada para '+turma+'.',()=>{setMark(key,previous);feedback('Marcação desfeita.');});
+    // The checkbox itself confirms the saved status; unchecking reverses it.
+    $('uxFeedback').hidden=true; $('uxFeedbackText').textContent='';
+    undoAction=null; $('uxUndo').hidden=true;
   }
   document.addEventListener('malu:aula',refreshMarks);document.addEventListener('malu:aulas-updated',refreshMarks);
   $('aulasClose').addEventListener('click',refreshMarks);
