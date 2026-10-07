@@ -6,6 +6,10 @@
   try{const saved=await window.MaluGradebookStorage.read(key);if(saved){data=JSON.parse(saved);if(data.version!==1||data.bimestre!==4||!Array.isArray(data.activities)||!data.turmas||!data.alunos||!data.scores||!data.attendance||!data.mediaModo)throw Error();}}
   catch(e){broken=true;data=empty();}
   try{selected=await window.MaluGradebookStorage.read(key+'-class')||'';}catch(e){}
+  let classContext={};try{classContext=JSON.parse(await window.MaluGradebookStorage.read(key+'-context')||'{}');}catch(e){}
+  function rememberClass(t){if(!t)return;const series=String(Number.parseInt(t.serie||t.nome));classContext[series]=t.letra||(t.nome||'').match(/[A-Z]$/)?.[0];window.MaluGradebookStorage.write(key+'-context',JSON.stringify(classContext)).catch(()=>{});}
+  document.addEventListener('change',event=>{const n=event.target;if(n.matches?.('input[data-ux-class]')){const label=n.dataset.uxClass,series=String(Number.parseInt(label));classContext[series]=label.match(/[A-Z]$/)?.[0];window.MaluGradebookStorage.write(key+'-context',JSON.stringify(classContext)).catch(()=>{});}});
+  function plannerClass(){const p=window.MaluPlanner?.getSelection?.();if(!p)return;const series=String(Number.parseInt(p.s.replace('s',''))),subjects={historia:'História',filosofia:'Filosofia',sociologia:'Sociologia'},subject=subjects[p.d];const candidates=Object.values(data.turmas).filter(t=>String(Number.parseInt(t.serie||t.nome))===series&&t.disciplina===subject);const letter=classContext[series];const match=candidates.find(t=>(t.letra||(t.nome||'').match(/[A-Z]$/)?.[0])===letter);if(match)selected=match.id;else if(candidates.length===1)selected=candidates[0].id;else if(!candidates.some(t=>t.id===selected))selected='';}
   const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
   const button=(text,fn)=>{const n=node('button',text);n.type='button';n.addEventListener('click',fn);return n;};
   const dialog=node('dialog',null,'gb-dialog');dialog.id='gradebook';dialog.setAttribute('aria-labelledby','gbTitle');
@@ -14,7 +18,7 @@
   const info=node('p','4º bimestre · 2026 · Salvo neste aparelho','gb-info');
   const status=node('p',null,'gb-status');status.setAttribute('role','status');
   const controls=node('div',null,'gb-controls'),select=node('select');select.setAttribute('aria-label','Turma, escola e disciplina');
-  select.addEventListener('change',()=>{selected=select.value;window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();});
+  select.addEventListener('change',()=>{selected=select.value;rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();});
   const content=node('div',null,'gb-content');
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');
@@ -40,7 +44,7 @@
     Object.values(data.turmas).sort((a,b)=>classLabel(a).localeCompare(classLabel(b),'pt-BR')).forEach(t=>select.append(new Option(classLabel(t),t.id)));
     if(!data.turmas[selected])selected='';select.value=selected;
   }
-  function open(which){view=which;document.getElementById('navTools').open=false;title.textContent=which==='notes'?'Notas e atividades':'Chamada';refreshClasses();render();dialog.showModal();if(broken)message('Não foi possível ler os dados locais. Nada foi sobrescrito.',true);}
+  function open(which){plannerClass();view=which;document.getElementById('navTools').open=false;title.textContent=which==='notes'?'Notas e atividades':'Chamada';refreshClasses();render();dialog.showModal();if(broken)message('Não foi possível ler os dados locais. Nada foi sobrescrito.',true);}
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>(Number(a.numero)||9999)-(Number(b.numero)||9999)||a.nome.localeCompare(b.nome,'pt-BR'));}
   function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
