@@ -18,7 +18,7 @@
   const info=node('p','4º bimestre · 2026 · Salvo neste aparelho','gb-info');
   const status=node('p',null,'gb-status');status.setAttribute('role','status');
   const controls=node('div',null,'gb-controls'),select=node('select');select.setAttribute('aria-label','Turma, escola e disciplina');
-  select.addEventListener('change',()=>{selected=select.value;rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();});
+  select.addEventListener('change',()=>{selected=select.value;rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();if(draftOrigin&&selected)activityForm();});
   const content=node('div',null,'gb-content');
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');
@@ -73,6 +73,11 @@
       }row.append(...totalCells);paint();table.append(row);
     }wrap.append(table);content.append(wrap);
   }
+  let draftOrigin=null;
+  function currentOrigin(){const card=document.querySelector('article.week-card:not(.ux-inactive):not(.hidden)');return card?{weekId:card.id,title:card.querySelector('.week-head h3')?.textContent?.trim()||'Unidade',panel:card.querySelector('.ux-tabs [aria-selected=true]')?.getAttribute('aria-controls')?.split('-panel-')[1]||'notebook'}:null;}
+  function registerFrom(card,panel){draftOrigin={weekId:card.id,title:card.querySelector('.week-head h3')?.textContent?.trim()||'Unidade',panel};open('notes');if(selected)activityForm();else message('Escolha a turma para confirmar o registro desta unidade.');}
+  for(const card of document.querySelectorAll('article.week-card'))for(const panel of ['notebook','activity']){const host=document.getElementById(card.id+'-panel-'+panel);if(host){const register=button('Registrar atividade',()=>registerFrom(card,panel));register.className='gb-register-unit';host.append(register);}}
+  function openActivitySource(activity){if(activity.origem?.url){window.open(activity.origem.url,'_blank','noopener');return;}if(activity.origem?.weekId&&window.MaluPlannerUnits?.open(activity.origem.weekId,activity.origem.panel)){dialog.close();return;}message('Esta atividade ainda não tem conteúdo vinculado. Confirme a origem no cadastro.');activityForm(activity);}
   function showReport(student){
     content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',render),node('h3',student.nome));content.append(top);
     const records=C.reportStudents(student,data.alunos);if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
@@ -80,7 +85,7 @@
       const t=data.turmas[pupil.turmaId];if(!t)continue;const avs=data.activities.filter(a=>a.turmaId===pupil.turmaId).sort((a,b)=>a.data.localeCompare(b.data)),scores=data.scores[pupil.id]||{},totals=C.result(avs,scores,data.mediaModo[pupil.turmaId]);
       const section=node('section',null,'gb-report-subject');section.append(node('h4',classLabel(t)),node('p','Média: '+fmt(totals.average)+' / 10 · Soma: '+fmt(totals.sum),'gb-report-average'));
       if(!avs.length)section.append(node('p','Nenhuma atividade cadastrada no 4º bimestre.','gb-help'));
-      else for(const done of [true,false]){const group=node('div',null,done?'gb-report-done':'gb-report-pending'),items=avs.filter(a=>C.completed(a,scores[a.id])===done);group.append(node('h5',(done?'✓ Feitas':'○ Pendentes')+' · '+items.length));for(const activity of items){const link=button(activity.nome+(done?' · '+(activity.checklist?'Feita':fmt(scores[activity.id])+' / '+fmt(activity.valorMax)):''),()=>{selected=pupil.turmaId;rememberClass(t);refreshClasses();render();const input=[...content.querySelectorAll('input[data-gb-student]')].find(n=>n.dataset.gbStudent===pupil.id&&n.dataset.gbActivity===activity.id);if(input){input.scrollIntoView({block:'center',inline:'center'});input.focus();if(input.type==='number')input.select();input.closest('td').classList.add('gb-note-target');}});link.className='gb-report-activity';group.append(link);}section.append(group);}
+      else for(const done of [true,false]){const group=node('div',null,done?'gb-report-done':'gb-report-pending'),items=avs.filter(a=>C.completed(a,scores[a.id])===done);group.append(node('h5',(done?'✓ Feitas':'○ Pendentes')+' · '+items.length));for(const activity of items){const link=button(activity.nome+(done?' · '+(activity.checklist?'Feita':fmt(scores[activity.id])+' / '+fmt(activity.valorMax)):''),()=>{selected=pupil.turmaId;rememberClass(t);openActivitySource(activity);});link.className='gb-report-activity';group.append(link);}section.append(group);}
       content.append(section);
     }
   }
@@ -88,17 +93,19 @@
   async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id])d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
   function activityForm(existing){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
-    const name=field('Atividade','text',existing?.nome||''),date=field('Data','date',existing?.data||bimestreToday());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
+    const origin=existing?.origem||draftOrigin||currentOrigin();
+    const name=field('Atividade','text',existing?.nome||origin?.title||''),date=field('Data','date',existing?.data||bimestreToday());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
     const label=node('label','Tipo'),type=node('select');for(const t of ['Texto','Resumo','Estudo dirigido','Questões','Avaliação','Outra'])type.append(new Option(t,t));type.value=existing?.tipo||'Texto';label.append(type);form.append(label);
+    const sourceLabel=node('label','Abrir conteúdo de origem'),sourceChoice=node('select');sourceChoice.append(new Option('Caderno dos alunos','notebook'),new Option('Atividade da unidade','activity'));const originCard=origin?.weekId&&document.getElementById(origin.weekId),sourceLinks=[...originCard?.querySelectorAll('a[href]')||[]].filter(a=>/^https?:/.test(a.href));const uniqueLinks=[...new Map(sourceLinks.map(a=>[a.href,a])).values()];uniqueLinks.forEach((a,i)=>sourceChoice.append(new Option('Livro/material: '+a.textContent.trim().slice(0,85),'link:'+i)));sourceChoice.value=origin?.url?('link:'+uniqueLinks.findIndex(a=>a.href===origin.url)):(origin?.panel||'notebook');if(!sourceChoice.value)sourceChoice.value='notebook';sourceLabel.append(sourceChoice);form.append(sourceLabel);if(origin)form.append(node('p','Unidade: '+origin.title,'gb-help'));
     const max=field('Valor máximo','number',existing?.valorMax||10),weight=field('Peso na média ponderada','number',existing?.peso||1);for(const n of [max,weight]){n.min='0.1';n.step='0.1';n.required=true;}
-    const checkLabel=node('label','Registrar por execução (fez / não fez)'),check=node('input');check.type='checkbox';check.checked=!!existing?.checklist;checkLabel.append(check);form.append(checkLabel);
+    const checkLabel=node('label','Registrar por execução (fez / não fez)'),check=node('input');check.type='checkbox';check.checked=existing?!!existing.checklist:true;checkLabel.append(check);form.append(checkLabel);
     const extraLabel=node('label','Atividade extra / bônus'),extra=node('input');extra.type='checkbox';extra.checked=!!existing?.extra;extraLabel.append(extra);form.append(extraLabel);
     form.append(node('p','No bônus por execução, o peso é o valor somado à média.','gb-help'));
-    const submit=node('button','Salvar atividade');submit.type='submit';form.append(submit,button('Cancelar',render));
+    const submit=node('button','Salvar atividade');submit.type='submit';form.append(submit,button('Cancelar',()=>{draftOrigin=null;render();}));
     form.addEventListener('submit',async e=>{e.preventDefault();if(!name.value.trim())return;const value=Number(max.value),peso=Number(weight.value);if(!(value>0&&peso>0&&Number.isFinite(value)&&Number.isFinite(peso)))return;
       if(existing&&existing.checklist!==check.checked&&Object.values(data.scores).some(s=>s[existing.id]!=null)){message('Esta atividade já tem notas. Crie outra atividade para alterar o modo de registro.',true);return;}
       if(existing&&!check.checked&&Object.values(data.scores).some(s=>Number(s[existing.id])>value)){message('O valor máximo é menor que uma pontuação já lançada.',true);return;}
-      const a={id:existing?.id||crypto.randomUUID(),turmaId:selected,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked};if(await update(d=>{const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;}))render();});content.replaceChildren(form);
+      const a={id:existing?.id||crypto.randomUUID(),turmaId:selected,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked,origem:origin?{weekId:origin.weekId,title:origin.title,panel:sourceChoice.value.startsWith('link:')?'prepare':sourceChoice.value,url:sourceChoice.value.startsWith('link:')?uniqueLinks[Number(sourceChoice.value.split(':')[1])]?.href||'':''}:null};if(await update(d=>{const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;})){draftOrigin=null;render();}});content.replaceChildren(form);
   }
   function bimestreToday(){return today()<'2026-10-08'?'2026-10-08':today()>'2026-12-18'?'2026-12-18':today();}
   function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
