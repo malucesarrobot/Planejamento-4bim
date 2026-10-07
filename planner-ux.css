@@ -202,3 +202,13 @@ body.ux-ready main>.ux-search-count[hidden]{display:none!important}
 .ux-panel>.ux-exam-connections,.projection-page>.ux-exam-connections{padding:18px;background:#fff;line-height:1.55;margin-top:16px}
 .ux-exam-connections a{overflow-wrap:anywhere}
 .ux-exam-connections .ux-exam-item{padding:14px 0;border-bottom:1px solid #dce5dd}
+
+/* Compact trigger and lateral drawer. */
+body.ux-ready #navTools>summary{width:44px;min-width:44px;max-width:44px;min-height:44px;padding:0;justify-content:center;font-size:1.3rem;background:#ebe2f3;color:#654b82;border:1px solid #d4c3e3;list-style:none}
+body.ux-ready #navTools>summary::-webkit-details-marker{display:none}
+body.ux-ready #navTools .tools-panel{position:fixed;inset:0 0 0 auto;width:min(88vw,360px);height:100dvh;max-height:100dvh;box-sizing:border-box;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border-radius:18px 0 0 18px;border:0;border-left:4px solid #d4c3e3;background:#fffdf9;z-index:1002}
+.ux-menu-close{display:block;margin:0 0 16px auto;min-height:44px}
+.ux-menu-backdrop{position:fixed;inset:0;width:100%;height:100dvh;border:0;border-radius:0;background:rgba(25,20,35,.3);z-index:1001}
+.ux-menu-backdrop[hidden]{display:none!important}
+body.ux-ready .toolbar:has(#navTools[open]){z-index:1002}
+@media print{.ux-menu-backdrop,#navTools{display:none!important}}
