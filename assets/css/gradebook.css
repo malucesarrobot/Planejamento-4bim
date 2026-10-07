@@ -33,3 +33,14 @@
 .gb-report-subject h5{font-size:.82rem;margin:12px 0 4px}.gb-report-done{color:#286143}.gb-report-pending{color:#92552d}
 .gb-dialog .gb-report-activity{display:block;width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:6px 0;text-decoration:underline dotted;text-underline-offset:3px}
 .gb-note-target{outline:3px solid #b7833f;outline-offset:-3px}
+
+@media screen{
+ .gb-header h2,.gb-report-header h3{font-family:"Trebuchet MS",ui-rounded,system-ui,sans-serif;font-weight:800;color:#62409a}
+ .gb-dialog{border-top:5px solid #8654d7;background:#fffcf8}
+ .gb-dialog button{background:#eee2ff;border-color:#c6abe8;color:#62409a}
+ #navTools .gb-menu-notes{background:#7042b4;color:#fff;border-color:#7042b4}
+ #navTools .gb-menu-attendance{background:#14694f;color:#fff;border-color:#14694f}
+ .gb-dialog .gb-present{background:#d7f0df;color:#14694f;border-color:#86c6a0}
+ .gb-dialog .gb-absent{background:#ffe0d9;color:#a12d24;border-color:#e69a8b}
+ .gb-dialog .gb-student-link{background:transparent;color:#62409a}
+}
