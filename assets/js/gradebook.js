@@ -25,7 +25,7 @@
   const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
   controls.append(select);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
-  settingsActions.append(login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
+  settingsActions.append(button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
   info.textContent='4º bimestre · 2026';dialog.append(header,info,cloudInfo,controls,status,content,settings,file);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
@@ -78,6 +78,16 @@
   function registerFrom(card,panel){draftOrigin={weekId:card.id,title:card.querySelector('.week-head h3')?.textContent?.trim()||'Unidade',panel};open('notes');if(selected)activityForm();else message('Escolha a turma para confirmar o registro desta unidade.');}
   for(const card of document.querySelectorAll('article.week-card'))for(const panel of ['notebook','activity']){const host=document.getElementById(card.id+'-panel-'+panel);if(host){const register=button('Registrar atividade',()=>registerFrom(card,panel));register.className='gb-register-unit';host.append(register);}}
   function openActivitySource(activity){if(activity.origem?.url){window.open(activity.origem.url,'_blank','noopener');return;}if(activity.origem?.weekId&&window.MaluPlannerUnits?.open(activity.origem.weekId,activity.origem.panel)){dialog.close();if(activity.origem.kind==='book')document.getElementById(activity.origem.weekId)?.querySelector('.book-activity')?.scrollIntoView({block:'center'});return;}message('Esta atividade ainda não tem conteúdo vinculado. Confirme a origem no cadastro.');activityForm(activity);}
+  function auditRegistrations(){
+    content.replaceChildren();content.append(button('← Voltar',render),node('h3','Conferência para o SIAP'));
+    const pupils=Object.values(data.alunos).filter(a=>a.ativo!==false),groups=new Map(),issues=[];let missing=0;
+    const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    for(const a of pupils){const registration=String(a.matricula||'').trim(),t=data.turmas[a.turmaId];if(!registration){missing++;issues.push(a.nome+' · '+classLabel(t||{})+' · sem matrícula');}else{if(!groups.has(registration))groups.set(registration,[]);groups.get(registration).push(a);}if(!t||!t.disciplina)issues.push(a.nome+' · vínculo de turma/disciplina incompleto');}
+    let duplicates=0,conflicts=0;for(const records of groups.values()){const classes=new Set();for(const a of records){if(classes.has(a.turmaId)){duplicates++;issues.push(a.nome+' · matrícula duplicada na mesma turma');}classes.add(a.turmaId);}if(new Set(records.map(a=>normalize(a.nome))).size>1){conflicts++;issues.push('Conferir grafia: '+[...new Set(records.map(a=>a.nome))].join(' / '));}}
+    content.append(node('p',pupils.length+' cadastros · '+groups.size+' matrículas distintas · '+missing+' sem matrícula · '+duplicates+' duplicidades na mesma turma · '+conflicts+' divergências de nome.'));
+    content.append(node('p','Matrícula identifica a pessoa; turma, disciplina, data e bimestre identificam cada lançamento. Pendências precisam de conferência antes de qualquer envio ao SIAP.','gb-help'));
+    for(const issue of issues)content.append(node('p',issue,'gb-help'));
+  }
   function showReport(student){
     content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',render),node('h3',student.nome));content.append(top);
     const records=C.reportStudents(student,data.alunos);if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
