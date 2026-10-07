@@ -10,3 +10,18 @@
 .gb-settings{margin-top:16px;border-top:1px solid #e1dce7;padding-top:10px;color:#635c6b;font-size:.85rem}.gb-settings summary,.gb-calculation summary{cursor:pointer;padding:8px 0}.gb-settings-actions{display:grid;gap:8px;margin-top:8px}.gb-calculation{margin:10px 0;color:#635c6b;font-size:.85rem}.gb-controls>select{width:100%}
 
 .gb-attendance-list{display:grid;gap:8px;margin-top:12px}.gb-dialog button.gb-attendance-row{display:block;width:100%;text-align:left;padding:14px 12px;line-height:1.4;font-weight:600;border-radius:12px}.gb-attendance-row:focus-visible{outline:3px solid #67498b;outline-offset:2px}.gb-dialog select[hidden]{display:none!important}
+
+@media screen{
+ .gb-dialog{border-radius:16px;padding:16px;border-color:#ded5e8;box-shadow:0 16px 60px #30243f26}
+ .gb-header h2{font:700 clamp(1.7rem,4vw,2.2rem)/1.12 Georgia,serif;color:#443451}
+ .gb-header button{min-height:44px;padding:6px 10px;font-size:.8rem;background:#f1edf5}
+ .gb-info{margin:7px 0;font-size:.75rem}
+ .gb-controls{margin-top:12px}
+ .gb-dialog button,.gb-dialog select,.gb-dialog input:not([type=checkbox]){min-height:44px;padding:7px 10px;font-size:.88rem}
+ .gb-dialog .gb-settings-actions button{min-height:44px;text-align:left;font-size:.82rem;background:#f4f0f7}
+ .gb-dialog button.gb-attendance-row{padding:12px;font-size:.92rem}
+ .gb-dialog .gb-form{gap:10px}
+ .gb-dialog .gb-form label{font-size:.82rem;font-weight:600}
+ .gb-settings,.gb-calculation{font-size:.78rem}
+ @media(max-width:600px){.gb-dialog{padding:12px}.gb-header{padding:8px 0}.gb-header h2{font-size:1.8rem}}
+}
