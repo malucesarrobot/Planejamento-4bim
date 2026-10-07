@@ -402,3 +402,36 @@ body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7
   body.ux-ready .ux-segments button,body.ux-ready .ux-tabs button{transition:background-color .15s ease,box-shadow .15s ease}
  }
 }
+
+/* Pastéis combinados: a disciplina identifica o título, sem pintar toda a tela. */
+@media screen{
+ body.ux-ready{background-color:#fffdf6!important;background-image:radial-gradient(circle at 0 35%,#e0f2e7 0,transparent 36%),radial-gradient(circle at 100% 75%,#fff0ce 0,transparent 35%)!important}
+ body.ux-ready .hero{background:linear-gradient(110deg,#dff1e5,#fff1cb 62%,#ffe5d3)!important;border-top-color:#b8d9c3;border-bottom-color:#ded9c6}
+ body.ux-ready .hero::before{background:#dccff0}
+ body.ux-ready .hero::after{color:#b58855}
+ body.ux-ready .toolbar,body.ux-ready .weekbar{background:#fffdf8!important}
+ body.ux-ready .ux-segments button[aria-pressed=true]{background:#dff1e5;border-color:#b8d9c3;color:#315f49;box-shadow:0 3px 0 #c4dfcd}
+ body.ux-ready .ux-segments [data-choice=historia][aria-pressed=true]{background:#ffe0b5;color:#765028;border-color:#e5bf8a}
+ body.ux-ready .ux-segments [data-choice=filosofia][aria-pressed=true]{background:#e9ddf5;color:#655080;border-color:#cdb9e1}
+ body.ux-ready .ux-segments [data-choice=sociologia][aria-pressed=true]{background:#d4efdc;color:#315f49;border-color:#abd2b9}
+ body.ux-ready .week-card{border-color:#ddd6bd;box-shadow:0 5px 0 #e6f1e8,0 14px 28px #533d2210!important}
+ body.ux-ready .week-head{background:linear-gradient(115deg,#fff0cf,#ffe5d3)!important;border-top-color:#e4c6a4}
+ body.ux-ready .week-head::after{border-color:#baa7d4}
+ body.ux-ready .week-head>span:first-child{background:#e6dcf3!important;color:#655080!important}
+ body.ux-ready .week-head .ux-week-date{background:#fff8d7!important;color:#69552b!important}
+ body.ux-ready .weekbar .ux-week-number{background:#fffaf0!important;border-color:#dcd2b6!important;color:#65552e!important}
+ body.ux-ready .weekbar .ux-week-number[aria-pressed=true]{background:#e6dcf3!important;border-color:#cdb9e1!important;color:#655080!important;box-shadow:0 3px 0 #dacbea!important}
+ body.ux-ready .weekbar #wkTrack{background:#fff1cb!important;color:#69552b!important;border-color:#e5d39d!important}
+ body.ux-ready .weekbar #wkProject{background:#d4efdc!important;color:#315f49!important;border-color:#abd2b9!important}
+ body.ux-ready .ux-tabs{background:#e3f1e8!important;border-color:#bed9c7}
+ body.ux-ready .ux-tabs button[aria-selected=true]{background:#fff4d6!important;color:#69552b!important;border-color:#e5d39d!important;border-bottom-color:#dbbf83!important}
+ body.ux-ready .ux-glossary{background:#f1eafa;border-color:#d7c8e9;border-left-color:#bda6d5}
+ body.ux-ready .ux-glossary h4{color:#655080}
+ body.ux-ready .gancho{background:#fff3c9!important;border-color:#e5d39d!important}
+ body.ux-ready .ux-study{background:#f1f8f1!important;border-color:#c4dfcd;border-left-color:#a9cbb5}
+ body.ux-ready .prof-seal,body.ux-ready .prof-caderno[open]>.prof-seal{background:#e6dcf3;color:#655080}
+ body.ux-ready #navTools>summary{background:#e6dcf3;color:#655080;border-color:#cdb9e1}
+ body.ux-ready .gb-register-unit{background:#ffe5d3;color:#765028;border-color:#e4c6a4}
+ body.ux-ready .track-item{background:#fffdf8;border-color:#d8decf;border-left-color:#b8d9c3}
+ body.ux-ready .track-num{background:#e6dcf3;color:#655080}
+}
