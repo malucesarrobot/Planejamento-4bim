@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/usability.mjs && node tests/student-curriculum.mjs && node tests/classroom.mjs && node tests/sharing.mjs && node tests/editorial.mjs && node tests/ui-pilot.mjs && node tests/percursos.mjs"
+    "test": "node tests/gradebook.mjs && node tests/usability.mjs && node tests/student-curriculum.mjs && node tests/classroom.mjs && node tests/sharing.mjs && node tests/editorial.mjs && node tests/ui-pilot.mjs && node tests/percursos.mjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"
