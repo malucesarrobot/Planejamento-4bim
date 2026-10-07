@@ -35,11 +35,11 @@
 .gb-note-target{outline:3px solid #b7833f;outline-offset:-3px}
 
 @media screen{
- .gb-header h2,.gb-report-header h3{font-family:"Trebuchet MS",ui-rounded,system-ui,sans-serif;font-weight:800;color:#62409a}
- .gb-dialog{border-top:5px solid #8654d7;background:#fffcf8}
- .gb-dialog button{background:#eee2ff;border-color:#c6abe8;color:#62409a}
- #navTools .gb-menu-notes{background:#7042b4;color:#fff;border-color:#7042b4}
- #navTools .gb-menu-attendance{background:#14694f;color:#fff;border-color:#14694f}
+ .gb-header h2,.gb-report-header h3{font-family:"Trebuchet MS",ui-rounded,system-ui,sans-serif;font-weight:800;color:#665329}
+ .gb-dialog{border-top:5px solid #d8bc67;background:#fffcf8}
+ .gb-dialog button{background:#fff1c5;border-color:#e4d28b;color:#62409a}
+ #navTools .gb-menu-notes{background:#fff1b5;color:#685520;border-color:#e4d28b}
+ #navTools .gb-menu-attendance{background:#d4efdc;color:#315f49;border-color:#abd2b9}
  .gb-dialog .gb-present{background:#d7f0df;color:#14694f;border-color:#86c6a0}
  .gb-dialog .gb-absent{background:#ffe0d9;color:#a12d24;border-color:#e69a8b}
  .gb-dialog .gb-student-link{background:transparent;color:#62409a}
