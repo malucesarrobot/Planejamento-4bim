@@ -135,7 +135,7 @@ try {
   c=await card();await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
   await c.locator('.student-curriculum').scrollIntoViewIfNeeded();
   await page.screenshot({path:'test-results/mobile-notebook-footer.png'});
-  await c.getByRole('button',{name:'Editar aula',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxEditCurrent').click();
   assert.equal(await page.locator('#uxEditorPreview .student-curriculum [contenteditable]').count(),0);
   assert.equal(await page.locator('#uxEditorPreview .student-curriculum').isVisible(),true);
   await page.locator('#uxEditorCancel').click();
@@ -146,7 +146,7 @@ try {
   assert.match(await page.locator('#uxResume').textContent(),/0 de 6 semanas dadas/);
   console.log('PASS curriculum footer is protected from text editing and class progress updates with undo');
 
-  await c.getByRole('button',{name:'Imprimir',exact:true}).click();
+  await page.locator('#navTools').evaluate(n=>n.open=true);await page.locator('#uxPrintCurrent').click();
   await page.locator('#uxPrintScope').selectOption('all');
   await page.getByRole('button',{name:'Caderno dos alunos',exact:true}).click();
   await page.emulateMedia({media:'print'});
