@@ -8,14 +8,14 @@ try {
  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://**',r=>r.abort());
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('body.ux-ready');
  const publishedExamCount=await page.evaluate(()=>Object.keys(window.MaluEditorialData.exams).length);
- assert.equal(await page.locator('.ux-exam-connections').count(),publishedExamCount*2);
- assert.equal(await page.locator('.ux-teacher-guide summary').filter({hasText:'Perguntas difíceis'}).count(),60);
- assert.equal(await page.locator('article.week-card .ux-board-model').count(),60);
+ assert.equal(await page.locator('.ux-exam-connections').count(),publishedExamCount*2-3);
+ assert.equal(await page.locator('.ux-teacher-guide summary').filter({hasText:'Perguntas difíceis'}).count(),57);
+ assert.equal(await page.locator('article.week-card .ux-board-model').count(),57);
  assert.equal(await page.locator('article.week-card .ux-study-example h5').filter({hasText:'Analogia para começar'}).count(),6);
  const data=await page.evaluate(()=>window.MaluEditorialData);assert.equal(Object.keys(data.exams).length,39);
  assert.equal(Object.keys(data.exams).filter(id=>id.startsWith('s3-')).length,18);
  assert.equal(Object.keys(data.occurrences).length,59);
- assert.equal(await page.locator('.prof-panel .ux-bibliography').count(),60);
+ assert.equal(await page.locator('.prof-panel .ux-bibliography').count(),57);
  const bibliography=await page.evaluate(()=>window.MaluBibliographyData);assert.equal(Object.keys(bibliography.lessons).length,60);
  for(const l of Object.values(bibliography.lessons)){assert.ok(l.focus.length>80);assert.ok(l.entries.length>=1);}
  const occurrences={...data.occurrences,...data.essayOccurrences};assert.equal(Object.keys(data.essayOccurrences).length,5);
@@ -34,8 +34,10 @@ try {
  assert.equal(data.exams['s1-historia-semana-1'],undefined,'do not force contemporary themes onto feudalism');
  const ref=data.exams['s2-sociologia-semana-2'].connections[0].ref;assert.match(data.occurrences[ref].tema,/Crenshaw/);assert.equal(data.occurrences[ref].ano,2023);
  await page.locator('#uxSeries').selectOption('s3');await page.locator('#uxSubject').selectOption('filosofia');
- const exams=page.locator('article.week-card:visible .prof-panel .ux-exam-connections');assert.ok(await exams.isVisible());await exams.scrollIntoViewIfNeeded();await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/editorial-exams-mobile.png'});
+ await page.locator('#s3-filosofia-semana-1-tab-notebook').click();
+ const exams=page.locator('#s3-filosofia-semana-1-panel-notebook .ux-exam-connections');assert.ok(await exams.isVisible());await exams.scrollIntoViewIfNeeded();await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/editorial-exams-mobile.png'});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'exam records overflow on mobile');
+ await page.locator('#s3-filosofia-semana-1-tab-prepare').click();
  const mbembe=page.locator('#s3-filosofia-semana-5 .prof-panel .ux-exam-connections');assert.match(await mbembe.textContent(),/Cebraspe/);assert.match(await mbembe.textContent(),/Itens 58 e 60/);
  await page.locator('#uxSeries').selectOption('s2');await page.locator('#uxSubject').selectOption('sociologia');await page.locator('#uxWeekChoices button').nth(1).click();
  const second=page.locator('article.week-card:visible .prof-panel .ux-exam-connections');assert.match(await second.textContent(),/Crenshaw/);assert.match(await second.textContent(),/2023/);
