@@ -82,6 +82,7 @@
     const exam=exams(card);if(exam)section.appendChild(exam);
   }
   function attach(card) {
+    if (/^s[123]-filosofia-semana-1$/.test(card.id)) return;
     const data=window.MaluStudyData,lesson=data?.lessons[card.id],panel=card.querySelector('.prof-panel');
     if(!lesson || !panel || panel.querySelector('.ux-study'))return;
     const section=node('section',null,'ux-study');section.dataset.reviewed=data.reviewedOn;

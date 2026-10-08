@@ -20,7 +20,7 @@ try {
  assert.equal(await page.evaluate(()=>JSON.stringify({...localStorage})),before,'export must leave personal saves untouched');
  const share=await browser.newPage({viewport:{width:390,height:844}});await share.setContent(html);
  assert.equal(await share.locator('#shareGroup option').count(),2);assert.deepEqual((await share.locator('#shareGroup option').allTextContents()).sort(),['1ª série · Filosofia','3ª série · História']);assert.equal(await share.locator('.share-weeks button').count(),6);
- await share.locator('[data-material=preparacao]').click();assert.equal(await share.locator('.ux-study').count(),1);assert.equal(await share.locator('.share-teacher-answers').count(),1);
+ await share.locator('[data-material=preparacao]').click();assert.equal(await share.locator('.prof-panel').count(),1);assert.equal(await share.locator('.share-teacher-answers').count(),1);
  await share.locator('#shareProject').click();assert.equal(await share.locator('.prof-panel,.share-teacher-answers').count(),0);assert.equal(await share.locator('.wide.notebook').isVisible(),true);
  await mkdir('test-results',{recursive:true});await share.screenshot({path:'test-results/sharing-teacher-mobile.png'});
  const example=await page.evaluate(css=>window.MaluShare.buildHtml([{id:'s3-historia',classes:['3ªA','3ªB','3ªC']},{id:'s1-filosofia',classes:['1ªA','1ªB']}],'professor','História · 3ª série e Filosofia · 1ª série',css),await readFile('assets/css/planner-base.css','utf8'));await writeFile('test-results/share-prof-example.html',example);

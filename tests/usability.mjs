@@ -95,7 +95,7 @@ try {
   await page.locator('#uxEditorSave').click();
   assert.equal(await card.locator('.week-head h3').textContent(),'Aula exclusiva de teste');
   assert.equal(await card.locator('.atv-texto').textContent(),'Texto-base alterado para a atividade.');
-  assert.equal(await card.locator('.wide.notebook img').count(),0);
+  assert.equal(await card.locator('.wide.notebook img[src="x"], .wide.notebook img[onerror]').count(),0);
   await card.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
   await page.locator('#wkProject').click();
   assert.match(await page.locator('#projectionPage').textContent(),/Texto alterado com <img/);

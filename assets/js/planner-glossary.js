@@ -38,6 +38,7 @@
   const norm=s=>s.trim().replace(/\s*—\s*$/,'').toLocaleLowerCase('pt-BR');
   function node(tag,text,cls) {const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;}
   function build(card,notebook) {
+    if (/^s[123]-filosofia-semana-1$/.test(card.id)) return null;
     const terms=[...card.querySelectorAll('.concept-chip')].map(n=>n.textContent.trim());
     const entries=new Map();
     function add(term,definition,example) {if(term && definition)entries.set(norm(term),[term.trim().replace(/\s*—\s*$/,''),definition.trim(),example]);}

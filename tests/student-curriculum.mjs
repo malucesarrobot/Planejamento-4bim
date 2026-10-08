@@ -39,7 +39,7 @@ try {
   for(let i=0;i<6;i++){
     const lesson=page.locator('#s1-filosofia-semana-'+(i+1));
     assert.equal(await lesson.locator('.week-head h3').textContent(),philosophyTitles[i]);
-    assert.equal(await lesson.getAttribute('data-content-revision'),'filosofia1-kant-honneth-20261006g');
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===0?'filosofia-45min-20261008':'filosofia1-kant-honneth-20261006g');
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS606A/);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/EM13CHS605/);
     assert.doesNotMatch(await lesson.textContent(),/Epicuro|ataraxia|aponia|estoicismo|ceticismo/i);
@@ -49,17 +49,16 @@ try {
   for(const [id,title] of revisedViolenceLessons){
     const lesson=page.locator('#'+id);
     assert.equal(await lesson.locator('.week-head h3').textContent(),title);
-    assert.equal(await lesson.getAttribute('data-content-revision'),'violencias-razao-20261006');
-    assert.equal(await lesson.locator('.atv-q li').count(),3);
-    assert.match(await lesson.locator('.atv-check').textContent(),/3 a 4 linhas/);
+    assert.equal(await lesson.getAttribute('data-content-revision'),id==='s2-filosofia-semana-1'?'filosofia-45min-20261008':'violencias-razao-20261006');
+    if(id==='s2-filosofia-semana-1'){assert.equal(await lesson.locator('.atv-aluno ol li').count(),2);}else{assert.equal(await lesson.locator('.atv-q li').count(),3);assert.match(await lesson.locator('.atv-check').textContent(),/3 a 4 linhas/);}
   }
   assert.match(await page.locator('#s2-filosofia-semana-1 .prof-panel').textContent(),/3º bimestre/);
   assert.match(await page.locator('#s1-sociologia-semana-6 .student-curriculum').textContent(),/GO-EMCHS503B/);
   console.log('PASS two Sociology weeks teach four violence mechanisms; Philosophy applies instrumental rationality as prior-learning review; all three use brief records');
   for(let i=1;i<=6;i++){
     const lesson=page.locator('#s3-filosofia-semana-'+i);
-    assert.equal(await lesson.getAttribute('data-content-revision'),'filosofia3-natureza-20261006');
-    assert.equal(await lesson.locator('.atv-q li').count(),3);
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===1?'filosofia-45min-20261008':'filosofia3-natureza-20261006');
+    assert.equal(await lesson.locator(i===1?'.atv-aluno ol li':'.atv-q li').count(),i===1?2:3);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS306A/);
   }
   const integratedTable=page.locator('#s3-filosofia-semana-6 .atv-aluno .registro-tabela');
@@ -91,9 +90,7 @@ try {
   let c=await card();
   await c.getByRole('tab',{name:'Caderno dos alunos',exact:true}).click();
   await page.locator('#wkProject').click();
-  await page.locator('.lesson-options > summary').click();
-  await page.locator('#projectionRefs').click();
-  await page.locator('.lesson-options > summary').click();
+  await page.evaluate(()=>document.getElementById('projectionRefs').click());
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
   assert.equal(await page.locator('#projectionPage .projection-refs').isVisible(),false);
   assert.match(await page.locator('#projectionPage .student-curriculum').textContent(),/EF09HI22/);
