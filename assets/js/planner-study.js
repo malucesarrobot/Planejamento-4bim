@@ -9,7 +9,7 @@
     const wrap=node('section',null,'ux-board-model');
     wrap.appendChild(node('h3','Esquema sugerido para o quadro'));wrap.appendChild(node('p','Esquema de conceitos · leia cada bloco e compare os sentidos.','ux-board-caption'));
     const list=node('dl');
-    for(const [term,meaning] of lesson.terms.slice(0,3)){const concept=node('div',null,'ux-board-concept');concept.append(node('dt',term),node('dd',meaning));list.appendChild(concept);}
+    for(const [term,meaning] of (card.id==='s1-sociologia-semana-1'?lesson.terms:lesson.terms.slice(0,3))){const concept=node('div',null,'ux-board-concept');concept.append(node('dt',term),node('dd',meaning));list.appendChild(concept);}
     wrap.appendChild(list);
     const q=window.MaluEditorialData?.questions[card.id];if(q)wrap.appendChild(node('p',q.question,'ux-board-question'));
     return wrap;
@@ -56,7 +56,7 @@
   function editorial(card,section,lesson) {
     const q=window.MaluEditorialData?.questions[card.id];if(!q)return;
     const difficult=node('details',null,'ux-teacher-guide');difficult.appendChild(node('summary','Perguntas difíceis'));
-    difficult.appendChild(node('h5',q.question));paragraphs(difficult,q.answer);paragraphs(difficult,'Limite da resposta: '+lesson.limit);section.appendChild(difficult);
+    difficult.appendChild(node('h5',q.question));paragraphs(difficult,q.answer);paragraphs(difficult,'Limite da resposta: '+(q.limit||lesson.limit));section.appendChild(difficult);
     const model=node('details',null,'ux-teacher-guide');model.appendChild(node('summary','Modelo de registro no quadro'));
     model.appendChild(node('p','Separe os conceitos em blocos. Leia as diferenças antes de relacioná-los; setas só devem indicar uma relação explicitamente justificada. O esquema também está disponível na projeção.'));
     model.appendChild(board(card));section.appendChild(model);
@@ -66,12 +66,12 @@
       subject==='filosofia'?['Qual problema o autor ou a obra formula, e em qual contexto?','Como conceitos, composição, suporte e enquadramento orientam a interpretação?','Que tese ou interpretação é justificável, e qual objeção ou elemento da obra limita essa leitura?']:
       ['Quem fala, a partir de qual posição, e quem é representado ou fica fora do enquadramento?','Que classificação, contraste ou composição produz sentidos sobre identidade e poder?','O material é testemunho, construção artística ou dado de pesquisa? O que cada tipo permite concluir?'];
     const ol=node('ol');qs.forEach(t=>ol.appendChild(node('li',t)));reading.appendChild(ol);
-    paragraphs(reading,'Para confrontar uma fonte estatal e uma fonte de movimento social: registre autoria, data, gênero e finalidade de cada uma; formule a mesma pergunta para ambas; separe fatos observados, interpretações e reivindicações; compare convergências e divergências; indique o que precisa de corroboração. Nenhuma posição torna a fonte automaticamente verdadeira ou falsa.');
+    if(card.id==='s1-sociologia-semana-1')paragraphs(reading,'Compare a definição de Weber com uma paráfrase do capítulo I de As almas do povo negro, de Du Bois. Weber pergunta pelo sentido e pela orientação ao outro; Du Bois investiga a experiência de ver-se pelo olhar de uma sociedade racialmente hierarquizada. Identifique problema, contexto e limites de cada perspectiva. Não exigir relatos pessoais de discriminação.');else paragraphs(reading,'Para confrontar uma fonte estatal e uma fonte de movimento social: registre autoria, data, gênero e finalidade de cada uma; formule a mesma pergunta para ambas; separe fatos observados, interpretações e reivindicações; compare convergências e divergências; indique o que precisa de corroboração. Nenhuma posição torna a fonte automaticamente verdadeira ou falsa.');
     if(card.id==='s2-sociologia-semana-1')paragraphs(reading,'Em Ilha das Flores, observe montagem, repetição e voz narrativa. A denúncia do filme não substitui levantamento estatístico: verifique sua autoria e data nas fontes da aula antes de generalizar.');
     if(card.id==='s2-filosofia-semana-4')paragraphs(reading,'Ao analisar o rosto pintado de Krenak, localize o registro completo, a ocasião e a explicação do próprio autor; observe gesto, enquadramento e interlocutores. Não atribua um significado universal à pintura corporal indígena sem fonte situada.');
     section.appendChild(reading);
     const timing=node('details',null,'ux-teacher-guide');timing.appendChild(node('summary','Tempo e aplicação opcional'));
-    paragraphs(timing,'Possibilidade para 45 minutos: 5 min para uma pergunta; 20 min de explicação e leitura de fonte; 10 min de conversa; 10 min de registro. Ajuste livremente: atividade, debate e explicação podem substituir-se conforme a turma; esta divisão não é uma sequência obrigatória.');
+    if(card.id==='s1-sociologia-semana-1')paragraphs(timing,'45 minutos: 5 min de situação-problema; 12 min para ação e ação social; 10 min para os quatro tipos; 10 min para hipóteses e indícios; 8 min de registro e síntese. A folha e os exercícios do livro ficam como tarefa. A comparação com Du Bois pode ser retomada na correção, sem acrescentar uma segunda exposição extensa.');else paragraphs(timing,'Possibilidade para 45 minutos: 5 min para uma pergunta; 20 min de explicação e leitura de fonte; 10 min de conversa; 10 min de registro. Ajuste livremente: atividade, debate e explicação podem substituir-se conforme a turma; esta divisão não é uma sequência obrigatória.');
     if(/s1-sociologia-semana-[245]|s2-sociologia-semana-5/.test(card.id))paragraphs(timing,'Aplicação ao cotidiano escolar: escolha uma regra pública de atendimento ou do regimento, sem nomes de pessoas. Distinga finalidade declarada, procedimento e efeito observado; teste o conceito da aula e indique também onde ele não se aplica. A existência de uma regra não prova violência ou injustiça.');
     if(card.id.endsWith('-6'))paragraphs(timing,'Na síntese, avalie: precisão dos conceitos, evidências, relação entre razões e conclusão, melhor objeção e resposta fundamentada. A nota considera a qualidade do argumento, não a concordância com a posição da professora.');
     section.appendChild(timing);
@@ -98,10 +98,10 @@
     const anchor=[...panel.querySelectorAll('h4')].find(n=>/Roteiro da aula|Sequência da explicação/.test(n.textContent));
     if(anchor)anchor.before(section);else panel.appendChild(section);
     // Preserve prior observations without presenting them as verified documentation.
-    const notes=node('details',null,'ux-study-original');notes.appendChild(node('summary','Observações e aplicações do material original'));
+    const notes=node('details',null,'ux-study-original');notes.appendChild(node('summary',card.id==='s1-sociologia-semana-1'?'Exemplos para a explicação':'Observações e aplicações do material original'));
     for(const aside of panel.querySelectorAll('.callout.curiosity,.callout.parallel')) {
       const heading=aside.querySelector('.callout-title');
-      if(heading)heading.textContent=aside.classList.contains('curiosity')?'Observação original — conferir documentação':'Proposta didática do material original';
+      if(heading)heading.textContent=card.id==='s1-sociologia-semana-1'?(aside.classList.contains('curiosity')?'Tipo ideal: ferramenta de análise':'Comparação de sentidos') : aside.classList.contains('curiosity')?'Observação original — conferir documentação':'Proposta didática do material original';
       notes.appendChild(aside);
     }
     if(notes.children.length>1)refs.after(notes);
