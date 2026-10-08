@@ -63,7 +63,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Nova atividade',()=>activityForm()),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Nova atividade',()=>activityForm()),button('Pontos extras',()=>activityForm(null,'points')),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -71,7 +71,7 @@
     for(const a of avs){const row=node('div');row.append(node('span',a.nome+' · '+a.tipo+' · máximo '+fmt(a.valorMax)+(a.extra?' · bônus':'')+' · peso '+fmt(a.peso)),button('Editar',()=>activityForm(a)),button('Excluir',async()=>{if(!confirm('Excluir esta atividade e suas pontuações?'))return;await update(d=>{d.activities=d.activities.filter(x=>x.id!==a.id);for(const scores of Object.values(d.scores))delete scores[a.id];});render();}));list.append(row);}content.append(list);
     if(!als.length)return;
     const wrap=node('div',null,'gb-table-wrap'),table=node('table'),head=node('tr');
-    for(const text of ['Aluno',...avs.map(a=>a.nome),'Soma','Bônus','Média / 10'])head.append(node('th',text));table.append(head);
+    for(const text of ['Aluno',...avs.map(a=>a.nome),'Atividades','Bônus','Média / 10'])head.append(node('th',text));table.append(head);
     for(const student of als){
       const row=node('tr'),name=node('th');name.scope='row';const studentLink=button((student.numero?student.numero+'. ':'')+student.nome,()=>showReport(student));studentLink.className='gb-student-link';name.append(studentLink);row.append(name);
       const totalCells=[node('td'),node('td'),node('td')];
@@ -104,7 +104,7 @@
     const records=C.reportStudents(student,data.alunos);top.append(node('p','Boletim · disciplinas do aluno','gb-help'));if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
     for(const pupil of records.sort((a,b)=>(a.turmaId===selected?-1:b.turmaId===selected?1:0)||classLabel(data.turmas[a.turmaId]||{}).localeCompare(classLabel(data.turmas[b.turmaId]||{}),'pt-BR'))){
       const t=data.turmas[pupil.turmaId];if(!t)continue;const avs=data.activities.filter(a=>a.turmaId===pupil.turmaId).sort((a,b)=>a.data.localeCompare(b.data)),scores=data.scores[pupil.id]||{},totals=C.result(avs,scores,data.mediaModo[pupil.turmaId]);
-      const section=node('section',null,'gb-report-subject');section.append(node('h4',classLabel(t)),node('p','Média: '+fmt(totals.average)+' / 10 · Soma: '+fmt(totals.sum),'gb-report-average'));
+      const section=node('section',null,'gb-report-subject');section.append(node('h4',classLabel(t)),node('p','Média: '+fmt(totals.average)+' / 10 · Atividades: '+fmt(totals.sum),'gb-report-average'));
       if(!avs.length)section.append(node('p','Nenhuma atividade cadastrada no 4º bimestre.','gb-help'));
       else for(const done of [true,false]){const group=node('div',null,done?'gb-report-done':'gb-report-pending'),items=avs.filter(a=>C.completed(a,scores[a.id])===done);group.append(node('h5',(done?'✓ Feitas':'○ Pendentes')+' · '+items.length));for(const activity of items){const link=button(activity.nome+(done?' · '+(activity.checklist?'Feita':fmt(scores[activity.id])+' / '+fmt(activity.valorMax)):''),()=>{selected=pupil.turmaId;rememberClass(t);openActivitySource(activity);});link.className='gb-report-activity';group.append(link);}section.append(group);}
       content.append(section);
@@ -113,21 +113,23 @@
   let linkingRegistration=false,registrationChecked=false;
   async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&!data.alunos[id].siapVerificadoEm&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id])d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
   function originMatchesClass(origin,t){const match=origin?.weekId?.match(/^s(\d+)-(historia|filosofia|sociologia)-/);return !!(match&&t&&Number(match[1])===Number.parseInt(t.serie||t.nome)&&({historia:'História',filosofia:'Filosofia',sociologia:'Sociologia'})[match[2]]===t.disciplina);}
-  function activityForm(existing){
+  function activityForm(existing,preset){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
     const targetClass=selected,t=data.turmas[targetClass],visibleOrigin=currentOrigin();
     const origin=existing?(existing.origem||null):(draftOrigin||(originMatchesClass(visibleOrigin,t)?visibleOrigin:null));
     form.append(node('p','Registrar em: '+classLabel(t||{}),'gb-help'));
     if(origin&&!originMatchesClass(origin,t))form.append(node('p','A unidade vinculada pertence a outra série ou disciplina. Escolha a turma correspondente antes de registrar.','gb-error'));
-    const name=field('Atividade','text',existing?.nome||origin?.title||''),date=field('Data','date',existing?.data||bimestreToday());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
+    const name=field('Atividade','text',existing?.nome||(preset==='points'?'Pontos extras':preset==='bonus'?'Bônus':origin?.title||'')),date=field('Data','date',existing?.data||bimestreToday());name.required=true;date.required=true;date.min='2026-10-08';date.max='2026-12-18';
     const label=node('label','Tipo'),type=node('select');for(const t of ['Texto','Resumo','Estudo dirigido','Questões','Avaliação','Outra'])type.append(new Option(t,t));type.value=existing?.tipo||'Texto';label.append(type);form.append(label);
     const sourceLabel=node('label','O que registrar'),sourceChoice=node('select'),originCard=origin?.weekId&&document.getElementById(origin.weekId),bookReferences=[...originCard?.querySelectorAll('.book-activity')||[]].map(n=>n.textContent.trim()).filter(Boolean),bookReference=[...new Set(bookReferences)].join(' · ');
     sourceChoice.append(new Option('Caderno dos alunos','notebook'),new Option('Atividade da unidade','activity'));if(bookReference)sourceChoice.append(new Option('Livro · '+bookReference,'book'));sourceChoice.value=origin?.kind==='book'?'book':(origin?.panel||'notebook');if(!sourceChoice.value)sourceChoice.value='notebook';sourceLabel.append(sourceChoice);form.append(sourceLabel);if(origin)form.append(node('p','Unidade: '+origin.title,'gb-help'));
     let suggestedName=name.value;sourceChoice.addEventListener('change',()=>{if(name.value===suggestedName){suggestedName=sourceChoice.value==='book'?'Livro · '+bookReference:origin?.title||'';name.value=suggestedName;}});
-    const max=field('Valor máximo','number',existing?.valorMax||10),weight=field('Peso na média ponderada','number',existing?.peso||1);for(const n of [max,weight]){n.min='0.1';n.step='0.1';n.required=true;}
-    const checkLabel=node('label','Registrar por execução (fez / não fez)'),check=node('input');check.type='checkbox';check.checked=existing?!!existing.checklist:true;checkLabel.append(check);form.append(checkLabel);
-    const extraLabel=node('label','Atividade extra / bônus'),extra=node('input');extra.type='checkbox';extra.checked=!!existing?.extra;extraLabel.append(extra);form.append(extraLabel);
-    form.append(node('p','No bônus por execução, o peso é o valor somado à média.','gb-help'));
+    const max=field('Valor máximo','number',existing?.valorMax||(preset?1:10)),weight=field('Peso na média ponderada','number',existing?.peso||(preset==='bonus'?0.1:1));for(const n of [max,weight]){n.min='0.1';n.step='0.1';n.required=true;}
+    const checkLabel=node('label','Registrar por execução (fez / não fez)'),check=node('input');check.type='checkbox';check.checked=existing?!!existing.checklist:preset!=='points';checkLabel.append(check);form.append(checkLabel);
+    const extraLabel=node('label','Atividade extra / bônus'),extra=node('input');extra.type='checkbox';extra.checked=existing?!!existing.extra:!!preset;extraLabel.append(extra);form.append(extraLabel);
+    const bonusHelp=node('p','','gb-help');form.append(bonusHelp);
+    function explainBonus(){weight.closest('label').firstChild.textContent=extra.checked&&check.checked?'Bônus somado à média ao marcar fez':'Peso na média ponderada';bonusHelp.textContent=extra.checked?(check.checked?'Ao marcar fez, o bônus indicado é somado diretamente à média. Exemplo: 0,1 acrescenta um décimo.':'Os pontos digitados para cada aluno são somados diretamente à média, sem entrar no cálculo das atividades obrigatórias.'):'O peso é utilizado no cálculo da média ponderada.';}
+    extra.addEventListener('change',explainBonus);check.addEventListener('change',explainBonus);explainBonus();
     const submit=node('button','Salvar atividade');submit.type='submit';form.append(submit,button('Cancelar',()=>{draftOrigin=null;render();}));
     form.addEventListener('submit',async e=>{e.preventDefault();if(selected!==targetClass){message('A turma mudou. Abra o cadastro novamente.',true);return;}if(origin&&!originMatchesClass(origin,t)){message('Esta unidade não pertence à série e disciplina da turma selecionada.',true);return;}if(!name.value.trim())return;const value=Number(max.value),peso=Number(weight.value);if(!(value>0&&peso>0&&Number.isFinite(value)&&Number.isFinite(peso)))return;
       if(existing&&existing.checklist!==check.checked&&Object.values(data.scores).some(s=>s[existing.id]!=null)){message('Esta atividade já tem notas. Crie outra atividade para alterar o modo de registro.',true);return;}
