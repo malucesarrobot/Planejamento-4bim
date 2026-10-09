@@ -60,7 +60,9 @@ async function flush(){
  if(flushPromise)return flushPromise;
  flushPromise=(async()=>{
   if(!navigator.onLine){status('Salvo neste aparelho · esperando internet para salvar na nuvem.');return false}
+  while(true){
   const pending=read(pendingKey,{});
+  if(!Object.keys(pending).length)break;
   for(const [route,items] of Object.entries(pending)){
    try{
     await window.__percursosEnsureAuth();
@@ -70,6 +72,7 @@ async function flush(){
     for(const key of Object.keys(items))delete remaining[key];
     if(Object.keys(remaining).length)fresh[route]=remaining;else delete fresh[route];write(pendingKey,fresh);
    }catch(e){status('Salvo neste aparelho · nuvem pendente. Mantenha a página aberta com internet.');return false}
+  }
   }
   if(validToken&&selectedKey)status('Salvo na nuvem ✓ · pode continuar em outro aparelho pelo link da turma.');return true;
  })().finally(()=>{flushPromise=null});return flushPromise;

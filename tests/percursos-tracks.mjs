@@ -10,7 +10,7 @@ class Ref{
  constructor(path){this.path=path}child(key){return new Ref(this.path+'/'+key)}
  async once(){return {val:()=>structuredClone(get(this.path)??null),exists:()=>get(this.path)!=null}}
  async transaction(update){const value=update(structuredClone(get(this.path)??null));set(this.path,value);return {snapshot:{val:()=>structuredClone(value)}}}
- async update(values){for(const [key,value]of Object.entries(values))set(this.path+'/'+key,value)}
+ async update(values){await new Promise(resolve=>setTimeout(resolve,5));for(const [key,value]of Object.entries(values))set(this.path+'/'+key,value)}
  on(_event,callback){const c=listeners.get(this.path)||new Set();c.add(callback);listeners.set(this.path,c);callback({val:()=>structuredClone(get(this.path)??null)})}
  off(_event,callback){listeners.get(this.path)?.delete(callback)}
 }
