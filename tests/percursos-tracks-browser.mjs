@@ -5,7 +5,7 @@ const token='a'.repeat(32),database={classTracks:{[token]:{label:'3ª série C',
 const lookup=path=>path.split('/').reduce((v,key)=>v?.[key],database)??null;
 function update(path,values){for(const [key,value]of Object.entries(values)){const keys=(path+'/'+key).split('/'),last=keys.pop();let node=database;for(const part of keys)node=node[part]??={};node[last]=value}}
 const source=(await readFile('percursos/aluno.html','utf8')).replace('function loadLocalProgress(){','sendResult=async()=>({ok:true});\nfunction loadLocalProgress(){');
-const scripts=Object.fromEntries(await Promise.all(['tracks.js','tracks-core.js'].map(async file=>[file,await readFile('percursos/'+file,'utf8')])));
+const scripts=Object.fromEntries(await Promise.all(['tracks.js','tracks-core.js','recreio-link.js'].map(async file=>[file,await readFile('percursos/'+file,'utf8')])));
 const browser=await chromium.launch({headless:true});const errors=[];
 async function device(){
  const context=await browser.newContext({viewport:{width:390,height:844}});
@@ -26,8 +26,8 @@ async function device(){
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto('https://percursos.test/aluno.html#turma='+token);await page.waitForFunction(()=>document.getElementById('trackEntryStatus').textContent.includes('Selecione seu nome'));return {page,context};
 }
 try{
- const first=await device();await first.page.locator('#entryName').fill('Ana');await first.page.getByRole('button',{name:'Entrar nas minhas aulas'}).click();await first.page.locator('#trackDisciplines').waitFor();
- assert.equal(await first.page.locator('.track-discipline').count(),3);assert.equal(await first.page.locator('#entryClass').inputValue(),'3ª série C');
+ const first=await device();assert.equal(await first.page.locator('#entry a[href*=recreio]').count(),0);await first.page.locator('#entryName').fill('Ana');await first.page.getByRole('button',{name:'Entrar nas minhas aulas'}).click();await first.page.locator('#trackDisciplines').waitFor();
+ assert.equal(await first.page.locator('#home a[href*=recreio]').count(),1);assert.match(await first.page.evaluate(()=>sessionStorage.getItem('percursos-recreio-profile-v1')),/Ana/);assert.equal(await first.page.locator('.track-discipline').count(),3);assert.equal(await first.page.locator('#entryClass').inputValue(),'3ª série C');
  await first.page.evaluate(async()=>{for(const id of ['h3s1','h3s2','f3s1'])await window.__percursosCompleteActivity(id,{getElementById:()=>null},{});await PercursosTracks.flush()});
  const second=await device();await second.page.locator('#savedStudent').selectOption('Ana');await second.page.getByRole('button',{name:'Entrar nas minhas aulas'}).click();await second.page.locator('#trackDisciplines').waitFor();
  assert.match(await second.page.locator('.track-discipline').nth(0).textContent(),/2 de 6 aulas concluídas.*Continuar na aula 3/s);

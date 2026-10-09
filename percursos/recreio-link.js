@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-for(const id of ['entry','home']){
+for(const id of ['home']){
  const host=document.getElementById(id);if(!host)continue;
  const card=document.createElement('div');card.style.cssText='margin:20px 0;padding:18px;border:1px solid #ddd7f6;border-radius:16px;background:#f5f1ff';
  const title=document.createElement('strong');title.textContent='Recreio';title.style.cssText='display:block;font-size:20px;margin-bottom:6px';

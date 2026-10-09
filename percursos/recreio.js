@@ -1,5 +1,6 @@
 (function(){
 'use strict';
+if(!window.PercursosRecreio?.ready)return;
 const $=id=>document.getElementById(id),board=$('board'),feedback=$('feedback');
 let active='',round=0;
 let mathLevel=0,previousMath='',mathWins=0,dotsMode='computer';
@@ -8,7 +9,7 @@ let cleanup=()=>{};
 const titles={logic:'Qual vem depois?',words:'Caça-palavras',crossword:'Palavras cruzadas',tic:'Jogo da velha',hang:'Forca',dots:'Jogo do pontinho',math:'Pequenos cálculos',snake:'Cobrinha'};
 $('backLessons').href='aluno.html'+location.hash;
 function say(message){feedback.textContent=message}
-function button(text,action,parent=board){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>action(b));parent.appendChild(b);return b}
+function button(text,action,parent=board){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>{action(b);if(b.closest('#board')&&!b.closest('.crossword-clues')&&!b.classList.contains('crossword-cell')&&!(b.closest('.actions')&&b.hasAttribute('aria-pressed')))window.PercursosRecreio.played(active)});parent.appendChild(b);return b}
 function block(text,cls,parent=board){const el=document.createElement('div');el.className=cls;el.textContent=text;parent.appendChild(el);return el}
 function shuffle(items){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function start(key){cleanup();cleanup=()=>{};active=key;$('menu').hidden=true;$('game').hidden=false;board.replaceChildren();say('');$('gameTitle').textContent=titles[key];games[key]();$('gameTitle').setAttribute('tabindex','-1');$('gameTitle').focus()}
@@ -71,7 +72,7 @@ crossword(){
  const actions=block('','actions');button('Revelar uma letra',()=>{const entry=entries[activeWord],pos=entry.path.find(key=>!cells.get(key).letter);if(pos!==undefined){cells.get(pos).letter=cells.get(pos).answer;paint();say('Uma letra foi revelada. Complete a palavra.')}else say('As letras já estão no quadro. Digite a palavra para conferir.');},actions);button('Outra cruzadinha →',()=>{crosswordRound++;start('crossword')},actions);
  function paint(){for(const [key,{b,letter}]of buttons){letter.textContent=cells.get(key).letter;b.classList.toggle('selected',entries[activeWord].path.includes(key));b.classList.toggle('found',cells.get(key).entries.some(i=>solved.has(i)));}clueButtons.forEach((b,i)=>{b.classList.toggle('selected',i===activeWord);b.classList.toggle('found',solved.has(i));b.setAttribute('aria-pressed',String(i===activeWord))});const e=entries[activeWord];prompt.textContent='Dica '+e.number+': '+e.clue+' ('+e.answer.length+' letras)';pattern.textContent=e.path.map(key=>cells.get(key).letter||'_').join(' ');progress.textContent=solved.size+' de '+entries.length+' palavras resolvidas';input.disabled=check.disabled=solved.has(activeWord)}
  function choose(i){activeWord=i;input.value='';paint()}
- form.addEventListener('submit',event=>{event.preventDefault();const e=entries[activeWord];if(solved.has(activeWord))return;if(normalize(input.value)!==e.answer){say('Ainda não. Leia a dica e observe as letras que já aparecem.');return}solved.add(activeWord);e.path.forEach(key=>cells.get(key).letter=cells.get(key).answer);paint();say(solved.size===entries.length?'Cruzadinha completa! Todas as palavras foram resolvidas.':'Isso! '+e.word+'. Escolha outra dica.');});
+ form.addEventListener('submit',event=>{event.preventDefault();window.PercursosRecreio.played('crossword');const e=entries[activeWord];if(solved.has(activeWord))return;if(normalize(input.value)!==e.answer){say('Ainda não. Leia a dica e observe as letras que já aparecem.');return}solved.add(activeWord);e.path.forEach(key=>cells.get(key).letter=cells.get(key).answer);paint();say(solved.size===entries.length?'Cruzadinha completa! Todas as palavras foram resolvidas.':'Isso! '+e.word+'. Escolha outra dica.');});
  paint();say('Escolha uma dica para começar.');
 },
 tic(){
@@ -148,3 +149,4 @@ snake(){
 }
 };
 })();
+

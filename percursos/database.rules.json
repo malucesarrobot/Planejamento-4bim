@@ -43,6 +43,12 @@
             },
             "$other": {
               ".validate": false
+            },
+            "played": {
+              "$gameKey": {
+                ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('classTracks').child($classToken).child('label').exists() && data.parent().parent().child('name').exists() && newData.val() === true",
+                ".validate": "newData.val() === true && $gameKey.matches(/^(logic|words|crossword|tic|hang|dots|math|snake)$/)"
+              }
             }
           }
         },

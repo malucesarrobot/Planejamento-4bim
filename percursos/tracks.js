@@ -22,7 +22,8 @@ function fillNames(){
 }
 names.addEventListener('change',()=>{nameInput.value=names.value;nameInput.hidden=!!names.value;if(!names.value)nameInput.focus()});
 classInput.addEventListener('change',()=>{nameInput.value='';nameInput.hidden=false;fillNames()});
-function remember(){const list=read(profileKey,[]);if(!list.some(p=>core.normalize(p.name)===core.normalize(student.name)&&p.turma===student.turma))list.push({name:student.name,turma:student.turma});write(profileKey,list);fillNames()}
+function remember(){try{sessionStorage.setItem('percursos-recreio-profile-v1',JSON.stringify({name:student.name,turma:student.turma,token:validToken?token:'',key:selectedKey}))}catch(e){}
+const list=read(profileKey,[]);if(!list.some(p=>core.normalize(p.name)===core.normalize(student.name)&&p.turma===student.turma))list.push({name:student.name,turma:student.turma});write(profileKey,list);fillNames()}
 function completedLocal(){const p=api.load(),out={};for(const [key,value]of Object.entries(p))if(value&&core.validActivity(key,student.series))out[key]=true;return out}
 function applyRemote(remote){
  const local=api.load(),merged=core.mergeCompleted(completedLocal(),remote,student.series);
@@ -110,7 +111,7 @@ window.enterStudent=async function(){
  finally{entryButton.disabled=false}
 };
 const oldHome=window.goHome;window.goHome=function(){oldHome.apply(this,arguments);paint();flush()};
-const oldReset=window.resetAccess;window.resetAccess=function(){generation++;selectedKey='';if(unsubscribe)unsubscribe();unsubscribe=null;oldReset.apply(this,arguments);document.getElementById('trackDisciplines')?.remove();document.getElementById('trackSync')?.remove()};
+const oldReset=window.resetAccess;window.resetAccess=function(){try{sessionStorage.removeItem('percursos-recreio-profile-v1')}catch(e){}generation++;selectedKey='';if(unsubscribe)unsubscribe();unsubscribe=null;oldReset.apply(this,arguments);document.getElementById('trackDisciplines')?.remove();document.getElementById('trackSync')?.remove()};
 window.PercursosTracks={queueCompleted,flush,paint};
 window.addEventListener('online',()=>flush());document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')flush()});
 bootstrapPromise=bootstrap().catch(e=>{status(e.message||'Não foi possível carregar a turma. Verifique a internet.');return false});

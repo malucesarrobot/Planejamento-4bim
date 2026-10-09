@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Recreio — Percursos</title><link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="recreio.css?v=20261009-4">
+<link rel="stylesheet" href="recreio.css?v=20261009-5">
 </head>
 <body>
 <header><a id="backLessons" href="aluno.html">← Minhas aulas</a><span>Percursos</span></header>
 <main>
+<p id="gameIdentity" role="status"></p>
 <section id="menu">
 <p class="eyebrow">UMA PAUSA PARA BRINCAR</p>
 <h1>Recreio</h1><p class="intro">Escolha um jogo. Pense com calma e tente quantas vezes quiser.</p>
@@ -31,5 +32,10 @@
 <p id="feedback" role="status" aria-live="polite" aria-atomic="true"></p>
 </section>
 </main>
-<script src="recreio.js?v=20261009-4"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="recreio-session.js?v=20261009-1"></script>
+<script src="recreio.js?v=20261009-5"></script>
 </body></html>
+
