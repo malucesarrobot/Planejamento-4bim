@@ -12,7 +12,6 @@ const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));re
 let roster={},classLabel='',selectedKey='',generation=0,flushPromise=null,unsubscribe=null,bootstrapPromise=null;
 function status(text){entryStatus.textContent=text;const el=document.getElementById('trackSync');if(el)el.textContent=text}
 async function hashName(name){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(core.normalize(name)));return [...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-let singleNameChoice=null;
 function chooseName(name){names.value=name;nameInput.value=name;nameInput.hidden=!!name;if(!name)nameInput.focus()}
 function fillNames(){
  const remembered=read(profileKey,[]).filter(p=>p.turma===classInput.value).map(p=>p.name);
@@ -21,16 +20,11 @@ function fillNames(){
  names.replaceChildren(new Option('Primeiro acesso: informar meu nome',''));
  for(const name of choices)names.add(new Option(name,name));
  names.value=choices.find(n=>core.normalize(n)===core.normalize(nameInput.value))||'';
- names.hidden=choices.length<2;
- if(!singleNameChoice){singleNameChoice=document.createElement('div');names.insertAdjacentElement('afterend',singleNameChoice)}
- singleNameChoice.replaceChildren();
- if(choices.length===1){
-  const use=document.createElement('button');use.type='button';use.textContent='Usar '+choices[0];use.onclick=()=>chooseName(choices[0]);singleNameChoice.appendChild(use);
-  const other=document.createElement('button');other.type='button';other.className='secondary';other.textContent='Informar outro nome';other.onclick=()=>chooseName('');singleNameChoice.appendChild(other);
- }
+ names.hidden=true;
+ nameInput.hidden=false;
 }
 names.addEventListener('change',()=>chooseName(names.value));
-classInput.addEventListener('change',()=>{nameInput.value='';nameInput.hidden=false;fillNames()});
+classInput.addEventListener('change',()=>{nameInput.hidden=false;fillNames()});
 function remember(){try{sessionStorage.setItem('percursos-recreio-profile-v1',JSON.stringify({name:student.name,turma:student.turma,token:validToken?token:'',key:selectedKey}))}catch(e){}
 const list=read(profileKey,[]);if(!list.some(p=>core.normalize(p.name)===core.normalize(student.name)&&p.turma===student.turma))list.push({name:student.name,turma:student.turma});write(profileKey,list);fillNames()}
 function completedLocal(){const p=api.load(),out={};for(const [key,value]of Object.entries(p))if(value&&core.validActivity(key,student.series))out[key]=true;return out}
