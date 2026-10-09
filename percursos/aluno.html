@@ -80,11 +80,13 @@
   <div class="entry-card entry-hero">
     <div class="sub">Percursos de Aprendizagem</div>
     <h2>Área do aluno</h2>
-    <p>Digite seu nome e selecione sua turma para ver somente as aulas disponíveis para você.</p>
+    <p>Selecione sua turma e seu nome. Seu progresso fica salvo neste aparelho para continuar depois.</p>
     <div class="entry-grid">
       <div>
         <label for="entryName">Nome</label>
-        <input id="entryName" autocomplete="name" placeholder="Digite seu nome">
+        <select id="savedStudent" aria-label="Selecionar meu nome"><option value="">Primeiro acesso: informar meu nome</option></select>
+        <input id="entryName" autocomplete="name" placeholder="Digite seu nome completo">
+        <small>Se seu nome ainda não aparece, informe-o no primeiro acesso.</small>
       </div>
       <div>
         <label for="entryClass">Turma</label>
@@ -92,7 +94,7 @@
           <option value="">Selecione</option>
           <option>1ª série A</option><option>1ª série B</option>
           <option>2ª série A</option><option>2ª série B</option>
-          <option>3ª série A</option><option>3ª série B</option>
+          <option>3ª série A</option><option>3ª série B</option><option>3ª série C</option>
         </select>
       </div>
     </div>
@@ -347,9 +349,11 @@ function shuffleOrderItems(question){
 function installRetryShuffle(d){
   const questions=[...d.querySelectorAll(".question")].filter(q=>!q.classList.contains("wordsearch-extra"));
   questions.forEach(q=>{
-    shuffleChoices(q);
-    shuffleSelectOptions(q);
-    shuffleOrderItems(q);
+    if(!d.__resumeDraft){
+      shuffleChoices(q);
+      shuffleSelectOptions(q);
+      shuffleOrderItems(q);
+    }
   });
 
   let busy=new WeakSet();
@@ -484,10 +488,13 @@ function installCognitiveStyle(d){
 function installOneQuestionMode(d,w,activityId){
   const allQs=[...d.querySelectorAll(".question")];
   if(allQs.length<2) return;
-  const realQs=shuffleArray(allQs.filter(q=>q.dataset.extra!=="wordsearch").slice());
+  const realQs=allQs.filter(q=>q.dataset.extra!=="wordsearch").slice();
+  if(d.__resumeDraft) realQs.sort((a,b)=>d.__resumeDraft.order.indexOf(a.id)-d.__resumeDraft.order.indexOf(b.id));
+  else shuffleArray(realQs);
   const extras=allQs.filter(q=>q.dataset.extra==="wordsearch");
   const qs=realQs.concat(extras);
-  let idx=0;
+  let idx=d.__resumeDraft ? Math.max(0,Math.min(d.__resumeDraft.index||0,qs.length-1)) : 0;
+  d.__getNavigation=()=>({order:realQs.map(q=>q.id),index:idx});
 
   const finishBtn=d.getElementById("finish") || d.getElementById("fim") ||
     [...d.querySelectorAll("button")].find(b=>/^(Finalizar|Finalizar atividade)$/i.test((b.textContent||"").trim()));
@@ -822,7 +829,7 @@ function installCompletionBridge(d,w,activityId){
 }
 
 function installTapDragSupport(d,w){
-  const tokens=[...d.querySelectorAll('.token[draggable="true"],.token[draggable=true]')];
+  const tokens=[...d.querySelectorAll('.token[draggable]')];
   const targets=[...d.querySelectorAll('[ondrop]')];
   if(!tokens.length || !targets.length) return;
 
@@ -952,7 +959,8 @@ function openActivity(id,btn){
         if(turmaField){
           const wanted=student.turma;
           const exists=[...turmaField.options].some(o=>o.value===wanted || o.text===wanted);
-          if(exists) turmaField.value=wanted;
+          if(!exists) turmaField.add(new w.Option(wanted,wanted));
+          turmaField.value=wanted;
         }
 
         /* start() inicializa o estado interno usado pelas questões. */
@@ -976,8 +984,10 @@ function openActivity(id,btn){
         }
 
         /* As melhorias de navegação são opcionais: uma falha nelas nunca pode derrubar a aula. */
+        try{ if(window.restoreStudentDraft) window.restoreStudentDraft(d,w,id); }catch(e){ console.error("Percursos: falha ao retomar",id,e); }
         try{ enhanceStudentActivity(d,w,id); }catch(e){ console.error("Percursos: falha nas melhorias da aula",id,e); }
         try{ studentOnly(d); }catch(e){ console.error("Percursos: falha ao aplicar modo aluno",id,e); }
+        try{ if(window.watchStudentDraft) window.watchStudentDraft(d,w,id); }catch(e){ console.error("Percursos: falha ao salvar rascunho",id,e); }
         try{ watchCompletion(id,d,w); }catch(e){ console.error("Percursos: falha ao acompanhar conclusão",id,e); }
       }else if(accessMode==="teacher"){
         if(typeof w.view==="function"){
@@ -1049,6 +1059,87 @@ document.getElementById("entryClass").addEventListener("keydown",e=>{
 #maluSyncToast.err{background:#8b2d2d}
 </style>
 <div id="maluSyncToast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+const profilesKey='percursos-student-profiles-v1', draftsKey='percursos-student-drafts-v1';
+const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))||fallback}catch(e){return fallback}};
+const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}};
+const bucket=()=>normalize(student.name)+'|'+normalize(student.turma);
+// Include the activity source so a changed lesson never loads an incompatible draft.
+function revision(id){let h=2166136261;for(const c of A[id]||'')h=Math.imul(h^c.charCodeAt(0),16777619);return (h>>>0).toString(16)}
+function draftKey(id){return bucket()+'|'+id+'|'+revision(id)}
+let activeSave=null;
+const names=document.getElementById('savedStudent'), nameInput=document.getElementById('entryName'), classInput=document.getElementById('entryClass');
+function fillNames(){
+ const profiles=read(profilesKey,[]).filter(p=>p.turma===classInput.value).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+ names.replaceChildren(new Option('Primeiro acesso: informar meu nome',''));
+ profiles.forEach(p=>names.add(new Option(p.name,p.name)));
+ names.value=profiles.some(p=>p.name===nameInput.value)?nameInput.value:'';
+}
+names.addEventListener('change',()=>{nameInput.value=names.value;nameInput.hidden=!!names.value;if(!names.value)nameInput.focus()});
+classInput.addEventListener('change',()=>{nameInput.value='';nameInput.hidden=false;fillNames()});
+const previousEnter=window.enterStudent;
+window.enterStudent=function(){
+ previousEnter.apply(this,arguments);
+ if(accessMode!=='student')return;
+ const profiles=read(profilesKey,[]);
+ if(!profiles.some(p=>normalize(p.name)===normalize(student.name)&&p.turma===student.turma))profiles.push({name:student.name,turma:student.turma});
+ write(profilesKey,profiles);fillNames();
+ const drafts=read(draftsKey,{});
+ const latest=Object.entries(drafts).filter(([key,v])=>key.startsWith(bucket()+'|')&&v.id[1]===student.series&&v.revision===revision(v.id)).sort((a,b)=>b[1].savedAt-a[1].savedAt)[0];
+ let resume=document.getElementById('resumeStudentActivity');
+ if(!resume){resume=document.createElement('button');resume.id='resumeStudentActivity';resume.className='secondary';studentBanner.appendChild(resume)}
+ resume.hidden=!latest;
+ if(latest){resume.textContent='Continuar de onde parei';resume.onclick=()=>openActivity(latest[1].id)}
+};
+window.clearStudentDraft=function(id,d){
+ if(d)d.__draftFinished=true;
+ const all=read(draftsKey,{});delete all[draftKey(id)];write(draftsKey,all);
+};
+window.restoreStudentDraft=function(d,w,id){
+ activeSave=null;
+ const draft=read(draftsKey,{})[draftKey(id)];
+ if(!draft)return;
+ const decode=(_key,v)=>v&&v.__set?new w.Set(v.__set):v;
+ w.__draftState=JSON.parse(JSON.stringify(draft.state),decode);
+ w.eval("if(typeof S!=='undefined')S=window.__draftState;else if(typeof st!=='undefined')st=window.__draftState;");
+ delete w.__draftState;
+ draft.questions.forEach(saved=>{
+  const q=d.getElementById(saved.id);if(!q)return;
+  q.innerHTML=saved.html;q.className=saved.className;
+  q.querySelectorAll('input,select,textarea').forEach((el,i)=>{const f=saved.fields[i];if(f){el.value=f.value;el.checked=f.checked}});
+ });
+ d.__resumeDraft=draft;
+ if(typeof w.update==='function')w.update();
+};
+window.watchStudentDraft=function(d,w,id){
+ const key=draftKey(id);
+ function save(){
+  if(!d.body||!d.__getNavigation||d.__draftFinished)return;
+  let state;try{state=w.eval("typeof S!=='undefined'?S:(typeof st!=='undefined'?st:null)")}catch(e){return}
+  if(!state)return;
+  const serialized=JSON.parse(JSON.stringify(state,(_k,v)=>v&&typeof v.has==='function'&&typeof v.add==='function'?{__set:[...v]}:v));
+  const questions=[...d.querySelectorAll('.question')].filter(q=>q.id&&q.dataset.extra!=='wordsearch').map(q=>({id:q.id,className:q.className,html:q.innerHTML,fields:[...q.querySelectorAll('input,select,textarea')].map(el=>({value:el.value,checked:el.checked}))}));
+  const all=read(draftsKey,{});
+  all[key]=Object.assign({id,revision:revision(id),state:serialized,questions,savedAt:Date.now()},d.__getNavigation());
+  if(!write(draftsKey,all)&&!d.__storageWarning){d.__storageWarning=true;alert('Não foi possível salvar o progresso neste aparelho. Libere espaço para conseguir retomar depois.')}
+ }
+ activeSave=save;
+ let pending;
+ const schedule=()=>{clearTimeout(pending);pending=setTimeout(save,100)};
+ d.addEventListener('click',schedule);d.addEventListener('input',schedule);d.addEventListener('change',schedule);d.addEventListener('drop',schedule);
+ const observer=new MutationObserver(schedule);d.querySelectorAll('.question').forEach(q=>observer.observe(q,{subtree:true,childList:true,attributes:true,characterData:true}));
+ save();
+};
+for(const method of ['goHome','resetAccess','openActivity']){
+ const previous=window[method];window[method]=function(){if(activeSave)activeSave();activeSave=null;return previous.apply(this,arguments)};
+}
+window.addEventListener('pagehide',()=>{if(activeSave)activeSave()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&activeSave)activeSave()});
+fillNames();
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -1204,6 +1295,7 @@ async function markComplete(id,record,d){
   const meta=activityMeta(id);const p=loadLocalProgress();
   p[activityProgressKey(id)]={finished_at:(record&&record.finished_at)||new Date().toISOString(),total_attempts:(record&&record.total_attempts)||null,first_try_rate:(record&&record.first_try_rate)||null,sync:'pending'};
   saveLocalProgress(p);paintProgress();
+  if(window.clearStudentDraft)window.clearStudentDraft(id,d);
 
   const qd={};const attempts=(record&&record.attempts_by_question)||{};
   Object.keys(attempts).forEach(qid=>{const el=d&&d.getElementById?d.getElementById(qid):null;const prompt=el?(el.querySelector('h3,legend')||el).textContent.trim().replace(/\s+/g,' ').slice(0,420):qid;qd[qid]={attempts:Number(attempts[qid])||0,prompt}});
