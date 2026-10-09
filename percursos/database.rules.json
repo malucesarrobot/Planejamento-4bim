@@ -1,0 +1,55 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "results": {
+      ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
+      "$resultId": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['ek', 'iv', 'ct']) && newData.child('ek').isString() && newData.child('iv').isString() && newData.child('ct').isString()"
+      }
+    },
+    "trackClassKeys": {
+      ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
+      ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
+      "$classId": {
+        ".validate": "$classId.matches(/^[123][ab]$|^3c$/) && newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+      }
+    },
+    "classTracks": {
+      ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
+      "$classToken": {
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && $classToken.matches(/^[a-f0-9]{32}$/) && data.child('label').exists()",
+        ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
+        ".validate": "$classToken.matches(/^[a-f0-9]{32}$/) && newData.hasChildren(['label','series'])",
+        "label": {
+          ".validate": "newData.isString() && newData.val().matches(/^[123]ª série [AB]$|^3ª série C$/)"
+        },
+        "series": {
+          ".validate": "newData.isString() && newData.val().matches(/^[123]$/)"
+        },
+        "students": {
+          "$studentKey": {
+            ".validate": "$studentKey.matches(/^[a-f0-9]{64}$/) && newData.hasChildren(['name'])",
+            "name": {
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('classTracks').child($classToken).child('label').exists() && !data.exists() && newData.exists()",
+              ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 160"
+            },
+            "completed": {
+              "$activityKey": {
+                ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && root.child('classTracks').child($classToken).child('label').exists() && data.parent().parent().child('name').exists() && newData.val() === true",
+                ".validate": "newData.val() === true && $activityKey.matches(/^[hfs][123]s[1-6](@[a-zA-Z0-9_-]+)?$/) && ($activityKey.beginsWith('h'+root.child('classTracks').child($classToken).child('series').val()+'s') || $activityKey.beginsWith('f'+root.child('classTracks').child($classToken).child('series').val()+'s') || $activityKey.beginsWith('s'+root.child('classTracks').child($classToken).child('series').val()+'s'))"
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
