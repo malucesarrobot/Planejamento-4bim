@@ -16,6 +16,7 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts
       - run: npx playwright install --with-deps chromium
+      - run: node tests/percursos-recreio.mjs
       - run: node tests/percursos-tracks.mjs
       - run: node tests/percursos-tracks-browser.mjs && node tests/percursos.mjs
       - run: npm test

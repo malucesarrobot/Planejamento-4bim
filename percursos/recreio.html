@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recreio — Percursos</title><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="recreio.css?v=20261009-1">
+</head>
+<body>
+<header><a id="backLessons" href="aluno.html">← Minhas aulas</a><span>Percursos</span></header>
+<main>
+<section id="menu">
+<p class="eyebrow">UMA PAUSA PARA BRINCAR</p>
+<h1>Recreio</h1><p class="intro">Escolha um jogo. Pense com calma e tente quantas vezes quiser.</p>
+<div class="cards">
+<button data-game="logic"><span class="icon">◆</span><strong>Qual vem depois?</strong><small>Descubra a sequência.</small><span class="tag">Lógica</span></button>
+<button data-game="words"><span class="icon">Aa</span><strong>Caça-palavras</strong><small>Encontre três palavras.</small><span class="tag">Atenção</span></button>
+<button data-game="tic"><span class="icon">✕ ◯</span><strong>Jogo da velha</strong><small>Faça uma linha com três.</small><span class="tag">Estratégia</span></button>
+<button data-game="hang"><span class="icon">_ A _</span><strong>Forca</strong><small>Descubra a palavra pela dica.</small><span class="tag">Palavras</span></button>
+<button data-game="order"><span class="icon">1 2 3</span><strong>Coloque em ordem</strong><small>Do menor para o maior.</small><span class="tag">Organização</span></button>
+<button data-game="stones"><span class="icon">● ● ●</span><strong>A última peça</strong><small>Planeje sua próxima jogada.</small><span class="tag">Estratégia</span></button>
+</div>
+<p class="note">Espaço livre para brincar. Os jogos não contam como aulas concluídas.</p>
+</section>
+<section id="game" hidden aria-labelledby="gameTitle">
+<button id="backGames" class="quiet">← Escolher outro jogo</button>
+<div class="game-heading"><h1 id="gameTitle"></h1><button id="restart">Jogar de novo ↻</button></div>
+<p id="instructions" class="intro"></p>
+<div id="board"></div>
+<p id="feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+</section>
+</main>
+<script src="recreio.js?v=20261009-1"></script>
+</body></html>
