@@ -3,8 +3,9 @@
 const $=id=>document.getElementById(id),board=$('board'),feedback=$('feedback');
 let active='',round=0;
 let mathLevel=0,previousMath='',mathWins=0,dotsMode='computer';
+let wordLevel=0,crosswordRound=0;
 let cleanup=()=>{};
-const titles={logic:'Qual vem depois?',words:'Caça-palavras',tic:'Jogo da velha',hang:'Forca',dots:'Jogo do pontinho',math:'Pequenos cálculos',snake:'Cobrinha'};
+const titles={logic:'Qual vem depois?',words:'Caça-palavras',crossword:'Palavras cruzadas',tic:'Jogo da velha',hang:'Forca',dots:'Jogo do pontinho',math:'Pequenos cálculos',snake:'Cobrinha'};
 $('backLessons').href='aluno.html'+location.hash;
 function say(message){feedback.textContent=message}
 function button(text,action,parent=board){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>action(b));parent.appendChild(b);return b}
@@ -22,20 +23,56 @@ logic(){
  const [pattern,choices,answer,explanation]=puzzles[round%puzzles.length];block(pattern,'sequence');const row=block('','choices');choices.forEach(choice=>button(choice,b=>{if(choice===answer){b.classList.add('chosen');row.querySelectorAll('button').forEach(x=>x.disabled=true);say('Isso! '+explanation)}else say('Tente outra opção. Observe o que se repete ou muda.');},row));
 },
 words(){
- instruction('Toque na primeira e na última letra da palavra. Elas estão em linha reta: na horizontal, vertical ou diagonal.');
- const sets=[['SOL','LUA','MAR'],['GATO','PATO','SAPO'],['LIVRO','ARTE','JOGO']];const words=sets[round%sets.length];
- const cells=Array.from({length:81},()=>String.fromCharCode(65+Math.floor(Math.random()*26)));
- const paths=words.map((word,i)=>Array.from(word,(_,j)=>i===0?9+j:i===1?(j+2)*9+7:(j+4)*9+j));
- paths.forEach((path,i)=>path.forEach((pos,j)=>cells[pos]=words[i][j]));
- const list=block('','word-list');const labels=words.map(w=>{const el=document.createElement('span');el.textContent=w;list.appendChild(el);return el});
- const grid=block('','word-grid');let first=null;const found=new Set();const buttons=cells.map((letter,index)=>{const b=button(letter,()=>select(index),grid);b.setAttribute('aria-label',letter+', linha '+(Math.floor(index/9)+1)+', coluna '+(index%9+1));return b});
- function select(index){if(found.size===words.length)return;if(first===null){first=index;buttons[index].classList.add('selected');say('Agora toque na última letra.');return}
- const previous=first;first=null;buttons[previous].classList.remove('selected');
- const hit=paths.findIndex(p=>(p[0]===previous&&p[p.length-1]===index)||(p[0]===index&&p[p.length-1]===previous));
- if(hit<0){say('Essa seleção não corresponde a uma das palavras. Tente novamente.');return}
- found.add(hit);paths[hit].forEach(pos=>buttons[pos].classList.add('found'));labels[hit].classList.add('found');say(found.size===words.length?'Você encontrou todas as palavras!':'Encontrou '+words[hit]+'! Faltam '+(words.length-found.size)+'.');
+ instruction('Encontre as palavras na horizontal, vertical ou diagonal, inclusive de trás para frente. Toque na primeira e na última letra. No quadro, os acentos são omitidos.');
+ const normalize=text=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+ const banks=[['DEMOCRACIA','CIDADANIA','AUTONOMIA','LIBERDADE','FILOSOFIA','PATRIMÔNIO','MEMÓRIA','CULTURA','RESPEITO','EMPATIA','IDENTIDADE','JUSTIÇA','DIGNIDADE','HISTÓRIA','ARGUMENTO','ESTÉTICA'],['CONSTITUIÇÃO','DIVERSIDADE','CONSCIÊNCIA','COOPERAÇÃO','RESISTÊNCIA','DESIGUALDADE','PLURALIDADE','TOLERÂNCIA','RACIONALIDADE','PENSAMENTO','CRIATIVIDADE','SUSTENTÁVEL']];
+ const size=wordLevel===0?10:12,count=wordLevel===0?5:6;
+ const modes=block('','actions');['Intermediário','Desafio'].forEach((name,i)=>{const b=button(name,()=>{wordLevel=i;start('words')},modes);b.setAttribute('aria-pressed',String(wordLevel===i));if(wordLevel===i)b.classList.add('selected')});
+ const words=shuffle(banks[wordLevel].filter(w=>normalize(w).length<=size)).slice(0,count),answers=words.map(normalize);
+ const dirs=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]];let cells,paths,placed=false;
+ for(let attempt=0;attempt<40&&!placed;attempt++){
+  cells=Array(size*size).fill(null);paths=[];
+  for(const word of answers){let path=null;for(let trial=0;trial<200&&!path;trial++){const [dr,dc]=shuffle(dirs)[0],r=Math.floor(Math.random()*size),c=Math.floor(Math.random()*size);const positions=Array.from(word,(_,i)=>[r+dr*i,c+dc*i]);if(positions.some(([y,x])=>y<0||x<0||y>=size||x>=size))continue;const candidate=positions.map(([y,x])=>y*size+x);if(candidate.every((pos,i)=>cells[pos]===null||cells[pos]===word[i]))path=candidate}if(!path)break;paths.push(path);path.forEach((pos,i)=>cells[pos]=word[i])}
+  placed=paths.length===answers.length;
  }
- button('Limpar seleção',()=>{if(first!==null)buttons[first].classList.remove('selected');first=null;say('Seleção limpa. Toque na primeira letra.');});
+ if(!placed){cells=Array(size*size).fill(null);const rows=shuffle(Array.from({length:size},(_,i)=>i));paths=answers.map((word,i)=>{const reverse=Math.random()<.5;const path=Array.from(word,(_,j)=>rows[i]*size+(reverse?size-1-j:j));path.forEach((pos,j)=>cells[pos]=word[j]);return path})}
+ cells=cells.map(l=>l||String.fromCharCode(65+Math.floor(Math.random()*26)));
+ const list=block('','word-list');let target=0;const labels=words.map((w,i)=>{const b=button(w,()=>{target=i;labels.forEach((x,j)=>x.classList.toggle('selected',i===j));say('Palavra escolhida: '+w+'.')},list);return b});
+ const grid=block('','word-grid');grid.style.gridTemplateColumns='repeat('+size+',minmax(0,1fr))';let first=null;const found=new Set();const buttons=cells.map((letter,index)=>{const b=button(letter,()=>select(index),grid);b.setAttribute('aria-label',letter+', linha '+(Math.floor(index/size)+1)+', coluna '+(index%size+1));return b});
+ function clear(){if(first!==null)buttons[first].classList.remove('selected');first=null}
+ function select(index){if(found.size===words.length)return;if(first===null){first=index;buttons[index].classList.add('selected');say('Agora toque na última letra.');return}
+ const previous=first;clear();const r1=Math.floor(previous/size),c1=previous%size,r2=Math.floor(index/size),c2=index%size,dr=r2-r1,dc=c2-c1;
+ if(previous===index||(dr!==0&&dc!==0&&Math.abs(dr)!==Math.abs(dc))){say('Selecione uma palavra inteira em linha reta.');return}
+ const length=Math.max(Math.abs(dr),Math.abs(dc))+1,path=Array.from({length},(_,i)=>(r1+Math.sign(dr)*i)*size+c1+Math.sign(dc)*i),text=path.map(pos=>cells[pos]).join('');
+ const hit=answers.findIndex(w=>w===text||w===[...text].reverse().join(''));
+ if(hit<0){say('Essa seleção não corresponde a uma das palavras. Tente novamente.');return}if(found.has(hit)){say(words[hit]+' já foi encontrada. Procure outra palavra.');return}
+ found.add(hit);path.forEach(pos=>buttons[pos].classList.add('found'));labels[hit].classList.add('found');say(found.size===words.length?'Você encontrou todas as palavras!':'Encontrou '+words[hit]+'! Faltam '+(words.length-found.size)+'.');
+ }
+ const actions=block('','actions');button('Limpar seleção',()=>{clear();say('Seleção limpa. Toque na primeira letra.');},actions);
+ button('Dica da palavra',()=>{if(found.size===words.length)return;if(found.has(target))target=answers.findIndex((_,i)=>!found.has(i));clear();first=paths[target][0];buttons[first].classList.add('selected');say(words[target]+': a primeira letra está destacada. Encontre a última.');},actions);
+},
+crossword(){
+ instruction('Escolha uma dica, digite a palavra e toque em Conferir. As letras se cruzam no quadro. Pode escrever com ou sem acentos.');
+ const puzzles=[
+  [['CULTURA',1,0,'h','Conjunto de costumes, conhecimentos e modos de vida de um grupo.'],['ÉTICA',0,3,'v','Reflexão sobre como agir e distinguir o justo do injusto.'],['ARTE',0,5,'v','Expressão criativa, como pintura, música e teatro.']],
+  [['HISTÓRIA',1,0,'h','Área do conhecimento que estuda as experiências humanas ao longo do tempo.'],['TEMPO',1,3,'v','O que medimos com relógios e calendários.'],['PAZ',0,7,'v','Situação de convivência sem guerra.']],
+  [['NATUREZA',0,0,'h','Conjunto do mundo físico e dos seres vivos.'],['TERRA',0,2,'v','Planeta em que vivemos.'],['ÁGUA',0,7,'v','Substância essencial à vida, presente em rios e mares.']],
+  [['RESPEITO',1,0,'h','Atitude de reconhecer e considerar a dignidade das outras pessoas.'],['PAZ',1,3,'v','Situação de convivência sem guerra.'],['ÉTICA',0,6,'v','Reflexão sobre como devemos agir.']],
+  [['CIÊNCIA',1,0,'h','Produção de conhecimento por investigação, observação e análise de evidências.'],['MENTE',0,2,'v','Relaciona-se aos pensamentos, à memória e à imaginação.'],['ARTE',1,6,'v','Expressão criativa, como pintura, música e teatro.']]
+ ];
+ const normalize=text=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+ const entries=puzzles[crosswordRound%puzzles.length].map(([word,row,col,dir,clue],i)=>({word,answer:normalize(word),row,col,dir,clue,number:i+1,path:[]}));
+ const rows=Math.max(...entries.map(e=>e.row+(e.dir==='v'?e.answer.length:1))),cols=Math.max(...entries.map(e=>e.col+(e.dir==='h'?e.answer.length:1))),cells=new Map(),solved=new Set();let activeWord=0;
+ for(const e of entries)for(let i=0;i<e.answer.length;i++){const r=e.row+(e.dir==='v'?i:0),c=e.col+(e.dir==='h'?i:0),key=r*cols+c;e.path.push(key);if(!cells.has(key))cells.set(key,{answer:e.answer[i],letter:'',entries:[],number:null});const cell=cells.get(key);cell.entries.push(e.number-1);if(i===0)cell.number=e.number;}
+ const progress=block('0 de '+entries.length+' palavras resolvidas','stone-count'),grid=block('','crossword-grid');grid.style.gridTemplateColumns='repeat('+cols+',minmax(0,1fr))';const buttons=new Map();
+ for(let i=0;i<rows*cols;i++){if(!cells.has(i)){const blank=block('','crossword-blank',grid);blank.setAttribute('aria-hidden','true');continue}const cell=cells.get(i);const b=button('',()=>choose(cell.entries.find(n=>n!==activeWord)??cell.entries[0]),grid);b.className='crossword-cell';b.setAttribute('aria-label','Linha '+(Math.floor(i/cols)+1)+', coluna '+(i%cols+1));const number=document.createElement('small');number.textContent=cell.number??'';const letter=document.createElement('span');b.append(number,letter);buttons.set(i,{b,letter})}
+ const clues=block('','crossword-clues');const clueButtons=entries.map((e,i)=>button(e.number+'. '+(e.dir==='h'?'Horizontal':'Vertical')+' — '+e.clue,()=>choose(i),clues));
+ const prompt=block('','crossword-prompt'),pattern=block('','crossword-pattern');const form=document.createElement('form');form.className='crossword-form';const input=document.createElement('input');input.type='text';input.autocomplete='off';input.autocapitalize='characters';input.spellcheck=false;input.maxLength=24;input.setAttribute('aria-label','Resposta da dica');input.placeholder='Digite a palavra';form.appendChild(input);const check=document.createElement('button');check.type='submit';check.textContent='Conferir';form.appendChild(check);board.appendChild(form);
+ const actions=block('','actions');button('Revelar uma letra',()=>{const entry=entries[activeWord],pos=entry.path.find(key=>!cells.get(key).letter);if(pos!==undefined){cells.get(pos).letter=cells.get(pos).answer;paint();say('Uma letra foi revelada. Complete a palavra.')}else say('As letras já estão no quadro. Digite a palavra para conferir.');},actions);button('Outra cruzadinha →',()=>{crosswordRound++;start('crossword')},actions);
+ function paint(){for(const [key,{b,letter}]of buttons){letter.textContent=cells.get(key).letter;b.classList.toggle('selected',entries[activeWord].path.includes(key));b.classList.toggle('found',cells.get(key).entries.some(i=>solved.has(i)));}clueButtons.forEach((b,i)=>{b.classList.toggle('selected',i===activeWord);b.classList.toggle('found',solved.has(i));b.setAttribute('aria-pressed',String(i===activeWord))});const e=entries[activeWord];prompt.textContent='Dica '+e.number+': '+e.clue+' ('+e.answer.length+' letras)';pattern.textContent=e.path.map(key=>cells.get(key).letter||'_').join(' ');progress.textContent=solved.size+' de '+entries.length+' palavras resolvidas';input.disabled=check.disabled=solved.has(activeWord)}
+ function choose(i){activeWord=i;input.value='';paint()}
+ form.addEventListener('submit',event=>{event.preventDefault();const e=entries[activeWord];if(solved.has(activeWord))return;if(normalize(input.value)!==e.answer){say('Ainda não. Leia a dica e observe as letras que já aparecem.');return}solved.add(activeWord);e.path.forEach(key=>cells.get(key).letter=cells.get(key).answer);paint();say(solved.size===entries.length?'Cruzadinha completa! Todas as palavras foram resolvidas.':'Isso! '+e.word+'. Escolha outra dica.');});
+ paint();say('Escolha uma dica para começar.');
 },
 tic(){
  instruction('Você é X. Toque em uma casa livre. O computador joga com O. Vença formando uma linha de três.');

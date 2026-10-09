@@ -12,10 +12,18 @@ async function menu(){await page.getByRole('button',{name:'Escolher outro jogo',
 const status=()=>page.locator('#feedback').textContent();
 try{
  await page.goto('https://percursos.test/recreio.html#turma='+token);
- assert.equal(await page.locator('[data-game]').count(),7);
+ assert.equal(await page.locator('[data-game]').count(),8);
  assert.equal(await page.locator('#backLessons').getAttribute('href'),'aluno.html#turma='+token);
  await game('logic');await page.getByRole('button',{name:'9',exact:true}).click();assert.match(await status(),/Tente/);await page.getByRole('button',{name:'10',exact:true}).click();assert.match(await status(),/Isso/);await menu();
- await game('words');const cells=page.locator('.word-grid button');for(const [start,end]of [[9,11],[25,43],[36,56]]){await cells.nth(start).click();await cells.nth(end).click()}assert.match(await status(),/todas/);await menu();
+ await game('words');
+ const normalize=text=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+ async function solveSearch(count,size){const words=await page.locator('.word-list button').allTextContents(),letters=await page.locator('.word-grid button').allTextContents();assert.equal(words.length,count);assert(words.every(w=>normalize(w).length>=6));assert.equal(letters.length,size*size);const directions=[[0,1],[1,0],[1,1],[1,-1],[0,-1],[-1,0],[-1,-1],[-1,1]];for(const word of words){let path;const answer=normalize(word);for(let start=0;start<letters.length&&!path;start++)for(const [dr,dc]of directions){const r=Math.floor(start/size),c=start%size,coords=Array.from(answer,(_,i)=>[r+dr*i,c+dc*i]);if(coords.some(([y,x])=>y<0||x<0||y>=size||x>=size))continue;const indices=coords.map(([y,x])=>y*size+x);if(indices.map(i=>letters[i]).join('')===answer){path=indices;break}}assert(path,'Missing word '+word);const cells=page.locator('.word-grid button');await cells.nth(path[0]).click();await cells.nth(path.at(-1)).click()}assert.match(await status(),/todas/);assert.equal(await page.locator('.word-list button.found').count(),count);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false)}
+ await page.getByRole('button',{name:'Dica da palavra',exact:true}).click();assert.match(await status(),/primeira letra/);await page.getByRole('button',{name:'Limpar seleção',exact:true}).click();await solveSearch(5,10);
+ await page.getByRole('button',{name:'Desafio',exact:true}).click();await solveSearch(6,12);await menu();
+ await game('crossword');
+ const puzzles=[['CULTURA','ÉTICA','ARTE'],['HISTÓRIA','TEMPO','PAZ'],['NATUREZA','TERRA','ÁGUA'],['RESPEITO','PAZ','ÉTICA'],['CIÊNCIA','MENTE','ARTE']];
+ await page.getByRole('textbox',{name:'Resposta da dica',exact:true}).fill('errado');await page.getByRole('button',{name:'Conferir',exact:true}).click();assert.match(await status(),/Ainda não/);await page.getByRole('button',{name:'Revelar uma letra',exact:true}).click();assert.match(await status(),/revelada/);assert.match(await page.locator('.stone-count').textContent(),/0 de 3/);
+ for(let puzzle=0;puzzle<puzzles.length;puzzle++){for(let i=0;i<3;i++){await page.locator('.crossword-clues button').nth(i).click();const answer=(puzzle+i)%2===0?puzzles[puzzle][i].toLowerCase():normalize(puzzles[puzzle][i]);await page.getByRole('textbox',{name:'Resposta da dica',exact:true}).fill(answer);await page.getByRole('button',{name:'Conferir',exact:true}).click();assert.match(await status(),/Isso|completa/)}assert.match(await status(),/Cruzadinha completa/);assert.match(await page.locator('.stone-count').textContent(),/3 de 3/);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);if(puzzle<puzzles.length-1)await page.getByRole('button',{name:'Outra cruzadinha',exact:false}).click()}await menu();
  await game('tic');for(let i=0;i<9;i++){const cell=page.locator('.tic-grid button').nth(i);if(await cell.isEnabled())await cell.click()}assert.match(await status(),/venceu|computador fez|Empate/);await menu();
  await game('hang');for(const letter of ['J','A','N','E','L'])await page.getByRole('button',{name:letter,exact:true}).click();assert.match(await status(),/descobriu: JANELA/);await page.getByRole('button',{name:'Jogar de novo',exact:false}).click();for(const letter of ['B','C','F','H','K','L'])await page.getByRole('button',{name:letter,exact:true}).click();assert.match(await status(),/palavra era AMIZADE/);await menu();
  await game('dots');assert.equal(await page.locator('.dots-edge').count(),24);await page.getByRole('button',{name:'Duas pessoas',exact:true}).click();
@@ -30,5 +38,5 @@ try{
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  assert.deepEqual(errors,[]);
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/percursos-recreio-mobile.png',fullPage:true});
- console.log('PASS seven mobile games; dots squares, extra turn, two-player and computer matches; varied calculations, hints and three levels; snake movement, pause, direction, collision, restart and exit; class link preserved; no overflow or JS errors');
+ console.log('PASS eight mobile games; harder random word searches and both levels; five connected crosswords, hints and accent normalization; dots squares, extra turn, two-player and computer matches; varied calculations, hints and three levels; snake movement, pause, direction, collision, restart and exit; class link preserved; no overflow or JS errors');
 }finally{await browser.close()}
