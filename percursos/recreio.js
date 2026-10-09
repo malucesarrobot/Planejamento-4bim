@@ -2,9 +2,9 @@
 'use strict';
 const $=id=>document.getElementById(id),board=$('board'),feedback=$('feedback');
 let active='',round=0;
-let orderLevel=0,previousOrder='',orderWins=0;
+let mathLevel=0,previousMath='',mathWins=0,dotsMode='computer';
 let cleanup=()=>{};
-const titles={logic:'Qual vem depois?',words:'Caça-palavras',tic:'Jogo da velha',hang:'Forca',order:'Coloque em ordem',stones:'A última peça',snake:'Cobrinha'};
+const titles={logic:'Qual vem depois?',words:'Caça-palavras',tic:'Jogo da velha',hang:'Forca',dots:'Jogo do pontinho',math:'Pequenos cálculos',snake:'Cobrinha'};
 $('backLessons').href='aluno.html'+location.hash;
 function say(message){feedback.textContent=message}
 function button(text,action,parent=board){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',()=>action(b));parent.appendChild(b);return b}
@@ -56,34 +56,39 @@ hang(){
  function draw(){slots.textContent=[...word].map(l=>guessed.has(l)||done?l:'_').join(' ');tries.textContent='Tentativas restantes: '+(6-errors)}
  for(const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')button(letter,b=>{if(done)return;guessed.add(letter);b.disabled=true;if(word.includes(letter)){b.classList.add('chosen');say('A letra '+letter+' está na palavra.')}else{errors++;b.classList.add('missed');say('A letra '+letter+' não está na palavra. Tente outra.')}if([...word].every(l=>guessed.has(l))){done=true;say('Você descobriu: '+word+'!')}else if(errors===6){done=true;say('A palavra era '+word+'. Você pode jogar de novo.')}if(done)keys.querySelectorAll('button').forEach(x=>x.disabled=true);draw();},keys);draw();
 },
-order(){
- const levels=[{name:'Fácil',max:20,count:6},{name:'Médio',max:50,count:6},{name:'Desafio',max:100,count:9}];
- const level=levels[orderLevel],descending=orderLevel>0&&Math.random()<.5;
- const direction=descending?'do maior para o menor':'do menor para o maior';
- instruction('Toque nos números '+direction+'. Novos números em cada partida. Não precisa arrastar.');
- const controls=block('','actions');
- levels.forEach((l,i)=>{const b=button(l.name,()=>{orderLevel=i;start('order')},controls);b.setAttribute('aria-pressed',String(i===orderLevel));if(i===orderLevel)b.classList.add('selected')});
- const pool=Array.from({length:level.max},(_,i)=>i+1),chosen=shuffle(pool).slice(0,level.count);
- const signature=values=>[...values].sort((a,b)=>a-b).join(',');
- if(signature(chosen)===previousOrder)chosen[0]=pool.find(n=>!chosen.includes(n));
- previousOrder=signature(chosen);
- const values=[...chosen].sort((a,b)=>descending?b-a:a-b);let next=0;
- const progress=block('0 de '+level.count+' números organizados','stone-count'),grid=block('','order-grid');
- shuffle(chosen).forEach(value=>button(String(value),b=>{
-  if(value!==values[next]){say('Procure o '+(descending?'maior':'menor')+' número que ainda está disponível.');return}
-  next++;b.classList.add('chosen');b.disabled=true;progress.textContent=next+' de '+level.count+' números organizados';
-  if(next===level.count){orderWins++;say('Tudo em ordem! '+orderWins+' '+(orderWins===1?'desafio concluído.':'desafios concluídos.'));const nextGame=button('Próximo desafio →',()=>start('order'));nextGame.classList.add('chosen')}
-  else say('Isso! Agora procure o próximo '+(descending?'maior':'menor')+' número.');
- },grid));
+dots(){
+ instruction('Toque entre dois pontos para desenhar uma linha. Quem fechar um quadrado ganha um ponto e joga outra vez.');
+ const modes=block('','actions');for(const [key,name]of [['computer','Contra o computador'],['two','Duas pessoas']]){const b=button(name,()=>{dotsMode=key;start('dots')},modes);b.setAttribute('aria-pressed',String(dotsMode===key));if(dotsMode===key)b.classList.add('selected')}
+ const names=dotsMode==='computer'?['Você','Computador']:['Jogador 1','Jogador 2'];
+ const scores=[0,0],owners=Array(9).fill(null);let turn=0,done=false;
+ const score=block('','dots-score'),grid=block('','dots-grid');const edges=[],boxes=[];
+ function edge(kind,row,col){const e={kind,row,col,owner:null,button:null};edges.push(e);return e}
+ const horizontal=Array.from({length:4},(_,r)=>Array.from({length:3},(_,c)=>edge('h',r,c)));
+ const vertical=Array.from({length:3},(_,r)=>Array.from({length:4},(_,c)=>edge('v',r,c)));
+ const sides=Array.from({length:9},(_,i)=>{const r=Math.floor(i/3),c=i%3;return [horizontal[r][c],horizontal[r+1][c],vertical[r][c],vertical[r][c+1]]});
+ for(let r=0;r<7;r++)for(let c=0;c<7;c++){
+  if(r%2===0&&c%2===0){const dot=block('','dots-dot',grid);dot.setAttribute('aria-hidden','true')}
+  else if(r%2===1&&c%2===1){const index=Math.floor(r/2)*3+Math.floor(c/2);boxes[index]=block('','dots-box',grid);boxes[index].setAttribute('aria-label','Quadrado '+(index+1)+' livre')}
+  else{const e=r%2===0?horizontal[r/2][Math.floor(c/2)]:vertical[Math.floor(r/2)][c/2];const b=button('',()=>play(e),grid);e.button=b;b.className='dots-edge '+(e.kind==='h'?'dots-horizontal':'dots-vertical');b.setAttribute('aria-label','Linha '+(e.kind==='h'?'horizontal':'vertical')+', linha '+(e.row+1)+', coluna '+(e.col+1))}
+ }
+ function draw(){score.textContent=names[0]+': '+scores[0]+' · '+names[1]+': '+scores[1];edges.forEach(e=>{e.button.disabled=done||e.owner!==null;if(e.owner!==null)e.button.classList.add('dots-player-'+e.owner)});owners.forEach((owner,i)=>{if(owner!==null){boxes[i].textContent=owner===0?'1':'2';boxes[i].classList.add('dots-player-'+owner);boxes[i].setAttribute('aria-label','Quadrado '+(i+1)+' de '+names[owner])}})}
+ function claim(e){e.owner=turn;let gained=0;sides.forEach((list,i)=>{if(owners[i]===null&&list.every(x=>x.owner!==null)){owners[i]=turn;scores[turn]++;gained++}});if(!gained)turn=1-turn;return gained}
+ function finish(){if(owners.some(x=>x===null))return false;done=true;say(scores[0]===scores[1]?'Empate! Todos os quadrados foram preenchidos.':names[scores[0]>scores[1]?0:1]+' venceu! Todos os quadrados foram preenchidos.');return true}
+ function bot(){const free=edges.filter(e=>e.owner===null);const closing=free.filter(e=>sides.some(list=>list.includes(e)&&list.filter(x=>x.owner!==null).length===3));const safe=free.filter(e=>!sides.some(list=>list.includes(e)&&list.filter(x=>x.owner!==null).length===2));return shuffle(closing.length?closing:safe.length?safe:free)[0]}
+ function play(e){if(done||e.owner!==null)return;const gained=claim(e);if(!finish()&&dotsMode==='computer'){while(turn===1&&!done){claim(bot());finish()}}if(!done)say(names[turn]+': sua vez.'+(gained&&turn===0?' Você fechou um quadrado e joga novamente.':gained&&dotsMode==='two'?' Fechou um quadrado e joga novamente.':''));draw()}
+ draw();say(names[turn]+': sua vez. Toque em uma linha livre.');
 },
- stones(){
- instruction('Retire 1, 3 ou 5 peças. Depois o computador joga. Quem retirar a última vence. Observe: o total inicial ser par ou ímpar faz diferença?');
- const initial=12+Math.floor(Math.random()*9);let remaining=initial,done=false;const count=block('','stone-count'),pieces=block('','stones'),actions=block('','actions');
- const allowed=[1,3,5];const buttons=allowed.map(n=>button('Retirar '+n,b=>play(n),actions));
- function draw(){count.textContent=remaining+' '+(remaining===1?'peça restante':'peças restantes');pieces.replaceChildren();for(let i=0;i<remaining;i++){const s=document.createElement('span');s.className='stone';s.setAttribute('aria-hidden','true');pieces.appendChild(s)}buttons.forEach((b,i)=>b.disabled=done||allowed[i]>remaining)}
- function explain(){return ' O total inicial era '+initial+' ('+(initial%2?'ímpar':'par')+'). Cada retirada ímpar troca a paridade: com total ímpar vence quem começa; com total par vence quem joga depois.'}
- function play(n){if(done||n>remaining)return;remaining-=n;if(remaining===0){done=true;say('Você retirou a última peça. Vitória!'+explain());draw();return}const options=allowed.filter(n=>n<=remaining),take=options[Math.floor(Math.random()*options.length)];remaining-=take;if(remaining===0){done=true;say('O computador retirou '+take+' e pegou a última peça.'+explain())}else say('O computador retirou '+take+'. Sua vez.');draw()}
- draw();say('Sua vez. Quantas peças você quer retirar?');
+math(){
+ instruction('Resolva uma conta por vez. Toque na resposta. Você pode tentar novamente e pedir uma dica.');
+ const modes=block('','actions');['Fácil','Médio','Desafio'].forEach((name,i)=>{const b=button(name,()=>{mathLevel=i;start('math')},modes);b.setAttribute('aria-pressed',String(mathLevel===i));if(mathLevel===i)b.classList.add('selected')});
+ const pool=[];const max=mathLevel===0?10:20;for(let a=1;a<=max;a++)for(let b=1;b<=max;b++){pool.push({a,b,op:'+',answer:a+b});if(a>=b)pool.push({a,b,op:'−',answer:a-b})}
+ if(mathLevel>0)for(let a=2;a<=(mathLevel===1?5:10);a++)for(let b=1;b<=10;b++){pool.push({a,b,op:'×',answer:a*b});if(mathLevel===2)pool.push({a:a*b,b:a,op:'÷',answer:b})}
+ const operations=mathLevel===0?['+','−']:mathLevel===1?['+','−','×']:['+','−','×','÷'];const op=shuffle(operations)[0];const q=shuffle(pool.filter(q=>q.op===op&&q.a+' '+q.op+' '+q.b!==previousMath))[0];previousMath=q.a+' '+q.op+' '+q.b;
+ block(mathWins+' '+(mathWins===1?'conta resolvida':'contas resolvidas'),'stone-count');block(previousMath+' = ?','sequence');
+ const options=new Set([q.answer]);for(const candidate of shuffle(Array.from({length:7},(_,i)=>q.answer+i-3).filter(n=>n>=0)))if(options.size<3)options.add(candidate);
+ const choices=block('','choices');let solved=false;
+ for(const value of shuffle([...options]))button(String(value),b=>{if(solved)return;if(value===q.answer){solved=true;mathWins++;b.classList.add('chosen');choices.querySelectorAll('button').forEach(x=>x.disabled=true);say('Isso! '+previousMath+' = '+q.answer+'.');const next=button('Próxima conta →',()=>start('math'));next.classList.add('chosen')}else{b.disabled=true;say('Ainda não. Tente outra resposta ou peça uma dica.')}},choices);
+ button('Ver dica',()=>{say(q.op==='+'?'Comece em '+q.a+' e conte mais '+q.b+'.':q.op==='−'?'Comece em '+q.a+' e volte '+q.b+' passos.':q.op==='×'?'Some '+q.a+' um total de '+q.b+' vezes.':'Divida '+q.a+' em grupos de '+q.b+'. Quantos grupos cabem?')});
 },
 snake(){
  instruction('Coma as frutas vermelhas e cresça. Use as setas abaixo ou no teclado. Evite as paredes e o próprio corpo.');
