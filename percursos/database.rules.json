@@ -13,7 +13,7 @@
       ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
       ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
       "$classId": {
-        ".validate": "$classId.matches(/^[123][ab]$|^3c$/) && newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+        ".validate": "$classId.matches(/^([123][ab]|3c)$/) && newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
       }
     },
     "classTracks": {
@@ -23,7 +23,7 @@
         ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveiro39@gmail.com')",
         ".validate": "$classToken.matches(/^[a-f0-9]{32}$/) && newData.hasChildren(['label','series'])",
         "label": {
-          ".validate": "newData.isString() && newData.val().matches(/^[123]ª série [AB]$|^3ª série C$/)"
+          ".validate": "newData.isString() && newData.val().matches(/^([123]ª série [AB]|3ª série C)$/)"
         },
         "series": {
           ".validate": "newData.isString() && newData.val().matches(/^[123]$/)"
