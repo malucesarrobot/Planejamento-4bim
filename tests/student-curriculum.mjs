@@ -32,14 +32,14 @@ try {
   assert.equal(await page.locator('article.week-card .student-curriculum').count(),60);
   assert.equal(await page.locator('textarea[data-save]').count(),451);
   const revisedTitles=['Redemocratização e Constituição de 1988','Nova República: democracia, economia e conflitos sociais','Guerra Fria: um mundo bipolar','Fim da Guerra Fria e nova ordem mundial','Descolonização da Ásia e Conferência de Bandung','Descolonização da África e pan-africanismo'];
-  for(let i=0;i<6;i++){const id='s9-historia-semana-'+(i+1);assert.equal(await page.locator('#'+id+' .week-head h3').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id+' .atv-titulo').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id).getAttribute('data-content-revision'),'revisagoias-20261005');}
+  for(let i=0;i<6;i++){const id='s9-historia-semana-'+(i+1);assert.equal(await page.locator('#'+id+' .week-head h3').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id+' .atv-titulo').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id).getAttribute('data-content-revision'),'revisagoias-20261005-auditoria20261010');}
   assert.notEqual(await page.locator('#s9-historia-semana-1 .registro-node').first().textContent(),'Etiqueta salva antes desta revisão');
   assert.match(await page.locator('textarea[data-save="ux-s9-historia-semana-1-edits"]').inputValue(),/Etiqueta salva antes desta revisão/);
   const philosophyTitles=['Direitos civis, políticos e sociais',"Direitos humanos e diversidade","Kant: fundamentos da dignidade humana","Honneth: reconhecimento e relações afetivas","Honneth: direitos e estima social","Honneth: luta por reconhecimento e justiça social"];
   for(let i=0;i<6;i++){
     const lesson=page.locator('#s1-filosofia-semana-'+(i+1));
     assert.equal(await lesson.locator('.week-head h3').textContent(),philosophyTitles[i]);
-    assert.equal(await lesson.getAttribute('data-content-revision'),i===0?'filosofia-45min-20261008':'filosofia1-kant-honneth-20261006g');
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===0?'filosofia-45min-20261008-auditoria20261010':'filosofia1-kant-honneth-20261006g-auditoria20261010');
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS606A/);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/EM13CHS605/);
     assert.doesNotMatch(await lesson.textContent(),/Epicuro|ataraxia|aponia|estoicismo|ceticismo/i);
@@ -49,7 +49,7 @@ try {
   for(const [id,title] of revisedViolenceLessons){
     const lesson=page.locator('#'+id);
     assert.equal(await lesson.locator('.week-head h3').textContent(),title);
-    assert.equal(await lesson.getAttribute('data-content-revision'),id==='s2-filosofia-semana-1'?'filosofia-45min-20261008':'violencias-razao-20261006');
+    assert.equal(await lesson.getAttribute('data-content-revision'),id==='s2-filosofia-semana-1'?'filosofia-45min-20261008-auditoria20261010':'violencias-razao-20261006-auditoria20261010');
     if(id==='s2-filosofia-semana-1'){assert.equal(await lesson.locator('.atv-aluno ol li').count(),2);}else{assert.equal(await lesson.locator('.atv-q li').count(),3);assert.match(await lesson.locator('.atv-check').textContent(),/3 a 4 linhas/);}
   }
   assert.match(await page.locator('#s2-filosofia-semana-1 .prof-panel').textContent(),/3º bimestre/);
@@ -57,7 +57,7 @@ try {
   console.log('PASS two Sociology weeks teach four violence mechanisms; Philosophy applies instrumental rationality as prior-learning review; all three use brief records');
   for(let i=1;i<=6;i++){
     const lesson=page.locator('#s3-filosofia-semana-'+i);
-    assert.equal(await lesson.getAttribute('data-content-revision'),i===1?'filosofia-45min-20261008':'filosofia3-natureza-20261006');
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===1?'filosofia-45min-20261008-auditoria20261010':'filosofia3-natureza-20261006-auditoria20261010');
     assert.equal(await lesson.locator(i===1?'.atv-aluno ol li':'.atv-q li').count(),i===1?2:3);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS306A/);
   }
@@ -94,7 +94,7 @@ try {
   assert.equal(await page.locator('#projectionPage .student-curriculum').isVisible(),true);
   assert.equal(await page.locator('#projectionPage .projection-refs').isVisible(),false);
   assert.match(await page.locator('#projectionPage .student-curriculum').textContent(),/EF09HI22/);
-  assert.equal(await page.locator('#projectionPage [data-code-kind=matriz] .student-code-missing').count(),1);
+  assert.equal(await page.locator('#projectionPage [data-code-kind=matriz]').count(),0,'omit an unspecified matrix instead of exposing an internal placeholder');
   await page.screenshot({path:'test-results/mobile-codes-projection.png'});
   await page.locator('#projectionClose').click();
   await page.locator('#uxWeekChoices button').nth(1).click();c=await card();

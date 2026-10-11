@@ -18,6 +18,7 @@
     const data=window.MaluEditorialData,lesson=data?.exams[card.id];if(!lesson)return null;
     const wrap=node('section',null,'ux-exam-connections');wrap.appendChild(node('h4','Questões já cobradas · 2016–2025'));
     wrap.appendChild(node('p',lesson.theme,'ux-exam-theme'));
+    if(lesson.context)paragraphs(wrap,lesson.context);
     wrap.appendChild(node('p','O ano indica a edição; consulte o caderno e a questão informados.','ux-editorial-note'));
     const occurrences={...data.occurrences,...data.essayOccurrences};
     const groups=[['Questões objetivas e discursivas',lesson.connections.filter(c=>occurrences[c.ref].tipo!=='Redação')],['Temas de redação já cobrados',lesson.connections.filter(c=>occurrences[c.ref].tipo==='Redação')]];
@@ -30,7 +31,7 @@
       item.appendChild(node('p',r.tema,'ux-exam-theme'));
       item.appendChild(node('p','Banca: '+r.banca+' · '+r.localizacao+' · '+r.caderno,'ux-editorial-note'));
       item.appendChild(node('p',c.relation==='Direta'?'Conteúdo diretamente relacionado':'Aproximação com esta aula','ux-exam-relation'));
-      const context=node('details',null,'ux-exam-context');context.appendChild(node('summary','Relação com a aula'));paragraphs(context,c.why);if(r.nota)paragraphs(context,r.nota);item.appendChild(context);
+      const context=node('details',null,'ux-exam-context');context.appendChild(node('summary','Relação com a aula'));if(c.why)paragraphs(context,c.why);else paragraphs(context,'Esta questão se aproxima dos conceitos indicados na relação geral acima; consulte seu enunciado para identificar o alcance da conexão.');if(r.nota)paragraphs(context,r.nota);item.appendChild(context);
 
       link(item,'Abrir prova ou publicação oficial ↗',r.fonte);wrap.appendChild(item);
     }

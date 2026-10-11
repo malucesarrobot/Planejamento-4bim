@@ -38,7 +38,6 @@
   const norm=s=>s.trim().replace(/\s*—\s*$/,'').toLocaleLowerCase('pt-BR');
   function node(tag,text,cls) {const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;}
   function build(card,notebook) {
-    if (/^s[123]-filosofia-semana-1$/.test(card.id)) return null;
     const terms=[...card.querySelectorAll('.concept-chip')].map(n=>n.textContent.trim());
     const entries=new Map();
     function add(term,definition,example) {if(term && definition)entries.set(norm(term),[term.trim().replace(/\s*—\s*$/,''),definition.trim(),example]);}
@@ -49,6 +48,12 @@
     if(special){entries.clear();for(const e of special)add(...e);}
     const reviewed=window.MaluStudyData?.lessons[card.id];
     if(reviewed){const original=[...entries.values()];entries.clear();for(const e of reviewed.terms)add(...e);for(const e of original)if(!entries.has(norm(e[0])))add(...e);}
+    // A primeira semana tem três conceitos essenciais; os demais são aprofundamento.
+    if(card.id==='s3-filosofia-semana-1' && reviewed){entries.clear();for(const e of reviewed.terms)add(...e);}
+    if(card.id==='s3-filosofia-semana-2'){
+      for(const [key,e] of entries)if(/^aura\s*—/i.test(e[0]))entries.delete(key);
+      add(...society[0]);
+    }
     if(!entries.size)return null;
     const box=node('section',null,'ux-glossary');box.setAttribute('aria-labelledby',card.id+'-glossary-title');
     const heading=node('h4','Glossário da aula');heading.id=card.id+'-glossary-title';box.appendChild(heading);

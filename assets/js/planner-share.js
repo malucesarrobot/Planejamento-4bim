@@ -29,7 +29,8 @@
         const exam=window.MaluStudy.exams(c);
         const lesson={exames:exam?clean(exam):'<p>Não há questão vinculada a esta aula na seleção pesquisada de 2016–2025. Isso não significa que o conteúdo nunca tenha sido cobrado.</p>',id:c.id,title:c.querySelector('.week-head h3').textContent.trim(),quadro:clean(notebook),esquema:clean(window.MaluStudy.board(c)),atividade:clean(activity),fontes:[]};
         const refs=new Map();
-        function addSource(t,u,n){if(!/^https?:\/\//.test(u))return;const old=refs.get(u);refs.set(u,{t:n?t:(old?.t||t),u,n:n||old?.n||''});}
+        function addSource(t,u,n){if(!/^https?:\/\//.test(u))return;
+          if(kind==='alunos' && /professor|preparação|conferir|verificar|não atribuir|a verificar|consulte antes/i.test(n||''))n='Fonte complementar. O link identifica o texto, documento ou acervo; a relação com o tema deve ser examinada no material consultado.';const old=refs.get(u);refs.set(u,{t:n?t:(old?.t||t),u,n:n||old?.n||''});}
         for(const f of JSON.parse(c.dataset.fontes||'[]'))addSource(f.t,f.u,'');
         const study=window.MaluStudyData?.lessons[c.id];
         for(const ref of study?.refs||[]){const [t,u,n]=window.MaluStudyData.sources[ref];addSource(t,u,n);}

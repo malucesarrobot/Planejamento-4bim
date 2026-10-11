@@ -62,6 +62,16 @@
   function buildRefs(card) {
     let fontes = [];
     try { fontes = JSON.parse(card.dataset.fontes || '[]'); } catch (e) { fontes = []; }
+    // Incluir as referências já cadastradas na preparação, sem suas instruções docentes.
+    const refs=new Map(fontes.map(f=>[f.u,f]));
+    const study=window.MaluStudyData?.lessons[card.id];
+    for(const key of study?.refs||[]){const source=window.MaluStudyData.sources[key];if(source&&!refs.has(source[1]))refs.set(source[1],{t:source[0],u:source[1]});}
+    const bibliography=window.MaluBibliographyData;
+    for(const entry of bibliography?.lessons[card.id]?.entries||[]){
+      const source=entry.source?bibliography.sources[entry.source]:window.MaluStudyData?.sources[entry.ref];
+      if(source&&!refs.has(source[1]))refs.set(source[1],{t:source[0],u:source[1]});
+    }
+    fontes=[...refs.values()];
     if (!fontes.length) return null;
     const wrap = el('section', 'projection-refs');
     wrap.setAttribute('aria-label', 'Fontes desta aula');

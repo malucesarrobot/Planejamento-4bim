@@ -352,7 +352,8 @@ body.ux-ready .ux-week-context #wkTrack{min-height:32px;padding:4px;font-size:.7
 }
 
 /* Quadro sem comandos ou referências no rodapé. */
-@media screen{#projectionView #projectionRefs,#projectionView .projection-refs{display:none!important}}
+@media screen{#projectionView #projectionRefs,#projectionView:not(.lesson-sources) .projection-refs{display:none!important}}
+@media screen and (max-width:380px){body.ux-ready .ux-choice-row:first-child .ux-segments button{padding-inline:2px!important}}
 
 /* Caderno lúdico: menta, baunilha e pêssego com texto bem contrastado. */
 @media screen{

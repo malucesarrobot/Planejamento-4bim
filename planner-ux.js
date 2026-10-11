@@ -221,14 +221,21 @@
     const info=window.MaluCurriculum.readCodes(card),texts=window.MaluCurriculum.matrizTextos();
     const footer=el('div','student-curriculum');footer.setAttribute('role','note');footer.setAttribute('aria-label','BNCC e Matriz desta aula');footer.dataset.readonly='true';
     for(const [key,label] of [['bncc','BNCC'],['matriz','Matriz SEDUC-GO']]) {
+      if(!info[key].length)continue;
       const row=el('div','student-code-row');row.dataset.codeKind=key;
       row.appendChild(el('strong','student-code-label',label+':'));
       const values=el('div','student-code-values');
-      if(!info[key].length)values.appendChild(el('span','student-code-missing','Não indicada neste planejamento.'));
       for(const code of info[key]) {
         if(key==='matriz' && texts[code]) {
           const detail=el('details','student-skill'),summary=el('summary','student-code-chip',code);
-          summary.title='Ler a habilidade '+code;detail.append(summary,el('p','student-skill-text',texts[code]));values.appendChild(detail);
+          summary.title='Ler a habilidade '+code;
+          const week=Number(card.id.match(/semana-(\d+)$/)?.[1]);
+          let skill=texts[code];
+          if(code==='GO-EMCHS606A' && card.id.startsWith('s1-filosofia-')){
+            const parts=skill.match(/[^.]+\./g)||[skill];
+            skill=parts[week<=2?0:week===3?1:2]||skill;
+          }
+          detail.append(summary,el('p','student-skill-text',skill.trim()));values.appendChild(detail);
         } else values.appendChild(el('span','student-code-chip',code));
       }
       row.appendChild(values);footer.appendChild(row);

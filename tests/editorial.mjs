@@ -25,7 +25,7 @@ try {
  assert.deepEqual(Object.values(data.occurrences),research,'published occurrences must preserve the reviewed research');
  for(const [id,lesson] of Object.entries(data.exams)){
   assert.ok(/^s[123]-/.test(id));assert.ok(lesson.connections.length>0);
-  for(const c of lesson.connections){assert.ok(['Direta','Tangencial'].includes(c.relation));assert.equal(data.sources[c.ref][1],occurrences[c.ref].fonte);assert.ok(c.why.length>60);}
+  for(const c of lesson.connections){assert.ok(['Direta','Tangencial'].includes(c.relation));assert.equal(data.sources[c.ref][1],occurrences[c.ref].fonte);assert.ok([lesson.context,c.why].filter(Boolean).join(' ').length>60);}
  }
  for(const exam of Object.values(data.essayOccurrences)){assert.equal(exam.tipo,'Redação');assert.match(exam.fonte,/^https:\/\/(cdn.cebraspe.org.br|www.uema.br|www.fuvest.br)\//);}
  assert.ok(data.exams['s3-filosofia-semana-3'].connections.every(c=>c.relation==='Tangencial'),'do not invent nominal Jonas questions');

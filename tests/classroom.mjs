@@ -86,14 +86,16 @@ try{
   assert.equal(await page.locator('article.week-card:not(.ux-inactive):not(.hidden)').getAttribute('id'),'s3-filosofia-semana-3');
   assert.equal(await page.locator('[data-lesson-material=caderno]').getAttribute('aria-pressed'),'true');
   await page.locator('#projectionClose').click();
-  assert.equal(await page.locator('.ux-glossary').count(),57);
+  assert.equal(await page.locator('.ux-glossary').count(),60);
   const coverage=await page.locator('article.week-card').evaluateAll(cards=>cards.every(c=>{
-    if(c.dataset.contentRevision==='filosofia-45min-20261008')return c.querySelectorAll('.notebook-questions li').length===2;
-    const defined=[...c.querySelectorAll('.ux-glossary dt')].map(n=>n.textContent.trim().toLocaleLowerCase('pt-BR'));
-    return [...c.querySelectorAll('.concept-chip')].every(n=>defined.includes(n.textContent.trim().toLocaleLowerCase('pt-BR')));
+    if(c.dataset.contentRevision==='filosofia-45min-20261008-auditoria20261010')return c.querySelectorAll('.notebook-questions li').length===2;
+    const normalize=text=>text.trim().toLocaleLowerCase('pt-BR').replace(/^aura\s*—\s*(?:em walter )?benjamin$/,'aura — benjamin');
+    const defined=[...c.querySelectorAll('.ux-glossary dt')].map(n=>normalize(n.textContent));
+    return [...c.querySelectorAll('.concept-chip')].every(n=>defined.includes(normalize(n.textContent)));
   }));assert.equal(coverage,true,'all listed concepts need glossary entries');
   await page.locator('#uxWeekChoices button').first().click();await page.locator('article.week-card:visible [id$="-tab-prepare"]').click();
-  assert.equal(await page.locator('article.week-card:visible .ux-glossary').count(),0);
+  assert.equal(await page.locator('article.week-card:visible .ux-glossary').count(),1);
+  assert.equal(await page.locator('article.week-card:visible .ux-glossary dt').count(),3);
   assert.match(await page.locator('article.week-card:visible .prof-panel').textContent(),/belo|Belo/);
   assert.equal(await page.locator('article.week-card:visible .notebook-questions li').count(),2);
   await page.locator('#wkProject').click();
@@ -107,7 +109,7 @@ try{
   await page.locator('article.week-card:visible .ux-glossary-sources summary').click();
   assert.equal(await page.locator('article.week-card:visible .ux-glossary-sources a').count(),5);
   const reviewed=await page.locator('article.week-card').evaluateAll(cards=>cards.every(c=>{
-    if(c.dataset.contentRevision==='filosofia-45min-20261008')return c.querySelector('.prof-panel').textContent.includes('Ponto de atenção')&&c.querySelectorAll('.prof-panel a').length>=2;
+    if(c.dataset.contentRevision==='filosofia-45min-20261008-auditoria20261010')return c.querySelector('.prof-panel').textContent.includes('Ponto de atenção')&&c.querySelectorAll('.prof-panel a').length>=2;
     const study=c.querySelector('.ux-study');
     return study && study.querySelector('.ux-study-limit')?.textContent.length>80
       && study.querySelector('.ux-study-example')?.textContent.includes('situação fictícia')
