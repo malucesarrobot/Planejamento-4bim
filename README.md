@@ -123,3 +123,12 @@ Exames: temas reais do Enem já catalogados e cinco propostas oficiais complemen
 6/10/2026: corrigida a sequência de Filosofia da 1ª série para o recorte da Matriz SEDUC-GO 2026, 4º bimestre, enviado pela professora: GO-EMCHS606A, direitos civis/políticos/sociais, dignidade em Kant e reconhecimento em Axel Honneth. Substituídos os seis conteúdos, registros, atividades, orientações, fontes, bibliografia, trilha e vínculos de redação. A imagem fornecida é a evidência curricular de 2026; a matriz pública de 2025 não foi usada como prova de 2026. Demais disciplinas e campos pessoais preservados.
 
 6/10/2026 — Sequência aprovada após informação de que Kant já foi estudado no 3º bimestre: direitos e cidadania; direitos humanos com retomada breve de Kant; diversidade e violação de direitos; Honneth e vínculos afetivos; direitos e estima social; reconhecimento e justiça social. Atualizados trilha, caderno, atividades, gabaritos, preparação, bibliografia e avaliação. Preservados IDs e campos pessoais. PDF estático anterior permanece histórico; use a impressão no aplicativo para os conteúdos atualizados.
+
+
+## Sincronização de aulas aplicadas — 13/10/2026
+
+Use o mesmo endereço de banco e o mesmo código nos aparelhos que devem compartilhar anotações, edições e aulas aplicadas. Gerar outro código cria um canal separado. O fluxo continua independente do login Google utilizado por notas e chamada.
+
+As alterações são enviadas após 250 ms; com a página visível, os outros aparelhos consultam atualizações a cada 3 segundos e ao voltar para a janela. Pedidos feitos durante um envio aguardam na fila. Pendências de envio são conservadas no armazenamento do aparelho e retomadas ao reconectar ou recarregar. Os metadados ficam separados por banco/código; trocar e reaplicar códigos recebe o estado do canal correspondente. Uma aula desmarcada também é sincronizada. Abas do mesmo navegador atualizam suas marcações ao receber o evento de armazenamento.
+
+`node tests/sync.mjs` testa duas instâncias isoladas, marcação/desmarcação, falha de conexão, recarregamento com pendências, edição durante requisição, troca de código, reconexão e diferenças entre relógios. Usa banco simulado e não altera dados de produção.

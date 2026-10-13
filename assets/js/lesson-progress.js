@@ -175,6 +175,11 @@
   }, { capture: true });
 
   window.__maluAulas = { get: () => data, set: (o) => { const previous=data; data=o; if (!save()) { data=previous; return false; } paintBtn(); if (!view.hidden) render(); document.dispatchEvent(new CustomEvent('malu:aulas-updated')); return true; } };
+  window.addEventListener('storage', event => {
+    if (event.key !== KEY) return;
+    load(); paintBtn(); if (!view.hidden) render();
+    document.dispatchEvent(new CustomEvent('malu:aulas-updated'));
+  });
   load(); paintBtn();
   if (window.__maluStorageVolatile) {
     const m = document.querySelector('main');

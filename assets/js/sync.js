@@ -3,11 +3,13 @@
   'use strict';
   const CFG_KEY = 'malu-sync-cfg', META_KEY = 'malu-sync-meta';
   const DEFAULT_URL = 'https://planejamento-4bim-default-rtdb.firebaseio.com';
-  const ROOT = 'planejamento4bim', POLL_MS = 30000;
+  const ROOT = 'planejamento4bim', POLL_MS = 3000;
   const $ = id => document.getElementById(id);
   const view = $('syncView'), btn = $('syncBtn'), urlIn = $('syncUrl'), codeIn = $('syncCode'), statusEl = $('syncStatus');
   let cfg = null, meta = { n: {}, a: {} }, busy = false, pollTimer = null, pushTimer = null, applying = false, lastInput = 0, lastOk = '', lastErr = '', lastFocus = null, inerted = [];
   const pendN = new Set(), pendA = new Set();
+  let scopeKey = META_KEY, generation = 0, requested = false, running = null;
+  const controllers = new Set();
 
   const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } };
@@ -18,19 +20,31 @@
   const aPath = k => { const i = k.lastIndexOf('|'); return k.slice(0, i) + '/' + enc(k.slice(i + 1)); };
   function flatA(a) { const o = {}; Object.keys(a || {}).forEach(w => Object.keys(a[w] || {}).forEach(tc => { const r = a[w][tc]; if (r && typeof r.t === 'number') o[w + '|' + dec(tc)] = r; })); return o; }
   const base = () => cfg.url.replace(/\/+$/, '') + '/' + ROOT + '/' + cfg.code;
-  const saveMeta = () => lsSet(META_KEY, meta);
+  const saveMeta = () => lsSet(scopeKey, { ...meta, pendingN: [...pendN], pendingA: [...pendA] });
+  function selectScope(next) {
+    saveMeta(); generation++; requested = false;
+    controllers.forEach(ctl => ctl.abort()); clearTimeout(pushTimer);
+    const previous = cfg; cfg = next;
+    scopeKey = META_KEY + ':' + encodeURIComponent(next.url + '/' + next.code);
+    let saved = lsGet(scopeKey);
+    if (!saved && previous && previous.url === next.url && previous.code === next.code) saved = lsGet(META_KEY);
+    meta = saved && saved.n && saved.a ? saved : { n: {}, a: {} };
+    pendN.clear(); pendA.clear();
+    (meta.pendingN || []).forEach(id => pendN.add(id)); (meta.pendingA || []).forEach(key => pendA.add(key));
+    lastOk = ''; lastErr = ''; saveMeta();
+  }
 
   function setStatus(msg, kind) { if (statusEl) { statusEl.textContent = msg; statusEl.className = 'sync-status' + (kind ? ' ' + kind : ''); } paintBtn(); }
   function paintBtn() { if (!btn) return; btn.textContent = cfg ? (lastErr ? 'Sincronização com erro ⚠' : 'Sincronização ligada' + (lastOk ? ' ✓ ' + lastOk : '')) : 'Sincronizar entre aparelhos (desligado)'; }
 
   async function http(method, body) {
-    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
+    const target = base(); const ctl = new AbortController(); controllers.add(ctl); const to = setTimeout(() => ctl.abort(), 15000);
     try {
-      const r = await fetch(base() + '.json', { method, headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined, signal: ctl.signal, cache: 'no-store' });
+      const r = await fetch(target + '.json', { method, headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined, signal: ctl.signal, cache: 'no-store' });
       if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'o banco recusou o acesso (confira as regras)' : 'erro ' + r.status);
       return await r.json();
     } catch (e) { throw (e && e.name === 'AbortError') ? new Error('sem resposta do banco') : e; }
-    finally { clearTimeout(to); }
+    finally { clearTimeout(to); controllers.delete(ctl); }
   }
   const canApply = ta => !(document.activeElement === ta && Date.now() - lastInput < 5000);
   function applyNote(ta, v, t) {
@@ -39,53 +53,73 @@
     meta.n[ta.dataset.save] = t;
   }
 
-  async function syncNow() {
-    if (!cfg || busy) return;
-    busy = true; setStatus('Sincronizando…');
+  async function exchange() {
+    const epoch = generation;
+    setStatus('Sincronizando…');
     try {
-      const snapshotN = Object.fromEntries(Object.entries(meta.n)), snapshotA = Object.fromEntries(Object.entries(meta.a).map(([k,v]) => [k,v.t]));
       const remote = (await http('GET')) || {};
+      if (epoch !== generation || !cfg) return;
       const rn = remote.notes || {}, ra = flatA(remote.aulas);
-      const upd = {}; let pulled = 0, pushed = 0; const now = Date.now();
+      const upd = {}, sentN = {}, sentA = {}; let pulled = 0, pushed = 0;
       fields().forEach(ta => {
-        const id = ta.dataset.save, r = rn[id], lt = meta.n[id];
-        if (r && typeof r.t === 'number') {
-          const L = lt != null ? lt : 0;
-          if (r.t > L) { if (canApply(ta)) { applyNote(ta, r.v || '', r.t); pulled++; } }
-          else if (r.t < L) { upd['notes/' + id] = { v: ta.value, t: L }; pushed++; }
-        } else if (ta.value !== '' || lt != null) { const t = lt != null ? lt : now; meta.n[id] = t; upd['notes/' + id] = { v: ta.value, t }; pushed++; }
+        const id = ta.dataset.save, r = rn[id]; let lt = meta.n[id] || 0;
+        if (pendN.has(id)) {
+          lt = Math.max(lt, (r?.t || 0) + 1); meta.n[id] = lt;
+          upd['notes/' + id] = { v: ta.value, t: lt }; sentN[id] = lt; pushed++;
+        } else if (r && typeof r.t === 'number' && (r.t > lt || r.t === lt && ta.value !== (r.v || ''))) {
+          if (canApply(ta)) { applyNote(ta, r.v || '', r.t); pulled++; }
+        } else if (r && r.t < lt || !r && (ta.value !== '' || lt)) {
+          const t = lt || Date.now(); meta.n[id] = t;
+          upd['notes/' + id] = { v: ta.value, t }; sentN[id] = t; pushed++;
+        }
       });
-      const api = window.__maluAulas; const local = api ? api.get() : {}; const nl = Object.assign({}, local); let chA = false;
-      new Set([...Object.keys(ra), ...Object.keys(local), ...Object.keys(meta.a)]).forEach(k => {
-        const r = ra[k], m = meta.a[k], L = m ? m.t : 0, has = !!local[k];
-        if (r) {
-          if (r.t > L) { if (r.d) nl[k] = r.d; else delete nl[k]; meta.a[k] = { t: r.t, del: !r.d }; chA = true; pulled++; }
-          else if (r.t < L) { upd['aulas/' + aPath(k)] = { d: has ? local[k] : '', t: L }; pushed++; }
-        } else if (has || m) { const t = m ? m.t : now; meta.a[k] = { t, del: !has }; upd['aulas/' + aPath(k)] = { d: has ? local[k] : '', t }; pushed++; }
+      const api = window.__maluAulas, local = api ? api.get() : {}, next = { ...local }; let changed = false;
+      new Set([...Object.keys(ra), ...Object.keys(local), ...Object.keys(meta.a)]).forEach(key => {
+        const r = ra[key], m = meta.a[key]; let lt = m?.t || 0;
+        if (pendA.has(key)) {
+          lt = Math.max(lt, (r?.t || 0) + 1); meta.a[key] = { t: lt, del: !local[key] };
+          upd['aulas/' + aPath(key)] = { d: local[key] || '', t: lt }; sentA[key] = lt; pushed++;
+        } else if (r && (r.t > lt || r.t === lt && (local[key] || '') !== (r.d || ''))) {
+          if (r.d) next[key] = r.d; else delete next[key];
+          changed = true; pulled++;
+        } else if (r && r.t < lt || !r && (local[key] || m)) {
+          const t = lt || Date.now(); meta.a[key] = { t, del: !local[key] };
+          upd['aulas/' + aPath(key)] = { d: local[key] || '', t }; sentA[key] = t; pushed++;
+        }
       });
-      if (chA && api) api.set(nl);
+      if (changed && api) {
+        if (api.set(next) === false) throw new Error('não foi possível salvar as aulas recebidas neste aparelho');
+        Object.keys(ra).forEach(key => { if (!pendA.has(key) && ra[key].t > (meta.a[key]?.t || 0)) meta.a[key] = { t: ra[key].t, del: !ra[key].d }; });
+      }
+      // Save the outbound queue before the request; a reload must not lose it.
+      Object.keys(sentN).forEach(id => pendN.add(id)); Object.keys(sentA).forEach(key => pendA.add(key)); saveMeta();
       if (Object.keys(upd).length) await http('PATCH', upd);
-      pendN.forEach(id => { if (meta.n[id] === snapshotN[id]) pendN.delete(id); });
-      pendA.forEach(k => { if (meta.a[k] && meta.a[k].t === snapshotA[k]) pendA.delete(k); });
-      if (pendN.size || pendA.size) schedulePush();
+      if (epoch !== generation || !cfg) return;
+      Object.entries(sentN).forEach(([id,t]) => { if (meta.n[id] === t) pendN.delete(id); });
+      Object.entries(sentA).forEach(([key,t]) => { if (meta.a[key]?.t === t) pendA.delete(key); });
       saveMeta(); lastOk = hhmm(); lastErr = '';
       setStatus('Sincronizado às ' + lastOk + (pulled || pushed ? ' · recebidos ' + pulled + ', enviados ' + pushed : ''), 'ok');
-    } catch (e) { lastErr = 'Sem sincronizar: ' + (e && e.message ? e.message : 'falha de conexão'); setStatus(lastErr, 'err'); }
-    finally { busy = false; }
+      if (pendN.size || pendA.size) requested = true;
+    } catch (e) {
+      if (epoch !== generation || !cfg) return;
+      saveMeta(); lastErr = 'Sem sincronizar: ' + (e?.message || 'falha de conexão'); setStatus(lastErr, 'err');
+    }
   }
-  async function pushPending() {
-    if (!cfg) return; if (busy) { schedulePush(); return; }
-    const upd = {}, snapshotN = {}, snapshotA = {};
-    pendN.forEach(id => { const ta = document.querySelector('textarea[data-save="' + id + '"]'); if (ta && meta.n[id] != null) { snapshotN[id] = meta.n[id]; upd['notes/' + id] = { v: ta.value, t: meta.n[id] }; } });
-    const api = window.__maluAulas, local = api ? api.get() : {};
-    pendA.forEach(k => { const m = meta.a[k]; if (m) { snapshotA[k] = m.t; upd['aulas/' + aPath(k)] = { d: local[k] || '', t: m.t }; } });
-    if (!Object.keys(upd).length) return;
+  function syncNow() {
+    if (!cfg) return Promise.resolve();
+    requested = true;
+    if (running) return running;
     busy = true;
-    try { await http('PATCH', upd); pendN.forEach(id => { if (meta.n[id] === snapshotN[id]) pendN.delete(id); }); pendA.forEach(k => { if (meta.a[k] && meta.a[k].t === snapshotA[k]) pendA.delete(k); }); if (pendN.size || pendA.size) schedulePush(); lastOk = hhmm(); lastErr = ''; setStatus('Sincronizado às ' + lastOk, 'ok'); }
-    catch (e) { lastErr = 'Sem sincronizar: ' + (e && e.message ? e.message : 'falha de conexão') + ' · tentarei de novo'; setStatus(lastErr, 'err'); }
-    finally { busy = false; }
+    running = (async () => { while (requested && cfg) { requested = false; await exchange(); } })()
+      .finally(() => { busy = false; running = null; });
+    return running;
   }
-  function schedulePush() { if (!cfg) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushPending, 2500); }
+  function schedulePush() {
+    if (!cfg) return;
+    clearTimeout(pushTimer);
+    setStatus('Salvo neste aparelho · enviando…');
+    pushTimer = setTimeout(syncNow, 250);
+  }
 
   document.addEventListener('input', e => {
     const ta = e.target; if (applying || !ta || !ta.matches || !ta.matches('textarea[data-save]')) return;
@@ -105,6 +139,8 @@
   }
   document.addEventListener('visibilitychange', () => { if (cfg && document.visibilityState === 'visible') syncNow(); });
   window.addEventListener('online', () => { if (cfg) syncNow(); });
+  window.addEventListener('focus', () => { if (cfg) syncNow(); });
+  window.addEventListener('pagehide', saveMeta);
 
   // ---------- janela de configuração
   function setInert(on) {
@@ -140,14 +176,16 @@
     const url = urlIn.value.trim().replace(/\/+$/, ''), code = codeIn.value.trim();
     if (!/^https:\/\/[a-z0-9.-]+\.(firebaseio\.com|firebasedatabase\.app)$/i.test(url)) { setStatus('O endereço do banco deve terminar em firebaseio.com ou firebasedatabase.app.', 'err'); return; }
     if (!/^[A-Za-z0-9_-]{16,64}$/.test(code)) { setStatus('O código precisa ter de 16 a 64 letras, números, _ ou -.', 'err'); return; }
-    cfg = { url, code }; lsSet(CFG_KEY, cfg); startPolling(); syncNow();
+    if (!cfg || cfg.url !== url || cfg.code !== code) selectScope({ url, code });
+    lsSet(CFG_KEY, cfg); startPolling(); syncNow();
   });
   $('syncNowBtn').addEventListener('click', () => { if (!cfg) { setStatus('Conecte primeiro.', 'err'); return; } syncNow(); });
   $('syncOff').addEventListener('click', () => {
-    cfg = null; try { localStorage.removeItem(CFG_KEY); } catch (e) {} clearInterval(pollTimer); lastOk = ''; lastErr = ''; setStatus('Desligado. Suas anotações continuam neste aparelho.', ''); paintBtn();
+    saveMeta(); generation++; controllers.forEach(ctl => ctl.abort()); clearTimeout(pushTimer); cfg = null; try { localStorage.removeItem(CFG_KEY); } catch (e) {} clearInterval(pollTimer); lastOk = ''; lastErr = ''; setStatus('Desligado. Suas anotações continuam neste aparelho.', ''); paintBtn();
   });
 
   cfg = lsGet(CFG_KEY); const m = lsGet(META_KEY); if (m && m.n && m.a) meta = m;
+  if (cfg) selectScope(cfg);
   paintBtn();
   if (cfg) { startPolling(); setTimeout(syncNow, 1500); }
   window.MaluSync = { syncNow, config: () => cfg };
