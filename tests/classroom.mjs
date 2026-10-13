@@ -88,7 +88,7 @@ try{
   await page.locator('#projectionClose').click();
   assert.equal(await page.locator('.ux-glossary').count(),60);
   const coverage=await page.locator('article.week-card').evaluateAll(cards=>cards.every(c=>{
-    if(c.dataset.contentRevision==='filosofia-45min-20261008-auditoria20261010')return c.querySelectorAll('.notebook-questions li').length===2;
+    if(c.dataset.contentRevision==='filosofia-45min-20261008-auditoria20261010')return c.querySelectorAll('.notebook-questions').length===0 && c.querySelectorAll('.atv-aluno ol li').length===2;
     const normalize=text=>text.trim().toLocaleLowerCase('pt-BR').replace(/^aura\s*—\s*(?:em walter )?benjamin$/,'aura — benjamin');
     const defined=[...c.querySelectorAll('.ux-glossary dt')].map(n=>normalize(n.textContent));
     return [...c.querySelectorAll('.concept-chip')].every(n=>defined.includes(normalize(n.textContent)));
@@ -97,7 +97,8 @@ try{
   assert.equal(await page.locator('article.week-card:visible .ux-glossary').count(),1);
   assert.equal(await page.locator('article.week-card:visible .ux-glossary dt').count(),3);
   assert.match(await page.locator('article.week-card:visible .prof-panel').textContent(),/belo|Belo/);
-  assert.equal(await page.locator('article.week-card:visible .notebook-questions li').count(),2);
+  assert.equal(await page.locator('article.week-card .wide.notebook .notebook-questions').count(),0);
+  assert.equal(await page.locator('article.week-card:visible .atv-aluno ol li').count(),2);
   await page.locator('#wkProject').click();
   for(const material of ['pergunta','conteudo','caderno','atividade','fontes']){
     await page.locator('[data-lesson-material='+material+']').click();

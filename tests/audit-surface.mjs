@@ -24,6 +24,8 @@ try {
   await mkdir('test-results',{recursive:true});
   const ids=await page.locator('article.week-card').evaluateAll(ns=>ns.map(n=>n.id));
   assert.equal(ids.length,60);
+  assert.equal(await page.locator('article.week-card .wide.notebook .notebook-questions').count(),0,'Written exercises belong only to Activities');
+  for(const id of ids)assert.ok(await page.locator('#'+id+' .atv-aluno ol li').count()>0,id+' retains written activities');
   let checked=0;
   for(const id of ids){
     await page.evaluate(id=>window.openProjection(id),id);
