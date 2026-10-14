@@ -32,5 +32,28 @@
   }
   function reportStudents(student,students){const registration=String(student.matricula||'').trim();return Object.values(students).filter(a=>a.ativo!==false&&(a.id===student.id||(registration&&String(a.matricula||'').trim()===registration)));}
   function completed(activity,value){return activity.checklist?Number(value)>0:value!==null&&value!==undefined;}
-  globalThis.MaluGradebookCore={result,importRoster,reportStudents,completed};
+  function positions(rows){
+    let pos=1;
+    return rows.map((row,i)=>{if(i&&row.average!==rows[i-1].average)pos=i+1;return {...row,pos};});
+  }
+  function ranking(data, selected){
+    const active=Object.values(data.turmas).filter(t=>t.ativo!==false);
+    const pool=[],classes=[];
+    for(const turma of active){
+      const avs=data.activities.filter(a=>a.turmaId===turma.id),rows=[];
+      for(const aluno of Object.values(data.alunos).filter(a=>a.turmaId===turma.id&&a.ativo!==false)){
+        const average=result(avs,data.scores[aluno.id]||{},data.mediaModo[turma.id]).average;
+        if(average!==null)rows.push({aluno,turma,average});
+      }
+      pool.push(...rows);
+      if(rows.length)classes.push({turma,average:rows.reduce((sum,r)=>sum+r.average,0)/rows.length});
+    }
+    const order=rows=>positions(rows.slice().sort((a,b)=>b.average-a.average||(a.aluno?.nome||a.turma.nome||'').localeCompare(b.aluno?.nome||b.turma.nome||'','pt-BR')));
+    const disciplines=[...new Set(classes.map(r=>r.turma.disciplina||'Sem disciplina'))].sort();
+    const schools=[...new Set(pool.map(r=>r.turma.unidade).filter(Boolean))].sort();
+    return {students:order(pool.filter(r=>r.turma.id===selected)),classes:order(classes),
+      disciplines:disciplines.map(name=>({name,rows:order(classes.filter(r=>(r.turma.disciplina||'Sem disciplina')===name))})),
+      top:order(pool).slice(0,30),schools:schools.map(name=>({name,rows:order(pool.filter(r=>r.turma.unidade===name)).slice(0,30)}))};
+  }
+  globalThis.MaluGradebookCore={result,importRoster,reportStudents,completed,ranking};
 })();

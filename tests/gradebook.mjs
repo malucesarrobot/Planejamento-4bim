@@ -40,3 +40,13 @@ const ambiguous=JSON.parse(JSON.stringify(roster));ambiguous.alunos.q={id:'q',no
 const unresolved=context.window.MaluArlan.plan(csv,ambiguous,'t','2026-10-08',[]);assert.equal(unresolved.count,0);assert.equal(unresolved.pending.length,1);
 assert.throws(()=>context.window.MaluArlan.plan(csv,roster,'t','2026-10-07',[]));
 console.log('PASS granular cloud updates, deletions, Arlan date boundaries, idempotency, preserved manual calls and ambiguous names');
+// Ranking uses this period's existing calculation, shared positions and active rosters.
+const rankData={turmas:{t:{id:'t',nome:'9A',disciplina:'História',unidade:'Marajó'},u:{id:'u',nome:'9C',disciplina:'História',unidade:'Marajó'},v:{id:'v',nome:'1A',disciplina:'Filosofia',unidade:'Outra'}},alunos:{a:{id:'a',nome:'Ana',turmaId:'t'},b:{id:'b',nome:'Bia',turmaId:'t'},c:{id:'c',nome:'Caio',turmaId:'t'},d:{id:'d',nome:'Davi',turmaId:'t'},x:{id:'x',nome:'Transferido',turmaId:'t',ativo:false},e:{id:'e',nome:'Eva',turmaId:'u'},f:{id:'f',nome:'Fábio',turmaId:'v'}},activities:[{id:'test',turmaId:'t',valorMax:10,peso:1},{id:'other',turmaId:'u',valorMax:10,peso:1}],scores:{a:{test:10},b:{test:8},c:{test:8},d:{test:6},x:{test:10},e:{other:9}},mediaModo:{}};
+const frozen=JSON.stringify(rankData),ranks=C.ranking(rankData,'t');
+assert.deepEqual(ranks.students.map(r=>r.pos),[1,2,2,4]);
+assert.deepEqual(ranks.classes.map(r=>r.turma.id),['u','t']);
+assert.equal(ranks.classes[1].average,8);
+assert.equal(ranks.top.length,5);assert.equal(ranks.schools.length,1);assert.equal(ranks.disciplines.length,1);
+assert.equal(JSON.stringify(rankData),frozen);
+assert.equal(C.ranking({...rankData,activities:[]},'t').top.length,0);
+console.log('PASS ranking ties, class means, school/subject groups, excluded inactive pupils, no-activity classes and non-mutating calculation');

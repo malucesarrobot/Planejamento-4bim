@@ -59,11 +59,11 @@
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base',numeric:true})||a.id.localeCompare(b.id));}
   function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
-  function render(){content.replaceChildren();if(view==='attendance'){renderAttendance();return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else renderAttendance();}
+  function render(){content.replaceChildren();if(view==='attendance'){renderAttendance();return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else renderAttendance();}
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Nova atividade',()=>activityForm()),button('Pontos extras',()=>activityForm(null,'points')),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Pontos extras',()=>activityForm(null,'points')),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -84,6 +84,31 @@
       }row.append(...totalCells);paint();table.append(row);
     }wrap.append(table);content.append(wrap);
   }
+  let rankingMode='geral';
+  function renderRanking(){
+    const toolbar=node('div',null,'gb-ranking-tools');
+    toolbar.append(button('← Notas',()=>{view='notes';dialog.classList.remove('gb-ranking-projection');render();}),button('Projetar',()=>dialog.classList.toggle('gb-ranking-projection')));
+    content.append(toolbar,node('h3','Ranking · '+classLabel(data.turmas[selected])),node('p','4º bimestre · Médias iguais dividem a posição (1º, 2º, 2º, 4º).','gb-help'));
+    const ranks=C.ranking(data,selected);
+    function section(title,rows,kind){
+      const box=node('section',null,'gb-ranking-section');box.append(node('h3',title));
+      if(!rows.length)box.append(node('p','Ainda não há médias para classificar.','gb-help'));
+      for(const r of rows){
+        const row=node('div',null,'gb-ranking-row'+(r.pos<=3?' gb-ranking-top':'')+(r.turma.id===selected?' gb-ranking-current':''));
+        const name=kind==='class'?classLabel(r.turma):r.aluno.nome+(kind==='all'?' · '+classLabel(r.turma):'');
+        row.append(node('span',r.pos===1?'🥇':r.pos===2?'🥈':r.pos===3?'🥉':r.pos+'º','gb-ranking-pos'),node('span',name),node('strong',r.average.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}),'gb-ranking-score'));box.append(row);
+      }content.append(box);
+    }
+    section('Alunos da turma',ranks.students,'student');
+    const modes=node('div',null,'gb-ranking-tools');
+    for(const [value,label]of [['geral','Geral'],['disciplina','Por disciplina']]){const b=button(label,()=>{rankingMode=value;render();});b.setAttribute('aria-pressed',String(rankingMode===value));modes.append(b);}content.append(node('h3','Comparar turmas'),modes);
+    if(rankingMode==='geral')section('Todas as turmas',ranks.classes,'class');else for(const group of ranks.disciplines)section(group.name,group.rows,'class');
+    const general=node('details');general.append(node('summary','Top 30 · geral e por escola'));content.append(general);
+    const start=content.children.length;section('Geral · top 30',ranks.top,'all');for(const school of ranks.schools)section(school.name+' · top 30',school.rows,'all');
+    while(content.children.length>start)general.append(content.children[start]);
+    general.prepend(node('p','Cada aluno aparece por turma e disciplina, como no Leciona.','gb-help'));
+  }
+  dialog.addEventListener('close',()=>dialog.classList.remove('gb-ranking-projection'));
   let draftOrigin=null;
   function currentOrigin(){const card=document.querySelector('article.week-card:not(.ux-inactive):not(.hidden)');return card?{weekId:card.id,title:card.querySelector('.week-head h3')?.textContent?.trim()||'Unidade',panel:card.querySelector('.ux-tabs [aria-selected=true]')?.getAttribute('aria-controls')?.split('-panel-')[1]||'notebook'}:null;}
   function registerFrom(card,panel){draftOrigin={weekId:card.id,title:card.querySelector('.week-head h3')?.textContent?.trim()||'Unidade',panel};open('notes');if(selected)activityForm();else message('Escolha a turma para confirmar o registro desta unidade.');}
