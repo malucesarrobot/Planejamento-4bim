@@ -23,7 +23,9 @@
     for(const [id,a] of Object.entries(source.alunos)){
       if(!a||typeof a.nome!=='string'||!next.turmas[a.turmaId])continue;
       const previous=next.alunos[id]||{}, official=a.siapVerificadoEm?a:previous.siapVerificadoEm?previous:null;
-      next.alunos[id]={...previous,id,nome:official?.nome||a.nome,numero:a.numero||null,turmaId:a.turmaId,ativo:official?official.ativo!==false:a.ativo!==false,matricula:official?.matricula|| (a.matricula==null?'':String(a.matricula).trim())};
+      const preferred=previous.cadastroEditadoEm?previous:official||a;
+      // A fresh import must not restore pupils removed manually or replace local corrections.
+      next.alunos[id]={...previous,id,nome:preferred.nome,numero:previous.cadastroEditadoEm?previous.numero:a.numero||null,turmaId:a.turmaId,ativo:preferred.ativo!==false,matricula:preferred.matricula==null?'':String(preferred.matricula).trim()};
       if(official){next.alunos[id].siapVerificadoEm=official.siapVerificadoEm;next.alunos[id].situacaoSiap=official.situacaoSiap;}
       students++;
     }
@@ -32,6 +34,25 @@
   }
   function reportStudents(student,students){const registration=String(student.matricula||'').trim();return Object.values(students).filter(a=>a.ativo!==false&&(a.id===student.id||(registration&&String(a.matricula||'').trim()===registration)));}
   function completed(activity,value){return activity.checklist?Number(value)>0:value!==null&&value!==undefined;}
+  const normalizedName=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLocaleUpperCase('pt-BR');
+  function saveStudent(data,turmaId,draft){
+    if(!data.turmas[turmaId])throw Error('Selecione uma turma válida.');
+    const previous=data.alunos[draft.id];
+    if(previous&&previous.turmaId!==turmaId)throw Error('O aluno pertence a outra turma.');
+    const nome=String(draft.nome||'').trim().replace(/\s+/g,' '),matricula=String(draft.matricula||'').trim(),rawNumber=String(draft.numero??'').trim();
+    if(!nome)throw Error('Informe o nome do aluno.');
+    if(rawNumber&&(!/^\d+$/.test(rawNumber)||!Number.isSafeInteger(Number(rawNumber))||Number(rawNumber)<1))throw Error('O número de chamada deve ser um inteiro positivo.');
+    if(matricula&&!/^\d+$/.test(matricula))throw Error('A matrícula deve conter somente números.');
+    const duplicate=Object.values(data.alunos).find(a=>a.id!==draft.id&&a.turmaId===turmaId&&((matricula&&String(a.matricula||'').trim()===matricula)||normalizedName(a.nome)===normalizedName(nome)));
+    if(duplicate)throw Error(duplicate.ativo===false?'Este aluno já está nos removidos. Restaure o cadastro existente.':'Já existe aluno com este nome ou matrícula nesta turma.');
+    const id=draft.id||globalThis.crypto.randomUUID();
+    data.alunos[id]={...previous,id,turmaId,nome,matricula,numero:rawNumber?Number(rawNumber):null,ativo:previous?.ativo!==false,cadastroEditadoEm:new Date().toISOString()};
+    return id;
+  }
+  function setStudentActive(data,turmaId,id,active){
+    const a=data.alunos[id];if(!a||a.turmaId!==turmaId)throw Error('Aluno não encontrado nesta turma.');
+    a.ativo=!!active;a.cadastroEditadoEm=new Date().toISOString();
+  }
   function positions(rows){
     let pos=1;
     return rows.map((row,i)=>{if(i&&row.average!==rows[i-1].average)pos=i+1;return {...row,pos};});
@@ -55,5 +76,5 @@
       disciplines:disciplines.map(name=>({name,rows:order(classes.filter(r=>(r.turma.disciplina||'Sem disciplina')===name))})),
       top:order(pool).slice(0,30),schools:schools.map(name=>({name,rows:order(pool.filter(r=>r.turma.unidade===name)).slice(0,30)}))};
   }
-  globalThis.MaluGradebookCore={result,importRoster,reportStudents,completed,ranking};
+  globalThis.MaluGradebookCore={result,importRoster,reportStudents,completed,ranking,saveStudent,setStudentActive};
 })();

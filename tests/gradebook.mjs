@@ -50,3 +50,27 @@ assert.equal(ranks.top.length,5);assert.equal(ranks.schools.length,1);assert.equ
 assert.equal(JSON.stringify(rankData),frozen);
 assert.equal(C.ranking({...rankData,activities:[]},'t').top.length,0);
 console.log('PASS ranking ties, class means, school/subject groups, excluded inactive pupils, no-activity classes and non-mutating calculation');
+// Roster changes preserve historical records, stable IDs and manual edits on re-import.
+const rosterEdits={turmas:{t:{id:'t',nome:'9C'},u:{id:'u',nome:'9A'}},alunos:{a:{id:'a',turmaId:'t',nome:'Ana',numero:1,matricula:'001',ativo:true}},mediaModo:{},activities:[{id:'test',turmaId:'t',valorMax:10,peso:1}],scores:{a:{test:8}},attendance:{'t|2026-10-14|dia':{a:'P'}},importLog:{}};
+const history=JSON.stringify({scores:rosterEdits.scores,attendance:rosterEdits.attendance});
+assert.equal(C.saveStudent(rosterEdits,'t',{id:'a',nome:'Ana Maria',numero:'7',matricula:'001'}),'a');
+assert.equal(rosterEdits.alunos.a.numero,7);
+C.setStudentActive(rosterEdits,'t','a',false);
+assert.equal(C.ranking(rosterEdits,'t').students.length,0);
+assert.throws(()=>C.saveStudent(rosterEdits,'t',{nome:'ANA MARIA',matricula:'001'}),/Restaure/);
+const reimport=C.importRoster({turmas:rosterEdits.turmas,alunos:{a:{id:'a',turmaId:'t',nome:'Ana',numero:1,matricula:'002',ativo:true}}},rosterEdits).next;
+assert.equal(reimport.alunos.a.ativo,false);assert.equal(reimport.alunos.a.nome,'Ana Maria');assert.equal(reimport.alunos.a.numero,7);assert.equal(reimport.alunos.a.matricula,'001');
+C.setStudentActive(rosterEdits,'t','a',true);assert.equal(C.ranking(rosterEdits,'t').students[0].average,8);
+assert.throws(()=>C.setStudentActive(rosterEdits,'u','a',false),/nesta turma/);
+assert.throws(()=>C.saveStudent(rosterEdits,'u',{id:'a',nome:'Ana'}),/outra turma/);
+assert.throws(()=>C.saveStudent(rosterEdits,'t',{nome:'  ',numero:2}));
+assert.throws(()=>C.saveStudent(rosterEdits,'t',{nome:'Bia',numero:'1.2'}));
+assert.throws(()=>C.saveStudent(rosterEdits,'t',{nome:'Bia',matricula:'abc'}));
+const newId=C.saveStudent(rosterEdits,'t',{nome:'  José   Silva ',numero:'8',matricula:'009'});
+assert.equal(rosterEdits.alunos[newId].nome,'José Silva');assert.equal(rosterEdits.alunos[newId].ativo,true);
+assert.throws(()=>C.saveStudent(rosterEdits,'t',{nome:'JOSE SILVA'}),/Já existe/);
+assert.throws(()=>C.saveStudent(rosterEdits,'t',{nome:'Outro',matricula:'009'}),/Já existe/);
+assert.equal(JSON.stringify({scores:rosterEdits.scores,attendance:rosterEdits.attendance}),history);
+const studentPatch=JSON.parse(JSON.stringify(cloud.diff({...rosterEdits,alunos:{}},rosterEdits)));
+assert.equal(studentPatch['alunos/'+newId+'/nome'],'José Silva');assert.ok(studentPatch['alunos/'+newId+'/cadastroEditadoEm']);
+console.log('PASS add/edit/remove/restore pupils, duplicate prevention, preserved grades/attendance, manual edits surviving imports and cloud patches');

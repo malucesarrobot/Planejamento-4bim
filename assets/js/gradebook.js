@@ -23,7 +23,8 @@
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');
   const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
-  controls.append(select);
+  const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
+  controls.append(select,pupilsMenu);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
   settingsActions.append(button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
@@ -59,7 +60,38 @@
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base',numeric:true})||a.id.localeCompare(b.id));}
   function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
-  function render(){content.replaceChildren();if(view==='attendance'){renderAttendance();return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else renderAttendance();}
+  function render(){content.replaceChildren();pupilsMenu.disabled=!selected;if(view==='attendance'){renderAttendance();return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else if(view==='students')renderStudents();else renderAttendance();}
+  function renderStudents(){
+    dialog.classList.remove('gb-ranking-projection');
+    const turmaId=selected,all=Object.values(data.alunos).filter(a=>a.turmaId===turmaId).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'}));
+    content.append(button('← Notas',()=>{view='notes';render();}),node('h3','Alunos · '+classLabel(data.turmas[turmaId])),button('Adicionar aluno',()=>studentForm()),node('p','Remover retira o aluno das notas, da chamada e do ranking. As notas e presenças anteriores ficam guardadas; você pode restaurar o cadastro.','gb-help'));
+    const active=node('div',null,'gb-roster'),removed=node('details',null,'gb-roster-removed'),inactive=all.filter(a=>a.ativo===false);removed.append(node('summary','Removidos · '+inactive.length));
+    content.append(node('p',all.length-inactive.length+' alunos ativos'),active,removed);
+    for(const a of all){
+      const row=node('div',null,'gb-roster-row'),identity=node('div');identity.append(node('strong',(a.numero?a.numero+'. ':'')+a.nome),node('p',a.matricula?'Matrícula: '+a.matricula:'Sem matrícula','gb-help'));
+      const actions=node('div',null,'gb-roster-actions'),edit=button('Editar',()=>studentForm(a));edit.setAttribute('aria-label','Editar '+a.nome);
+      const toggle=button(a.ativo===false?'Restaurar':'Remover',async()=>{
+        const restoring=a.ativo===false;
+        if(!restoring&&!confirm('Remover '+a.nome+' da lista ativa desta turma? Notas e chamadas ficam guardadas e o aluno poderá ser restaurado.'))return;
+        toggle.disabled=true;
+        try{if(await update(d=>C.setStudentActive(d,turmaId,a.id,restoring))){render();message(restoring?'Aluno restaurado.':'Aluno removido da lista ativa.');}}
+        catch(e){message(e.message,true);}finally{toggle.disabled=false;}
+      });toggle.setAttribute('aria-label',(a.ativo===false?'Restaurar ':'Remover ')+a.nome);actions.append(edit,toggle);row.append(identity,actions);(a.ativo===false?removed:active).append(row);
+    }
+    if(!all.some(a=>a.ativo!==false))active.append(node('p','Nenhum aluno ativo. Use Adicionar aluno ou restaure um cadastro.'));
+  }
+  function studentForm(existing){
+    const turmaId=selected,form=node('form',null,'gb-form');form.append(node('h3',existing?'Editar aluno':'Adicionar aluno'),node('p',classLabel(data.turmas[turmaId]),'gb-help'));
+    function field(label,value){const box=node('label',label),input=node('input');input.type='text';input.value=value??'';box.append(input);form.append(box);return input;}
+    const name=field('Nome completo',existing?.nome);name.required=true;name.maxLength=200;
+    const number=field('Número de chamada (opcional)',existing?.numero),registration=field('Matrícula (opcional)',existing?.matricula);number.inputMode=registration.inputMode='numeric';number.pattern=registration.pattern='[0-9]*';
+    form.append(node('p','A matrícula permite vincular o boletim às outras disciplinas. O cadastro será incluído somente na turma selecionada.','gb-help'));
+    const submit=node('button','Salvar aluno');submit.type='submit';form.append(submit,button('Cancelar',render));
+    form.addEventListener('submit',async e=>{e.preventDefault();if(selected!==turmaId){message('A turma mudou. Abra o cadastro novamente.',true);return;}submit.disabled=true;
+      try{if(await update(d=>C.saveStudent(d,turmaId,{id:existing?.id,nome:name.value,numero:number.value,matricula:registration.value}))){render();message(existing?'Cadastro atualizado.':'Aluno adicionado.');}}
+      catch(e){message(e.message,true);}finally{submit.disabled=false;}
+    });content.replaceChildren(form);name.focus();
+  }
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
@@ -136,7 +168,7 @@
     }
   }
   let linkingRegistration=false,registrationChecked=false;
-  async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&!data.alunos[id].siapVerificadoEm&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id])d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
+  async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&!data.alunos[id].cadastroEditadoEm&&!data.alunos[id].siapVerificadoEm&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id]&&!d.alunos[id].cadastroEditadoEm)d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
   function originMatchesClass(origin,t){const match=origin?.weekId?.match(/^s(\d+)-(historia|filosofia|sociologia)-/);return !!(match&&t&&Number(match[1])===Number.parseInt(t.serie||t.nome)&&({historia:'História',filosofia:'Filosofia',sociologia:'Sociologia'})[match[2]]===t.disciplina);}
   function activityForm(existing,preset){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
