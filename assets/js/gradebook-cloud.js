@@ -11,7 +11,7 @@
   let pending={},auth,db,ref,connected=false,ready=false,sending=false,revision=0,callbacks,stopped=false;
   const queueLoaded=storage.read(queueKey).then(raw=>{pending=JSON.parse(raw||'{}');}).catch(()=>{stopped=true;});
   function wire(data){return {...data,activities:Object.fromEntries(data.activities.map(a=>[a.id,a]))};}
-  function unwire(value){const v=value||{};return {version:1,year:2026,bimestre:4,turmas:v.turmas||{},alunos:v.alunos||{},mediaModo:v.mediaModo||{},activities:Object.values(v.activities||{}),scores:v.scores||{},attendance:v.attendance||{},importLog:v.importLog||{}};}
+  function unwire(value){const v=value||{};return {version:1,year:2026,bimestre:4,turmas:v.turmas||{},alunos:v.alunos||{},mediaModo:v.mediaModo||{},activities:Object.values(v.activities||{}),scores:v.scores||{},attendance:v.attendance||{},importLog:v.importLog||{},reportCards:v.reportCards||{},monitoring:v.monitoring||{}};}
   function flatten(value,prefix='',out={}){
     for(const [key,val] of Object.entries(value)){if(['version','year','bimestre'].includes(key)&&!prefix)continue;
       const path=prefix?prefix+'/'+key:key;if(val&&typeof val==='object'&&!Array.isArray(val)){flatten(val,path,out);}else out[path]=val;
@@ -48,3 +48,4 @@
   }
   window.MaluGradebookCloud={start,save,login,importSource,diff,wire,unwire};
 })();
+
