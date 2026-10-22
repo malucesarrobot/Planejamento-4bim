@@ -229,7 +229,11 @@
     content.append(button('Salvar chamada',async()=>{if(!selected){message('Escolha uma aula ou turma.',true);return;}if(!validDate())return;const k=selected+'|'+date.value+'|'+period.value;if(await update(d=>{d.attendance[k]??={};for(const a of students())d.attendance[k][a.id]??='P';}))message('Chamada registrada.');}));
     const paint=()=>{list.replaceChildren();for(const a of students()){const choice=node('button');choice.type='button';const k=selected+'|'+date.value+'|'+period.value;
       const color=()=>{const absent=data.attendance[k]?.[a.id]==='F';choice.textContent=(absent?'✕ ':'✓ ')+a.nome;choice.className='gb-attendance-row '+(absent?'gb-absent':'gb-present');choice.setAttribute('aria-label',(absent?'Falta':'Presente')+' — '+a.nome);choice.setAttribute('aria-pressed',String(absent));};color();choice.disabled=!date.value;
-      choice.addEventListener('click',async()=>{if(!validDate())return;choice.disabled=true;const value=data.attendance[k]?.[a.id]==='F'?'P':'F';await update(d=>{d.attendance[k]??={};d.attendance[k][a.id]=value;});color();choice.disabled=false;});list.append(choice);}if(!students().length)list.append(node('p','Importe os alunos desta turma para fazer a chamada.'));};
+      choice.addEventListener('click',async()=>{if(!validDate())return;choice.disabled=true;const value=data.attendance[k]?.[a.id]==='F'?'P':'F';await update(d=>{d.attendance[k]??={};d.attendance[k][a.id]=value;});color();choice.disabled=false;});
+      const row=node('div',null,'gb-attendance-pupil');row.append(choice);
+      const tracking=data.monitoring?.[a.id];
+      if(tracking?.active){const marker=button('⚠️',()=>showReport(a));marker.className='gb-attendance-warning';marker.title=tracking.reason||'Acompanhamento pedagógico';marker.setAttribute('aria-label','Aviso de acompanhamento — '+a.nome);row.append(marker);}
+      list.append(row);}if(!students().length)list.append(node('p','Importe os alunos desta turma para fazer a chamada.'));};
     const periods=()=>{
       daySchedule.replaceChildren();const day=new Date(date.value+'T12:00:00').getDay();
       const lessons=(window.MaluGradebookSchedule||[]).filter(h=>h.dia===day).map(h=>({h,t:Object.values(data.turmas).find(t=>Number.parseInt(t.serie)===h.serie&&t.letra===h.letra&&t.disciplina===h.disc&&t.unidade===h.unidade)})).filter(x=>x.t).sort((a,b)=>a.h.ini.localeCompare(b.h.ini)||classLabel(a.t).localeCompare(classLabel(b.t),'pt-BR'));
