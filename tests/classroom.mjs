@@ -122,7 +122,7 @@ try{
   const kant=page.locator('article.week-card:visible');
   for(const term of ['Dignidade','Pessoa como fim em si mesma','Autonomia moral','Dever e imperativo categórico','Preço e dignidade'])assert.equal(await kant.locator('.ux-glossary').getByText(term,{exact:true}).isVisible(),true);
   assert.match(await kant.locator('.atv-aluno').textContent(),/dignidade/);
-  assert.match(await kant.locator('.atv-prof').textContent(),/manipula a decisão/);
+  assert.match(await kant.locator('.atv-prof').textContent(),/informações necessárias/);
   assert.match(await kant.locator('.ux-glossary').textContent(),/autonomia/);
   assert.doesNotMatch(await kant.textContent(),/Epicuro|ataraxia|aponia/);
   await kant.locator('.ux-study').scrollIntoViewIfNeeded();await page.screenshot({path:'test-results/mobile-kant-study.png'});

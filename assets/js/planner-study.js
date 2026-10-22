@@ -40,7 +40,7 @@
   }
   function bibliography(card) {
     const lesson=window.MaluBibliographyData?.lessons[card.id];if(!lesson)return null;
-    const wrap=node('section',null,'ux-bibliography');wrap.appendChild(node('h4','Bibliografia e repertório da semana'));
+    const wrap=node('section',null,'ux-bibliography'+(window.MaluStudyData?.lessons[card.id]?.concisePreparation?' ux-study-sources':''));wrap.appendChild(node('h4','Bibliografia e repertório da semana'));
     wrap.appendChild(node('p',lesson.focus));
     const list=node('ul');
     for(const entry of lesson.entries){
@@ -96,7 +96,7 @@
     const refs=node('section',null,'ux-study-sources');refs.appendChild(node('h5','Fontes para este aprofundamento'));
     const list=node('ul');
     for(const key of lesson.refs) {const [label,url,note]=data.sources[key],li=node('li'),a=node('a',label);a.href=url;a.target='_blank';a.rel='noopener';li.appendChild(a);li.appendChild(node('p',note));list.appendChild(li);}
-    refs.appendChild(list);section.appendChild(refs);
+    refs.appendChild(list);if(!lesson.concisePreparation)section.appendChild(refs);
     const anchor=[...panel.querySelectorAll('h4')].find(n=>/Roteiro da aula|Sequência da explicação/.test(n.textContent));
     if(anchor)anchor.before(section);else panel.appendChild(section);
     // Preserve prior observations without presenting them as verified documentation.

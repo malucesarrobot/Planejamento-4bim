@@ -35,11 +35,11 @@ try {
   for(let i=0;i<6;i++){const id='s9-historia-semana-'+(i+1);assert.equal(await page.locator('#'+id+' .week-head h3').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id+' .atv-titulo').textContent(),revisedTitles[i]);assert.equal(await page.locator('#'+id).getAttribute('data-content-revision'),'revisagoias-20261005-auditoria20261010');}
   assert.notEqual(await page.locator('#s9-historia-semana-1 .registro-node').first().textContent(),'Etiqueta salva antes desta revisão');
   assert.match(await page.locator('textarea[data-save="ux-s9-historia-semana-1-edits"]').inputValue(),/Etiqueta salva antes desta revisão/);
-  const philosophyTitles=['Direitos civis, políticos e sociais',"Direitos humanos e diversidade","Kant: fundamentos da dignidade humana","Honneth: reconhecimento e relações afetivas","Honneth: direitos e estima social","Honneth: luta por reconhecimento e justiça social"];
+  const philosophyTitles=['Direitos civis, políticos e sociais',"Direitos humanos e diversidade","Kant: dignidade, autonomia e instrumentalização","Honneth: reconhecimento e relações afetivas","Honneth: direitos e estima social","Honneth: luta por reconhecimento e justiça social"];
   for(let i=0;i<6;i++){
     const lesson=page.locator('#s1-filosofia-semana-'+(i+1));
     assert.equal(await lesson.locator('.week-head h3').textContent(),philosophyTitles[i]);
-    assert.equal(await lesson.getAttribute('data-content-revision'),i===0?'filosofia-45min-20261008-auditoria20261010':'filosofia1-kant-honneth-20261006g-auditoria20261010');
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===2?'filosofia-semana3-20261022':i===0?'filosofia-45min-20261008-auditoria20261010':'filosofia1-kant-honneth-20261006g-auditoria20261010');
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS606A/);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/EM13CHS605/);
     assert.doesNotMatch(await lesson.textContent(),/Epicuro|ataraxia|aponia|estoicismo|ceticismo/i);
@@ -57,7 +57,7 @@ try {
   console.log('PASS two Sociology weeks teach four violence mechanisms; Philosophy applies instrumental rationality as prior-learning review; all three use brief records');
   for(let i=1;i<=6;i++){
     const lesson=page.locator('#s3-filosofia-semana-'+i);
-    assert.equal(await lesson.getAttribute('data-content-revision'),i===1?'filosofia-45min-20261008-auditoria20261010':'filosofia3-natureza-20261006-auditoria20261010');
+    assert.equal(await lesson.getAttribute('data-content-revision'),i===3?'filosofia-semana3-20261022':i===1?'filosofia-45min-20261008-auditoria20261010':'filosofia3-natureza-20261006-auditoria20261010');
     assert.equal(await lesson.locator(i===1?'.atv-aluno ol li':'.atv-q li').count(),i===1?2:3);
     assert.match(await lesson.locator('.student-curriculum').textContent(),/GO-EMCHS306A/);
   }
