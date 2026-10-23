@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {readFile,mkdir} from 'node:fs/promises';
+import http from 'node:http';
+const {chromium}=await import(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright/index.mjs':'playwright');
+const server=http.createServer(async(req,res)=>{try{const p=new URL(req.url,'http://localhost').pathname,file=p==='/'?'index.html':p.slice(1);res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(await readFile(file));}catch{res.writeHead(404);res.end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const browser=await chromium.launch();
+try{
+ const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));await page.route('https://**',r=>r.abort());
+ const seed={version:1,year:2026,bimestre:4,turmas:{h:{id:'h',nome:'9ºA',serie:'9º ano',letra:'A',unidade:'Teste',disciplina:'História'},s:{id:'s',nome:'9ºA',serie:'9º ano',letra:'A',unidade:'Teste',disciplina:'Sociologia'}},alunos:{ph:{id:'ph',nome:'Aluna de teste',matricula:'123',turmaId:'h',ativo:true},ps:{id:'ps',nome:'Aluna de teste',matricula:'123',turmaId:'s',ativo:true}},mediaModo:{},activities:[{id:'h1',turmaId:'h',nome:'Caderno de História',data:'2026-10-20',valorMax:10,peso:1,checklist:true},{id:'s1',turmaId:'s',nome:'Atividade pendente de Sociologia',data:'2026-10-20',valorMax:10,peso:1,checklist:false,origem:{weekId:'s1-sociologia-semana-1',panel:'activity'}}],scores:{ph:{h1:1}},attendance:{},reportCards:{ph:{bimestres:{1:6,2:7,3:8},mediaFinalSiap:5.3}},monitoring:{}};
+ await page.addInitScript(seed=>{localStorage.setItem('malu-gradebook-2026-b4-v1',JSON.stringify(seed));localStorage.setItem('malu-gradebook-2026-b4-v1-class','h');},seed);
+ await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('body.ux-ready');await page.locator('#navTools>summary').click();await page.getByRole('button',{name:'Notas e atividades',exact:true}).click();
+ await page.getByRole('combobox',{name:'Turma, escola e disciplina'}).selectOption('h');await page.getByRole('button',{name:'Aluna de teste',exact:true}).click();
+ assert.match(await page.locator('.gb-bulletin-summary').first().innerText(),/1º: 6[\s\S]*2º: 7[\s\S]*3º: 8[\s\S]*Média SIAP: 5,3/);
+ assert.equal(await page.getByRole('spinbutton',{name:'1º bimestre — Aluna de teste — História',exact:true}).isVisible(),false);
+ assert.equal(await page.getByRole('button',{name:'Caderno de História',exact:true}).isVisible(),false);
+ const summaries=await page.locator('.gb-bulletin-summary').evaluateAll(ns=>ns.map(n=>({height:n.getBoundingClientRect().height,width:n.clientWidth,scroll:n.scrollWidth})));
+ assert(summaries.every(n=>n.height<60&&n.scroll<=n.width+1),'Compact history should fit a mobile card');
+ await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/boletim-compacto-mobile.png'});
+ await page.getByRole('button',{name:'Atividade pendente de Sociologia',exact:true}).click();
+ assert.equal(await page.getByRole('combobox',{name:'Turma, escola e disciplina'}).inputValue(),'s');
+ assert.deepEqual(await page.evaluate(()=>({student:document.activeElement.dataset.gbStudent,activity:document.activeElement.dataset.gbActivity})),{student:'ps',activity:'s1'});
+ assert.equal(await page.locator('#gradebook').evaluate(n=>n.open),true);
+ assert.equal(await page.locator('.gb-note-target input').getAttribute('data-gb-activity'),'s1');
+ const input=page.locator('input[data-gb-student="ps"][data-gb-activity="s1"]');await input.fill('9');await input.dispatchEvent('change');
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('malu-gradebook-2026-b4-v1')).scores.ps?.s1===9);
+ await page.getByRole('button',{name:'Aluna de teste',exact:true}).click();await page.getByRole('button',{name:'História',exact:true}).last().click();
+ assert.equal(await page.getByRole('combobox',{name:'Turma, escola e disciplina'}).inputValue(),'h');
+ assert.equal(await page.locator('.gb-note-target input').getAttribute('data-gb-student'),'ph');assert.deepEqual(errors,[]);
+ console.log('PASS compact mobile bulletin, collapsed editors/completed activities, cross-subject one-click focus and saved score');
+}finally{await browser.close();await new Promise(r=>server.close(r));}

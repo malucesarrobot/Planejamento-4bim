@@ -108,7 +108,7 @@
     const wrap=node('div',null,'gb-table-wrap'),table=node('table'),head=node('tr');
     for(const text of ['Aluno',...avs.map(a=>a.nome),'Atividades','Bônus','Média / 10'])head.append(node('th',text));table.append(head);
     for(const student of als){
-      const row=node('tr'),name=node('th');name.scope='row';const studentLink=button((student.numero?student.numero+'. ':'')+student.nome,()=>showReport(student));studentLink.className='gb-student-link';name.append(studentLink);if(data.monitoring?.[student.id]?.active){const marker=node('span',data.monitoring[student.id].kind==='conferir-lancamento'?'Conferir lançamento':'Acompanhamento','gb-monitoring-badge');name.append(marker);}row.append(name);
+      const row=node('tr'),name=node('th');row.dataset.gbStudentRow=student.id;name.scope='row';const studentLink=button((student.numero?student.numero+'. ':'')+student.nome,()=>showReport(student));studentLink.className='gb-student-link';name.append(studentLink);if(data.monitoring?.[student.id]?.active){const marker=node('span',data.monitoring[student.id].kind==='conferir-lancamento'?'Conferir lançamento':'Acompanhamento','gb-monitoring-badge');name.append(marker);}row.append(name);
       const totalCells=[node('td'),node('td'),node('td')];
       const paint=()=>{const r=C.result(avs,data.scores[student.id]||{},data.mediaModo[selected]);totalCells[0].textContent=fmt(r.sum)+' / '+fmt(r.max);totalCells[1].textContent=fmt(r.bonus);totalCells[2].textContent=fmt(r.average);};
       for(const a of avs){const cell=node('td'),input=node('input'),saved=data.scores[student.id]?.[a.id];input.setAttribute('aria-label',a.nome+' — '+student.nome);input.dataset.gbStudent=student.id;input.dataset.gbActivity=a.id;
@@ -164,12 +164,32 @@
     const records=C.reportStudents(student,data.alunos);top.append(node('p','Boletim · disciplinas do aluno','gb-help'));if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
     for(const pupil of records.sort((a,b)=>(a.turmaId===selected?-1:b.turmaId===selected?1:0)||classLabel(data.turmas[a.turmaId]||{}).localeCompare(classLabel(data.turmas[b.turmaId]||{}),'pt-BR'))){
       const t=data.turmas[pupil.turmaId];if(!t)continue;const avs=data.activities.filter(a=>a.turmaId===pupil.turmaId).sort((a,b)=>a.data.localeCompare(b.data)),scores=data.scores[pupil.id]||{},totals=C.result(avs,scores,data.mediaModo[pupil.turmaId]);
-      const section=node('section',null,'gb-report-subject');section.append(node('h4',classLabel(t)),node('p','Média: '+fmt(totals.average)+' / 10 · Atividades: '+fmt(totals.sum),'gb-report-average'));
+      const section=node('section',null,'gb-report-subject'),subjectHead=node('div',null,'gb-report-subject-head');
+      const subjectLink=button(t.disciplina||'Disciplina',()=>goToStudentRecord(pupil));subjectLink.className='gb-report-subject-link';subjectLink.title='Abrir os registros de '+pupil.nome+' nesta disciplina';
+      subjectHead.append(subjectLink,node('span',(t.nome||'')+' · '+(t.unidade||''),'gb-help'),node('strong','4º bim.: '+fmt(totals.average),'gb-report-average'));section.append(subjectHead);
       appendBulletin(section,pupil);
       if(!avs.length)section.append(node('p','Nenhuma atividade cadastrada no 4º bimestre.','gb-help'));
-      else for(const done of [true,false]){const group=node('div',null,done?'gb-report-done':'gb-report-pending'),items=avs.filter(a=>C.completed(a,scores[a.id])===done);group.append(node('h5',(done?'✓ Feitas':'○ Pendentes')+' · '+items.length));for(const activity of items){const link=button(activity.nome+(done?' · '+(activity.checklist?'Feita':fmt(scores[activity.id])+' / '+fmt(activity.valorMax)):''),()=>{selected=pupil.turmaId;rememberClass(t);openActivitySource(activity);});link.className='gb-report-activity';group.append(link);}section.append(group);}
+      else for(const done of [false,true]){
+        const items=avs.filter(a=>C.completed(a,scores[a.id])===done),group=node(done?'details':'div',null,done?'gb-report-done':'gb-report-pending');
+        group.append(node(done?'summary':'h5',(done?'✓ Feitas':'○ Pendentes')+' · '+items.length));
+        for(const activity of items){const item=node('div',null,'gb-report-activity-row'),link=button(activity.nome,()=>goToStudentRecord(pupil,activity));link.className='gb-report-activity';link.title='Ir ao registro desta atividade para '+pupil.nome;
+          item.append(link,node('span',done?(activity.checklist?'Feita':fmt(scores[activity.id])+' / '+fmt(activity.valorMax)):'Sem registro','gb-report-score'));
+          if(activity.origem?.url||activity.origem?.weekId){const source=button('Ver conteúdo',()=>openActivitySource(activity));source.className='gb-report-source';item.append(source);}group.append(item);
+        }section.append(group);
+      }
       content.append(section);
     }
+  }
+  function goToStudentRecord(pupil,activity){
+    selected=pupil.turmaId;view='notes';rememberClass(data.turmas[selected]);
+    window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});title.textContent='Notas e atividades';refreshClasses();render();
+    const inputs=[...content.querySelectorAll('input[data-gb-student]')];
+    const input=inputs.find(n=>n.dataset.gbStudent===pupil.id&&(!activity||n.dataset.gbActivity===activity.id));
+    const row=[...content.querySelectorAll('tr[data-gb-student-row]')].find(r=>r.dataset.gbStudentRow===pupil.id);
+    const target=activity?input?.closest('td'):row;
+    if(target){target.classList.add('gb-note-target');target.scrollIntoView({block:'center',inline:'center'});}
+    if(input){input.focus({preventScroll:true});if(input.type==='number')input.select();}
+    message(activity?pupil.nome+' · '+activity.nome:'Registros de '+pupil.nome+' · '+(data.turmas[selected]?.disciplina||''));
   }
   function renderMonitoring(){
     content.append(button('← Notas',()=>{view='notes';render();}),node('h3','Alunos em acompanhamento'));
@@ -178,12 +198,16 @@
     for(const a of list){const m=data.monitoring[a.id],row=node('section',null,'gb-report-subject');row.append(button(a.nome,()=>showReport(a)),node('p',classLabel(data.turmas[a.turmaId]||{})),node('p',m.reason+(m.referenceAverage==null?'':' · SIAP: '+fmt(m.referenceAverage)),'gb-help'));content.append(row);}
   }
   function appendBulletin(section,pupil){
-    const previous=data.reportCards?.[pupil.id]||{},box=node('div',null,'gb-bulletin-history');box.append(node('h5','Notas dos bimestres anteriores'));
+    const previous=data.reportCards?.[pupil.id]||{},line=node('div',null,'gb-bulletin-summary');line.setAttribute('aria-label','Notas anteriores e média do SIAP');
+    for(const period of [1,2,3]){const item=node('span');item.append(node('span',period+'º: '),node('strong',fmt(previous.bimestres?.[period])));line.append(item);}
+    const mean=node('span');mean.append(node('span','Média SIAP: '),node('strong',fmt(previous.mediaFinalSiap)));line.append(mean);section.append(line);
+    const editor=node('details',null,'gb-bulletin-editor');editor.append(node('summary','Editar notas anteriores e acompanhamento'));
+    const box=node('div',null,'gb-bulletin-history');editor.append(box);
     const fields=[];for(const period of [1,2,3]){const label=node('label',period+'º bimestre'),input=node('input');input.type='number';input.min='0';input.max='10';input.step='0.1';input.inputMode='decimal';input.value=previous.bimestres?.[period]??'';input.setAttribute('aria-label',period+'º bimestre — '+pupil.nome+' — '+(data.turmas[pupil.turmaId]?.disciplina||''));label.append(input);box.append(label);fields.push([String(period),input]);}
     if(previous.mediaFinalSiap!=null)box.append(node('p','Média final provisória no SIAP: '+fmt(previous.mediaFinalSiap)+' · '+(previous.conferidoEm||''),'gb-help'));
     const tracking=node('label','Acompanhar nesta disciplina'),check=node('input');check.type='checkbox';check.checked=!!data.monitoring?.[pupil.id]?.active;check.setAttribute('aria-label','Acompanhar '+pupil.nome+' em '+(data.turmas[pupil.turmaId]?.disciplina||''));tracking.append(check);box.append(tracking);
     const reason=node('label','Observação de acompanhamento'),text=node('input');text.type='text';text.maxLength=300;text.value=data.monitoring?.[pupil.id]?.reason||'';reason.append(text);box.append(reason);
-    const submit=button('Salvar boletim',async()=>{submit.disabled=true;try{const values={};for(const [period,input]of fields){if(!input.checkValidity())throw Error('Confira as notas de 0 a 10.');const value=B.grade(input.value);if(value!==null)values[period]=value;}if(await update(d=>{d.reportCards??={};d.monitoring??={};d.reportCards[pupil.id]={...(d.reportCards[pupil.id]||{}),year:2026,bimestres:values};d.monitoring[pupil.id]={...(d.monitoring[pupil.id]||{}),active:check.checked,kind:d.monitoring[pupil.id]?.kind||'aprendizagem',reason:text.value.trim()||'Acompanhamento pedagógico'};}))showReport(pupil);}catch(e){message(e.message,true);}finally{submit.disabled=false;}});box.append(submit);section.append(box);
+    const submit=button('Salvar boletim',async()=>{submit.disabled=true;try{const values={};for(const [period,input]of fields){if(!input.checkValidity())throw Error('Confira as notas de 0 a 10.');const value=B.grade(input.value);if(value!==null)values[period]=value;}if(await update(d=>{d.reportCards??={};d.monitoring??={};d.reportCards[pupil.id]={...(d.reportCards[pupil.id]||{}),year:2026,bimestres:values};d.monitoring[pupil.id]={...(d.monitoring[pupil.id]||{}),active:check.checked,kind:d.monitoring[pupil.id]?.kind||'aprendizagem',reason:text.value.trim()||'Acompanhamento pedagógico'};}))showReport(pupil);}catch(e){message(e.message,true);}finally{submit.disabled=false;}});box.append(submit);section.append(editor);
   }
   bulletinFile.addEventListener('change',async()=>{const f=bulletinFile.files[0];if(!f)return;try{if(f.size>5*1024*1024)throw Error('Arquivo grande demais.');const source=JSON.parse(await f.text());const preview=B.importBulletin(source,data);content.replaceChildren(node('h3','Conferir importação do boletim'),node('p',preview.imported+' registros de notas anteriores · '+preview.marked+' acompanhamentos · '+preview.checks+' conferências de lançamento · '+preview.pending.length+' pendências.'));
       for(const issue of preview.pending)content.append(node('p',issue,'gb-help'));
