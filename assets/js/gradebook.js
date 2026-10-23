@@ -121,7 +121,7 @@
     for(const a of avs){const row=node('div');row.append(node('span',a.nome+' · '+a.tipo+' · máximo '+fmt(a.valorMax)+(a.extra?' · bônus':'')+' · peso '+fmt(a.peso)),button('Editar',()=>activityForm(a)),button('Excluir',async()=>{if(!confirm('Excluir esta atividade e suas pontuações?'))return;await update(d=>{d.activities=d.activities.filter(x=>x.id!==a.id);for(const scores of Object.values(d.scores))delete scores[a.id];});render();}));list.append(row);}content.append(list);
     if(!als.length)return;
     const wrap=node('div',null,'gb-table-wrap'),table=node('table'),head=node('tr');
-    for(const text of ['Aluno',...avs.map(a=>a.nome),'Atividades','Bônus','Média / 10'])head.append(node('th',text));table.append(head);
+    head.className='gb-column-head';for(const text of ['Aluno',...avs.map(a=>a.nome),'Atividades','Bônus','Média / 10']){const cell=node('th',text);cell.scope='col';head.append(cell);}table.append(head);
     for(const student of als){
       const row=node('tr'),name=node('th');row.dataset.gbStudentRow=student.id;name.scope='row';const studentLink=button((student.numero?student.numero+'. ':'')+student.nome,()=>showReport(student));studentLink.className='gb-student-link';name.append(studentLink);if(data.monitoring?.[student.id]?.active){const marker=node('span',data.monitoring[student.id].kind==='conferir-lancamento'?'Conferir lançamento':'Acompanhamento','gb-monitoring-badge');name.append(marker);}row.append(name);
       const totalCells=[node('td'),node('td'),node('td')];
