@@ -1514,3 +1514,6 @@ body.print-scope-cadernos .plan-grid{border:0!important;padding:0!important;marg
 body.print-scope-cadernos .wide.notebook{box-shadow:none!important;break-inside:avoid;margin:0!important;zoom:var(--fit,1);width:var(--fit-w,auto)}
 }
 
+
+/* Disciplina visível no caderno, na projeção e na impressão. */
+.wide.notebook[data-discipline]::before,.projection-page .wide.notebook[data-discipline]::before{content:"✎ " attr(data-discipline) " · meu caderno"!important}
