@@ -4,7 +4,7 @@
   const B=window.MaluBulletinCore;
   const C=window.MaluGradebookCore, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
-  let data=empty(),broken=false,selected='',view='notes';
+  let data=empty(),broken=false,selected='',view='notes',reportStudentId='';
   try{const saved=await window.MaluGradebookStorage.read(key);if(saved){data=JSON.parse(saved);if(data.version!==1||data.bimestre!==4||!Array.isArray(data.activities)||!data.turmas||!data.alunos||!data.scores||!data.attendance||!data.mediaModo)throw Error();}}
   catch(e){broken=true;data=empty();}
   try{selected=await window.MaluGradebookStorage.read(key+'-class')||'';}catch(e){}
@@ -20,7 +20,7 @@
   const info=node('p','4º bimestre · 2026 · Salvo neste aparelho','gb-info');
   const status=node('p',null,'gb-status');status.setAttribute('role','status');
   const controls=node('div',null,'gb-controls'),select=node('select');select.setAttribute('aria-label','Turma, escola e disciplina');
-  select.addEventListener('change',()=>{selected=select.value;rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();if(draftOrigin&&selected)activityForm();});
+  select.addEventListener('change',()=>{selected=select.value;view='notes';rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();if(draftOrigin&&selected)activityForm();});
   const content=node('div',null,'gb-content');
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');
@@ -63,7 +63,7 @@
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base',numeric:true})||a.id.localeCompare(b.id));}
   function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
-  function render(){content.replaceChildren();pupilsMenu.disabled=!selected;if(view==='attendance'){renderAttendance();return;}if(view==='monitoring'){renderMonitoring();return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else if(view==='students')renderStudents();else renderAttendance();}
+  function render(){content.replaceChildren();pupilsMenu.disabled=!selected;if(view==='attendance'){renderAttendance();return;}if(view==='monitoring'){renderMonitoring();return;}if(view==='report'&&data.alunos[reportStudentId]){showReport(data.alunos[reportStudentId]);return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else if(view==='students')renderStudents();else renderAttendance();}
   function renderStudents(){
     dialog.classList.remove('gb-ranking-projection');
     const turmaId=selected,all=Object.values(data.alunos).filter(a=>a.turmaId===turmaId).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'}));
@@ -160,7 +160,8 @@
     for(const issue of issues)content.append(node('p',issue,'gb-help'));
   }
   function showReport(student){
-    content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',render),node('h3',student.nome));content.append(top);
+    reportStudentId=student.id;view='report';
+    content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',()=>{view='notes';render();}),node('h3',student.nome));content.append(top);
     const records=C.reportStudents(student,data.alunos);top.append(node('p','Boletim · disciplinas do aluno','gb-help'));if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
     for(const pupil of records.sort((a,b)=>(a.turmaId===selected?-1:b.turmaId===selected?1:0)||classLabel(data.turmas[a.turmaId]||{}).localeCompare(classLabel(data.turmas[b.turmaId]||{}),'pt-BR'))){
       const t=data.turmas[pupil.turmaId];if(!t)continue;const avs=data.activities.filter(a=>a.turmaId===pupil.turmaId).sort((a,b)=>a.data.localeCompare(b.data)),scores=data.scores[pupil.id]||{},totals=C.result(avs,scores,data.mediaModo[pupil.turmaId]);
