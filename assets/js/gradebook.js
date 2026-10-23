@@ -16,14 +16,14 @@
   const button=(text,fn)=>{const n=node('button',text);n.type='button';n.addEventListener('click',fn);return n;};
   const dialog=node('dialog',null,'gb-dialog');dialog.id='gradebook';dialog.setAttribute('aria-labelledby','gbTitle');
   const header=node('header',null,'gb-header'),title=node('h2','Notas e atividades');title.id='gbTitle';
-  header.append(title,button('Fechar',()=>dialog.close()));
+  header.append(title,button('Fechar',closeGradebook));
   const info=node('p','4º bimestre · 2026 · Salvo neste aparelho','gb-info');
   const status=node('p',null,'gb-status');status.setAttribute('role','status');
   const controls=node('div',null,'gb-controls'),select=node('select');select.setAttribute('aria-label','Turma, escola e disciplina');
   select.addEventListener('change',()=>{selected=select.value;view='notes';rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();if(draftOrigin&&selected)activityForm();});
   const content=node('div',null,'gb-content');
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
-  const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');
+  const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');cloudInfo.tabIndex=0;cloudInfo.title='Toque para conectar ou trocar a conta Google';cloudInfo.addEventListener('click',()=>window.MaluGradebookCloud?.login());cloudInfo.addEventListener('keydown',e=>{if(e.key==='Enter')window.MaluGradebookCloud?.login();});
   const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
   const bulletinFile=node('input');bulletinFile.type='file';bulletinFile.accept='.json,application/json';bulletinFile.hidden=true;
   const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
@@ -31,7 +31,7 @@
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
   settingsActions.append(button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
-  info.textContent='4º bimestre · 2026';settingsActions.prepend(info,cloudInfo);dialog.append(header,controls,status,content,settings,file,bulletinFile);document.body.append(dialog);
+  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudInfo,status,content,settings,file,bulletinFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
@@ -42,6 +42,21 @@
   }
   let writes=Promise.resolve();
   function update(fn){const task=writes.then(()=>{const next=JSON.parse(JSON.stringify(data));fn(next);return save(next);});writes=task.catch(()=>{});return task;}
+
+  const autoEditors=new Set();
+  function autosave(root,commit){
+    let dirty=false,timer,running=Promise.resolve(true);
+    const flush=(force=false)=>{clearTimeout(timer);if(!dirty&&!force)return running;dirty=false;running=Promise.resolve(commit()).then(ok=>{if(!ok)dirty=true;return ok;}).catch(e=>{dirty=true;message(e.message,true);return false;});return running;};
+    const changed=()=>{dirty=true;clearTimeout(timer);message('Salvando automaticamente…');timer=setTimeout(flush,600);};
+    root.addEventListener('input',changed);root.addEventListener('change',changed);autoEditors.add(flush);return flush;
+  }
+  function flushEditors(){return Promise.all([...autoEditors].map(flush=>flush())).then(results=>results.every(Boolean));}
+  async function closeGradebook(){
+    if(dialog.contains(document.activeElement))document.activeElement.blur();
+    if(await flushEditors()){await writes;dialog.close();draftOrigin=null;autoEditors.clear();}
+  }
+  dialog.addEventListener('cancel',event=>{event.preventDefault();closeGradebook();});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushEditors();});
 
   // Remoção solicitada após conferência do backup de 07/10/2026.
   // IDs exatos evitam atingir outras atividades com nomes semelhantes.
@@ -63,7 +78,7 @@
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base',numeric:true})||a.id.localeCompare(b.id));}
   function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
-  function render(){content.replaceChildren();pupilsMenu.disabled=!selected;if(view==='attendance'){renderAttendance();return;}if(view==='monitoring'){renderMonitoring();return;}if(view==='report'&&data.alunos[reportStudentId]){showReport(data.alunos[reportStudentId]);return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else if(view==='students')renderStudents();else renderAttendance();}
+  function render(){flushEditors();autoEditors.clear();content.replaceChildren();pupilsMenu.disabled=!selected;if(view==='attendance'){renderAttendance();return;}if(view==='monitoring'){renderMonitoring();return;}if(view==='report'&&data.alunos[reportStudentId]){showReport(data.alunos[reportStudentId]);return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else if(view==='students')renderStudents();else renderAttendance();}
   function renderStudents(){
     dialog.classList.remove('gb-ranking-projection');
     const turmaId=selected,all=Object.values(data.alunos).filter(a=>a.turmaId===turmaId).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'}));
@@ -113,7 +128,7 @@
       const paint=()=>{const r=C.result(avs,data.scores[student.id]||{},data.mediaModo[selected]);totalCells[0].textContent=fmt(r.sum)+' / '+fmt(r.max);totalCells[1].textContent=fmt(r.bonus);totalCells[2].textContent=fmt(r.average);};
       for(const a of avs){const cell=node('td'),input=node('input'),saved=data.scores[student.id]?.[a.id];input.setAttribute('aria-label',a.nome+' — '+student.nome);input.dataset.gbStudent=student.id;input.dataset.gbActivity=a.id;
         input.type=a.checklist?'checkbox':'number';if(a.checklist)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step='0.1';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
-        input.addEventListener('change',async()=>{const raw=a.checklist?(input.checked?1:0):(input.value===''?null:Number(input.value));
+        input.addEventListener(a.checklist?'change':'input',async()=>{const raw=a.checklist?(input.checked?1:0):(input.value===''?null:Number(input.value));
           if(raw!==null&&(!Number.isFinite(raw)||raw<0||(!a.checklist&&raw>a.valorMax))){input.setCustomValidity('Digite uma pontuação entre 0 e '+a.valorMax+'.');input.reportValidity();return;}input.setCustomValidity('');
           const ok=await update(d=>{d.scores[student.id]??={};if(raw===null)delete d.scores[student.id][a.id];else d.scores[student.id][a.id]=raw;});if(ok)paint();else{const old=data.scores[student.id]?.[a.id];if(a.checklist)input.checked=Number(old)>0;else input.value=old==null?'':String(old);}});cell.append(input);row.append(cell);
       }row.append(...totalCells);paint();table.append(row);
@@ -161,7 +176,7 @@
   }
   function showReport(student){
     reportStudentId=student.id;view='report';
-    content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',()=>{view='notes';render();}),node('h3',student.nome));content.append(top);
+    flushEditors();autoEditors.clear();content.replaceChildren();const top=node('div',null,'gb-report-header');top.append(button('← Voltar às notas',()=>{view='notes';render();}),node('h3',student.nome));content.append(top);
     const records=C.reportStudents(student,data.alunos);top.append(node('p','Boletim · disciplinas do aluno','gb-help'));if(!student.matricula)content.append(node('p','Matrícula ainda não vinculada: exibindo somente esta disciplina.','gb-help'));
     for(const pupil of records.sort((a,b)=>(a.turmaId===selected?-1:b.turmaId===selected?1:0)||classLabel(data.turmas[a.turmaId]||{}).localeCompare(classLabel(data.turmas[b.turmaId]||{}),'pt-BR'))){
       const t=data.turmas[pupil.turmaId];if(!t)continue;const avs=data.activities.filter(a=>a.turmaId===pupil.turmaId).sort((a,b)=>a.data.localeCompare(b.data)),scores=data.scores[pupil.id]||{},totals=C.result(avs,scores,data.mediaModo[pupil.turmaId]);
@@ -208,7 +223,11 @@
     if(previous.mediaFinalSiap!=null)box.append(node('p','Média final provisória no SIAP: '+fmt(previous.mediaFinalSiap)+' · '+(previous.conferidoEm||''),'gb-help'));
     const tracking=node('label','Acompanhar nesta disciplina'),check=node('input');check.type='checkbox';check.checked=!!data.monitoring?.[pupil.id]?.active;check.setAttribute('aria-label','Acompanhar '+pupil.nome+' em '+(data.turmas[pupil.turmaId]?.disciplina||''));tracking.append(check);box.append(tracking);
     const reason=node('label','Observação de acompanhamento'),text=node('input');text.type='text';text.maxLength=300;text.value=data.monitoring?.[pupil.id]?.reason||'';reason.append(text);box.append(reason);
-    const submit=button('Salvar boletim',async()=>{submit.disabled=true;try{const values={};for(const [period,input]of fields){if(!input.checkValidity())throw Error('Confira as notas de 0 a 10.');const value=B.grade(input.value);if(value!==null)values[period]=value;}if(await update(d=>{d.reportCards??={};d.monitoring??={};d.reportCards[pupil.id]={...(d.reportCards[pupil.id]||{}),year:2026,bimestres:values};d.monitoring[pupil.id]={...(d.monitoring[pupil.id]||{}),active:check.checked,kind:d.monitoring[pupil.id]?.kind||'aprendizagem',reason:text.value.trim()||'Acompanhamento pedagógico'};}))showReport(pupil);}catch(e){message(e.message,true);}finally{submit.disabled=false;}});box.append(submit);section.append(editor);
+    autosave(box,async()=>{try{const values={};for(const [period,input]of fields){if(!input.checkValidity())throw Error('Confira as notas de 0 a 10.');const value=B.grade(input.value);if(value!==null)values[period]=value;}
+      const active=check.checked,reason=text.value.trim()||'Acompanhamento pedagógico';
+      const ok=await update(d=>{d.reportCards??={};d.monitoring??={};d.reportCards[pupil.id]={...(d.reportCards[pupil.id]||{}),year:2026,bimestres:values};d.monitoring[pupil.id]={...(d.monitoring[pupil.id]||{}),active,kind:d.monitoring[pupil.id]?.kind||'aprendizagem',reason};});
+      if(ok)fields.forEach(([period],i)=>line.children[i].querySelector('strong').textContent=fmt(values[period]));return ok;
+    }catch(e){message(e.message,true);return false;}});box.append(node('p','Alterações salvas automaticamente.','gb-help'));section.append(editor);
   }
   bulletinFile.addEventListener('change',async()=>{const f=bulletinFile.files[0];if(!f)return;try{if(f.size>5*1024*1024)throw Error('Arquivo grande demais.');const source=JSON.parse(await f.text());const preview=B.importBulletin(source,data);content.replaceChildren(node('h3','Conferir importação do boletim'),node('p',preview.imported+' registros de notas anteriores · '+preview.marked+' acompanhamentos · '+preview.checks+' conferências de lançamento · '+preview.pending.length+' pendências.'));
       for(const issue of preview.pending)content.append(node('p',issue,'gb-help'));
@@ -234,11 +253,13 @@
     const bonusHelp=node('p','','gb-help');form.append(bonusHelp);
     function explainBonus(){weight.closest('label').firstChild.textContent=extra.checked&&check.checked?'Bônus somado à média ao marcar fez':'Peso na média ponderada';bonusHelp.textContent=extra.checked?(check.checked?'Ao marcar fez, o bônus indicado é somado diretamente à média. Exemplo: 0,1 acrescenta um décimo.':'Os pontos digitados para cada aluno são somados diretamente à média, sem entrar no cálculo das atividades obrigatórias.'):'O peso é utilizado no cálculo da média ponderada.';}
     extra.addEventListener('change',explainBonus);check.addEventListener('change',explainBonus);explainBonus();
-    const submit=node('button','Salvar atividade');submit.type='submit';form.append(submit,button('Cancelar',()=>{draftOrigin=null;render();}));
-    form.addEventListener('submit',async e=>{e.preventDefault();if(selected!==targetClass){message('A turma mudou. Abra o cadastro novamente.',true);return;}if(origin&&!originMatchesClass(origin,t)){message('Esta unidade não pertence à série e disciplina da turma selecionada.',true);return;}if(!name.value.trim())return;const value=Number(max.value),peso=Number(weight.value);if(!(value>0&&peso>0&&Number.isFinite(value)&&Number.isFinite(peso)))return;
+    const activityId=existing?.id||crypto.randomUUID();
+    const done=button('Concluir',async()=>{if(await flush(true)){draftOrigin=null;render();}});form.append(node('p','Alterações salvas automaticamente.','gb-help'),done);
+    async function commit(){if(!form.checkValidity()){message('Confira os campos da atividade antes de sair.',true);return false;}if(origin&&!originMatchesClass(origin,t)){message('Esta unidade não pertence à série e disciplina da turma selecionada.',true);return;}if(!name.value.trim())return false;const value=Number(max.value),peso=Number(weight.value);if(!(value>0&&peso>0&&Number.isFinite(value)&&Number.isFinite(peso)))return;
       if(existing&&existing.checklist!==check.checked&&Object.values(data.scores).some(s=>s[existing.id]!=null)){message('Esta atividade já tem notas. Crie outra atividade para alterar o modo de registro.',true);return;}
       if(existing&&!check.checked&&Object.values(data.scores).some(s=>Number(s[existing.id])>value)){message('O valor máximo é menor que uma pontuação já lançada.',true);return;}
-      const a={id:existing?.id||crypto.randomUUID(),turmaId:targetClass,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked,origem:origin?{weekId:origin.weekId,title:origin.title,panel:sourceChoice.value==='book'?'notebook':sourceChoice.value,kind:sourceChoice.value==='book'?'book':'unit',bookReference:sourceChoice.value==='book'?bookReference:'',url:''}:null};if(await update(d=>{const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;})){draftOrigin=null;render();}});content.replaceChildren(form);name.focus();
+      const a={id:activityId,turmaId:targetClass,bimestre:4,nome:name.value.trim(),tipo:type.value,data:date.value,valorMax:value,peso,checklist:check.checked,extra:extra.checked,origem:origin?{weekId:origin.weekId,title:origin.title,panel:sourceChoice.value==='book'?'notebook':sourceChoice.value,kind:sourceChoice.value==='book'?'book':'unit',bookReference:sourceChoice.value==='book'?bookReference:'',url:''}:null};return update(d=>{const current=d.activities.find(x=>x.id===a.id);if(current&&current.checklist!==a.checklist&&Object.values(d.scores).some(scores=>scores[a.id]!=null))throw Error('Esta atividade já tem notas. Preserve o modo de registro.');const i=d.activities.findIndex(x=>x.id===a.id);if(i<0)d.activities.push(a);else d.activities[i]=a;});}
+    flushEditors();autoEditors.clear();const flush=autosave(form,commit);form.addEventListener('submit',async e=>{e.preventDefault();await flush(true);});content.replaceChildren(form);name.focus();
   }
   function bimestreToday(){return today()<'2026-10-08'?'2026-10-08':today()>'2026-12-18'?'2026-12-18':today();}
   function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -281,8 +302,8 @@
   file.addEventListener('change',async()=>{const f=file.files[0];if(!f)return;try{if(f.size>32*1024*1024)throw Error('Arquivo grande demais. Use o backup JSON do Leciona.');const source=JSON.parse(await f.text());const {next,classes,students}=C.importRoster(source,data);if(!confirm('Importar '+students+' alunos e '+classes+' turmas? Notas e frequências antigas não serão trazidas. Seus lançamentos atuais serão preservados.'))return;if(await save(next)){refreshClasses();render();message(students+' alunos importados. Notas e chamada do bimestre anterior não foram copiadas.');}}catch(e){message(e.message,true);}finally{file.value='';}});
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
   if(!broken&&(data.activities.some(a=>removedActivityIds.has(a.id))||Object.values(data.scores).some(scores=>[...removedActivityIds].some(id=>Object.hasOwn(scores,id)))))await update(removeRequestedActivities);
-  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next);const hadClasses=Object.keys(data.turmas).length>0;data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}if(dialog.open&&(!hadClasses||!dialog.contains(document.activeElement))){refreshClasses();render();}else dialog.dataset.remoteChanged='1';if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
-  dialog.addEventListener('focusout',()=>{setTimeout(()=>{if(dialog.dataset.remoteChanged==='1'&&!dialog.querySelector('input:focus')){delete dialog.dataset.remoteChanged;refreshClasses();render();}},0);});
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next);const hadClasses=Object.keys(data.turmas).length>0;data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}if(dialog.open&&!autoEditors.size&&(!hadClasses||!dialog.contains(document.activeElement))){refreshClasses();render();}else dialog.dataset.remoteChanged='1';if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
+  dialog.addEventListener('focusout',()=>{setTimeout(()=>{if(dialog.dataset.remoteChanged==='1'&&!autoEditors.size&&!dialog.querySelector('input:focus')){delete dialog.dataset.remoteChanged;refreshClasses();render();}},0);});
   async function exportBackup(){const raw=broken?await window.MaluGradebookStorage.read(key):JSON.stringify(data,null,2);const blob=new Blob([raw||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download='notas-chamada-4bimestre-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 })();
 

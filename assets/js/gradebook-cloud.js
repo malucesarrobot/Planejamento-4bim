@@ -30,7 +30,7 @@
     catch(e){status('Salvo neste aparelho · nuvem recusou o envio: '+e.message,true);}
     finally{sending=false;if(Object.keys(pending).length&&connected)setTimeout(flush,3000);}
   }
-  async function save(next,previous){const changes=diff(previous,next);for(const [k,v] of Object.entries(changes))pending[k]={value:v,revision:Date.now()+'-'+(++revision)};
+  async function save(next,previous){await queueLoaded;const changes=diff(previous,next);for(const [k,v] of Object.entries(changes))pending[k]={value:v,revision:Date.now()+'-'+(++revision)};
     if(await keepQueue()){status(auth?.currentUser?(connected?'Sincronizando com a nuvem…':'Salvo neste aparelho · aguardando conexão'):'Salvo neste aparelho · entre com Google para salvar na nuvem');flush();}
   }
   async function start(cb){await queueLoaded;callbacks=cb;if(!window.firebase){status('Nuvem indisponível. Verifique a conexão e atualize a página.',true);return;}
@@ -46,6 +46,8 @@
   async function importSource(){if(!auth?.currentUser||!ready)throw Error('Entre com a conta do Leciona e aguarde a conexão com a nuvem.');
     const paths=['turmas','alunos','media_modo'];const snapshots=await Promise.all(paths.map(k=>db.ref('leciona/'+k).once('value')));return {turmas:snapshots[0].val()||{},alunos:snapshots[1].val()||{},mediaModo:snapshots[2].val()||{}};
   }
+  window.addEventListener?.('online',()=>flush());
+  if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')flush();});
   window.MaluGradebookCloud={start,save,login,importSource,diff,wire,unwire};
 })();
 
