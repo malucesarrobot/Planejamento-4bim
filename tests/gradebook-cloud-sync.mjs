@@ -7,7 +7,7 @@ let remote={},hold;const listeners=new Set();
 const tick=async()=>{for(let i=0;i<20;i++)await new Promise(r=>setImmediate(r));};
 function device(storage=new Map()){
  let receive,connection,online=true,state,status='';
- const ref={off(){if(receive)listeners.delete(receive);},on(type,cb){receive=cb;listeners.add(cb);cb({val:()=>copy(remote)});},async update(patch){if(hold)await hold;for(const [path,value]of Object.entries(patch)){const keys=path.split('/');let at=remote;for(const k of keys.slice(0,-1))at=at[k]??={};if(value===null)delete at[keys.at(-1)];else at[keys.at(-1)]=value;}for(const cb of listeners)cb({val:()=>copy(remote)});}};
+ const ref={async once(){return {val:()=>copy(remote)};},off(){if(receive)listeners.delete(receive);},on(type,cb){receive=cb;listeners.add(cb);cb({val:()=>copy(remote)});},async update(patch){if(hold)await hold;for(const [path,value]of Object.entries(patch)){const keys=path.split('/');let at=remote;for(const k of keys.slice(0,-1))at=at[k]??={};if(value===null)delete at[keys.at(-1)];else at[keys.at(-1)]=value;}for(const cb of listeners)cb({val:()=>copy(remote)});}};
  const auth={currentUser:{email:'malu.cesar@gmail.com'},onAuthStateChanged(cb){cb(this.currentUser);}},app={auth:()=>auth,database:()=>({ref:path=>path==='.info/connected'?{on(type,cb){connection=cb;cb({val:()=>online});}}:ref})};
  const firebase={apps:[app],app:()=>app},window={firebase,addEventListener(){}};
  const ctx={window,firebase,localStorage:{getItem:k=>storage.get(k)??'{}',setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},setTimeout:()=>1};vm.runInNewContext(source,ctx);
@@ -21,4 +21,13 @@ pc.close();const reloaded=device(pc.storage);await reloaded.start();await tick()
 let release;hold=new Promise(r=>release=r);const edit=copy(changed);edit.activities[0].nome='Renomeada';await reloaded.api.save(edit,changed);assert.match(reloaded.status(),/Sincronizando/);release();hold=null;await tick();assert.equal(phone.state().activities[0].nome,'Renomeada');assert.equal(phone.state().activities.length,1);
 const queueKey='malu-gradebook-2026-b4-pending',early=device(new Map([[queueKey,JSON.stringify({'scores/p/b':{value:4,revision:'old'}})]]));
 const earlyNext=copy(initial);earlyNext.scores.p={c:5};await early.api.save(earlyNext,initial);const pending=JSON.parse(early.storage.get(queueKey));assert.equal(pending['scores/p/b'].value,4);assert.equal(pending['scores/p/c'].value,5);
+await phone.api.refresh();assert.equal(phone.state().activities[0].nome,'Renomeada');assert.equal(phone.state().scores.p.a,8);
+phone.offline(true);await assert.rejects(()=>phone.api.refresh(),/Sem conexão/);phone.offline(false);
+let releaseRefresh;hold=new Promise(r=>releaseRefresh=r);
+const localEdit=copy(phone.state());localEdit.scores.p.a=9;
+await phone.api.save(localEdit,phone.state());await phone.api.refresh();
+assert.equal(phone.state().scores.p.a,9,'refresh must preserve unsent local scores');
+assert.equal(phone.state().activities.length,1,'refresh must not duplicate activities');
+releaseRefresh();hold=null;await tick();assert.equal(reloaded.state().scores.p.a,9);
+console.log('PASS manual refresh, pending local scores preserved, offline error and no duplicate activities');
 console.log('PASS two-device activities/scores, offline queue survives reload, cloud acknowledgement, stable record and edits before queue startup');

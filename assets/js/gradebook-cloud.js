@@ -43,11 +43,20 @@
     }catch(e){status('Não foi possível iniciar a nuvem: '+e.message,true);}
   }
   async function login(){if(!auth){status('Atualize a página para carregar a conexão com Google.',true);return;}try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}catch(e){if(e.code==='auth/popup-closed-by-user'&&auth.currentUser){status('Conta conectada · '+auth.currentUser.email);return;}status(e.code==='auth/popup-closed-by-user'?'A janela do Google foi fechada. Toque em Entrar com Google para tentar novamente.':'Login não concluído: '+e.message,true);}}
+  async function refresh(){
+    await queueLoaded;
+    if(!auth?.currentUser||!ready)throw Error('Entre com Google e aguarde o carregamento das turmas.');
+    if(!connected)throw Error('Sem conexão com a nuvem. Os lançamentos deste aparelho estão preservados.');
+    const snapshot=await ref.once('value'),cloud=wire(unwire(snapshot.val()));
+    for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);
+    await callbacks.receive(unwire(cloud));
+    if(Object.keys(pending).length)flush();else status('Salvo na nuvem · '+auth.currentUser.email);
+  }
   async function importSource(){if(!auth?.currentUser||!ready)throw Error('Entre com a conta do Leciona e aguarde a conexão com a nuvem.');
     const paths=['turmas','alunos','media_modo'];const snapshots=await Promise.all(paths.map(k=>db.ref('leciona/'+k).once('value')));return {turmas:snapshots[0].val()||{},alunos:snapshots[1].val()||{},mediaModo:snapshots[2].val()||{}};
   }
   window.addEventListener?.('online',()=>flush());
   if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')flush();});
-  window.MaluGradebookCloud={start,save,login,importSource,diff,wire,unwire};
+  window.MaluGradebookCloud={start,save,login,refresh,importSource,diff,wire,unwire};
 })();
 
