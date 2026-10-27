@@ -113,7 +113,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Pontos extras',()=>activityForm(null,'points')),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -133,6 +133,27 @@
           const ok=await update(d=>{d.scores[student.id]??={};if(raw===null)delete d.scores[student.id][a.id];else d.scores[student.id][a.id]=raw;});if(ok)paint();else{const old=data.scores[student.id]?.[a.id];if(a.checklist)input.checked=Number(old)>0;else input.value=old==null?'':String(old);}});cell.append(input);row.append(cell);
       }row.append(...totalCells);paint();table.append(row);
     }wrap.append(table);content.append(wrap);
+  }
+  function numericExtras(){
+    const turmaId=selected,id='pontos-extras-b4-'+turmaId,als=students();
+    const activity={id,turmaId,bimestre:4,nome:'Pontos extras do bimestre',tipo:'Outra',data:bimestreToday(),valorMax:10,peso:1,checklist:false,extra:true,origem:null};
+    const form=node('div',null,'gb-numeric-extras');
+    form.append(button('← Voltar às notas',render),node('h3','Pontos extras · '+classLabel(data.turmas[turmaId])),node('p','Digite os pontos de cada aluno. Eles são somados diretamente à média final do 4º bimestre, até o limite de 10. Exemplo: média 6 + 1 ponto = 7. Salvo automaticamente.','gb-help'));
+    const wrap=node('div',null,'gb-table-wrap'),table=node('table'),head=node('tr',null,'gb-column-head');
+    for(const text of ['Aluno','Pontos extras','Média do bimestre / 10']){const th=node('th',text);th.scope='col';head.append(th);}table.append(head);
+    for(const pupil of als){
+      const row=node('tr'),name=node('th',pupil.nome),cell=node('td'),input=node('input'),mean=node('td');name.scope='row';
+      input.type='number';input.min='0';input.max='10';input.step='0.1';input.inputMode='decimal';input.value=data.scores[pupil.id]?.[id]??'';input.setAttribute('aria-label','Pontos extras — '+pupil.nome);
+      const paint=()=>{mean.textContent=fmt(C.result(data.activities.filter(a=>a.turmaId===turmaId),data.scores[pupil.id]||{},data.mediaModo[turmaId]).average);};
+      input.addEventListener('input',async()=>{
+        if(!input.checkValidity()){message('Digite pontos extras de 0 a 10.',true);return;}
+        const value=input.value===''?null:Number(input.value);
+        const ok=await update(d=>{if(!d.activities.some(a=>a.id===id)&&value!==null)d.activities.push(activity);d.scores[pupil.id]??={};if(value===null)delete d.scores[pupil.id][id];else d.scores[pupil.id][id]=value;});
+        if(ok)paint();else input.value=data.scores[pupil.id]?.[id]??'';
+      });cell.append(input);row.append(name,cell,mean);paint();table.append(row);
+    }
+    wrap.append(table);form.append(wrap);if(!als.length)form.append(node('p','Esta turma ainda não possui alunos ativos.'));
+    flushEditors();autoEditors.clear();content.replaceChildren(form);
   }
   let rankingMode='geral';
   function renderRanking(){
