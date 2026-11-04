@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
-const [html,dataJs,syncJs,teacherHtml,teacherJs,rulesText]=await Promise.all([
+const [html,dataJs,syncJs,teacherHtml,teacherJs,rulesText,indexHtml]=await Promise.all([
  'percursos/historia-9ano.html','percursos/historia-9ano-data.js','percursos/historia-9ano-sync.js',
- 'percursos/professora.html','percursos/teacher-historia-9ano.js','percursos/database.rules.json'
+ 'percursos/professora.html','percursos/teacher-historia-9ano.js','percursos/database.rules.json','percursos/index.html'
 ].map(p=>readFile(p,'utf8')));
 new Function(syncJs);new Function(teacherJs);
 const inline=html.match(/<script>([\s\S]*?)<\/script>/);assert.ok(inline);new Function(inline[1]);
@@ -15,6 +15,11 @@ for(const w of bank.weeks){assert.equal(w.questions.length,4);assert.ok(w.writin
 const rules=JSON.parse(rulesText).rules;
 assert.ok(rules.results&&rules.trackClassKeys&&rules.classTracks,'schemas anteriores preservados');
 assert.ok(rules.ninthClasses&&rules.ninthClassKeys);
+assert.match(rules.ninthClassKeys.$classId['.validate'],/n9_/);
+assert.match(rules.ninthClasses.$classToken['.validate'],/n9_/);
+assert.match(rules.ninthClasses.$classToken.config['.read'],/n9_/);
+assert.match(teacherJs,/new URL\('index\.html'/);
+assert.match(indexHtml,/historia-9ano\.html#turma/);
 assert.match(rules.ninthClasses.$classToken.students.$uid.profile['.write'],/auth.uid === \$uid/);
 assert.match(rules.ninthClasses.$classToken.students.$uid.submissions.$week['.write'],/auth.uid === \$uid/);
 assert.ok(teacherHtml.includes('teacher-historia-9ano.js'));
@@ -22,10 +27,10 @@ assert.ok(html.includes('historia-9ano-sync.js'));
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
-const token='a'.repeat(32);
+const token='n9_'+'a'.repeat(32);
 const fakeFirebase=[
  "(function(){",
- "const token='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';",
+ "const token='n9_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';",
  "const state={ninthClasses:{[token]:{config:{label:'9º A',code:'9a'},students:{}}}};",
  "const read=p=>p.split('/').reduce((v,k)=>v?.[k],state);",
  "const set=(p,v)=>{let parts=p.split('/'),key=parts.pop(),at=state;for(const s of parts)at=at[s]??={};at[key]=structuredClone(v);if(v&&typeof v==='object'&&v.submittedAt?.['.sv']==='timestamp')at[key].submittedAt=Date.now()};",
@@ -40,12 +45,14 @@ async function visit(mock,withToken){
  await page.route('http://percursos.test/**',route=>{
   const name=new URL(route.request().url()).pathname;
   if(name.endsWith('historia-9ano-data.js'))return route.fulfill({contentType:'text/javascript',body:dataJs});
+  if(name.endsWith('index.html'))return route.fulfill({contentType:'text/html',body:indexHtml});
   if(name.endsWith('historia-9ano-sync.js'))return route.fulfill({contentType:'text/javascript',body:syncJs});
   if(name.endsWith('historia-9ano.html'))return route.fulfill({contentType:'text/html',body:html});
   return route.abort();
  });
  await page.route('https://www.gstatic.com/**',route=>route.fulfill({contentType:'text/javascript',body:mock&&route.request().url().includes('firebase-app-compat')?fakeFirebase:''}));
- await page.goto('http://percursos.test/historia-9ano.html'+(withToken?'?mode=class#turma='+token:''));
+ await page.goto(withToken?'http://percursos.test/index.html#turma='+token:'http://percursos.test/historia-9ano.html');
+ if(withToken)assert.match(page.url(),/historia-9ano\.html#turma=n9_/);
  await page.locator('fieldset.question').first().waitFor();
 }
 try{
@@ -67,12 +74,26 @@ try{
  await page.locator('#cloudSubmit').click();
  await page.waitForFunction(()=>document.getElementById('h9CloudStatus').textContent.includes('enviada e registrada'));
  const result=await page.evaluate(()=>{
-  const s=window.__testDb.ninthClasses['a'.repeat(32)].students['test-student-uid-123'];
+  const s=window.__testDb.ninthClasses['n9_'+'a'.repeat(32)].students['test-student-uid-123'];
   return {name:s.profile.name,started:s.started.h9s1,submission:s.submissions.h9s1,local:JSON.parse(localStorage.getItem('percursos-h9-2026-v1-test-student-uid-123'))};
  });
  assert.equal(result.name,'Aluna Exemplo');assert.equal(result.started,true);
  assert.ok(result.submission.writing.length>20);assert.equal(Object.keys(result.submission.answers).length,4);
  assert.equal(result.submission.score,1);assert.ok(result.local.records.h9s1.submittedAt);
+ const routePage=await browser.newPage();
+ await routePage.route('http://percursos.test/**',route=>{
+  const name=new URL(route.request().url()).pathname;
+  if(name.endsWith('index.html'))return route.fulfill({contentType:'text/html',body:indexHtml});
+  if(name.endsWith('aluno.html'))return route.fulfill({contentType:'text/html',body:'<h1>Ensino Médio</h1>'});
+  if(name.endsWith('historia-9ano.html'))return route.fulfill({contentType:'text/html',body:'<h1>História 9º ano</h1>'});
+  return route.abort();
+ });
+ const legacy='b'.repeat(32);
+ await routePage.goto('http://percursos.test/index.html#turma='+legacy);
+ assert.match(routePage.url(),/aluno\.html/,'link antigo do Ensino Médio permanece funcional');
+ await routePage.goto('http://percursos.test/index.html?etapa=9#turma='+legacy);
+ assert.match(routePage.url(),/historia-9ano\.html/,'link legado do 9º ano continua válido');
+ await routePage.close();
  assert.deepEqual(errors,[]);
  console.log('PASS: 9º ano seis trilhas, gabaritos, autenticação simulada, envio e rascunhos isolados');
 }finally{await browser.close()}
