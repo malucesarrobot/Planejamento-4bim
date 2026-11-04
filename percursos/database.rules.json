@@ -56,6 +56,102 @@
           ".validate": false
         }
       }
+    },
+    "ninthClassKeys": {
+      ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
+      ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
+      "$classId": {
+        ".validate": "$classId.matches(/^9[abc]$/) && newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+      }
+    },
+    "ninthClasses": {
+      ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
+      ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
+      "$classToken": {
+        ".validate": "$classToken.matches(/^[a-f0-9]{32}$/)",
+        "config": {
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && $classToken.matches(/^[a-f0-9]{32}$/)",
+          ".validate": "newData.hasChildren(['label','code'])",
+          "label": {
+            ".validate": "newData.isString() && newData.val().matches(/^9º [ABC]$/)"
+          },
+          "code": {
+            ".validate": "newData.isString() && newData.val().matches(/^9[abc]$/)"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "students": {
+          "$uid": {
+            ".read": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && auth.uid === $uid",
+            "profile": {
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && auth.uid === $uid && root.child('ninthClasses').child($classToken).child('config').exists() && !data.exists() && newData.exists()",
+              ".validate": "newData.hasChildren(['name','joinedAt'])",
+              "name": {
+                ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 120"
+              },
+              "joinedAt": {
+                ".validate": "newData.isNumber() && newData.val() > 0"
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
+            "started": {
+              "$week": {
+                ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && auth.uid === $uid && root.child('ninthClasses').child($classToken).child('config').exists() && root.child('ninthClasses').child($classToken).child('students').child($uid).child('profile').exists() && newData.val() === true",
+                ".validate": "$week.matches(/^h9s[1-6]$/) && newData.val() === true"
+              }
+            },
+            "submissions": {
+              "$week": {
+                ".write": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && auth.uid === $uid && root.child('ninthClasses').child($classToken).child('config').exists() && root.child('ninthClasses').child($classToken).child('students').child($uid).child('profile').exists() && newData.exists()",
+                ".validate": "$week.matches(/^h9s[1-6]$/) && newData.hasChildren(['answers','writing','score','submittedAt','version'])",
+                "answers": {
+                  ".validate": "newData.hasChildren(['a0','a1','a2','a3'])",
+                  "a0": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+                  },
+                  "a1": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+                  },
+                  "a2": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+                  },
+                  "a3": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+                  },
+                  "$other": {
+                    ".validate": false
+                  }
+                },
+                "writing": {
+                  ".validate": "newData.isString() && newData.val().length >= 20 && newData.val().length <= 2500"
+                },
+                "score": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4"
+                },
+                "submittedAt": {
+                  ".validate": "newData.isNumber() && newData.val() > 0"
+                },
+                "version": {
+                  ".validate": "newData.isString() && newData.val() === '2026-11-04'"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
     }
   }
 }
