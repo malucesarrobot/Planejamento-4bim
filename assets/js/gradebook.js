@@ -1,7 +1,8 @@
 (async () => {
   'use strict';
   await import('./gradebook-bulletin-core.js?v=20261021boletim');
-  const B=window.MaluBulletinCore;
+  await import('./gradebook-batch-import.js?v=20261104blocoII');
+  const B=window.MaluBulletinCore, P=window.MaluBlocoImport;
   const C=window.MaluGradebookCore, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
   let data=empty(),broken=false,selected='',view='notes',reportStudentId='';
@@ -26,6 +27,7 @@
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');cloudInfo.tabIndex=0;cloudInfo.title='Toque para conectar ou trocar a conta Google';cloudInfo.addEventListener('click',()=>window.MaluGradebookCloud?.login());cloudInfo.addEventListener('keydown',e=>{if(e.key==='Enter')window.MaluGradebookCloud?.login();});
   const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
   const bulletinFile=node('input');bulletinFile.type='file';bulletinFile.accept='.json,application/json';bulletinFile.hidden=true;
+  const blockFile=node('input');blockFile.type='file';blockFile.accept='.json,application/json';blockFile.hidden=true;
   const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
   const refreshList=button('↻',async()=>{
     refreshList.disabled=true;
@@ -34,9 +36,9 @@
   });refreshList.setAttribute('aria-label','Atualizar notas e atividades da nuvem');refreshList.title='Atualizar notas e atividades da nuvem';
   controls.append(select,pupilsMenu,refreshList);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
-  settingsActions.append(button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
+  settingsActions.append(button('Importar notas Bloco II · 2ª B',()=>blockFile.click()),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
-  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudInfo,status,content,settings,file,bulletinFile);document.body.append(dialog);
+  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudInfo,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
@@ -118,7 +120,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II · 2ª B',()=>blockFile.click()),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -132,7 +134,7 @@
       const totalCells=[node('td'),node('td'),node('td')];
       const paint=()=>{const r=C.result(avs,data.scores[student.id]||{},data.mediaModo[selected]);totalCells[0].textContent=fmt(r.sum)+' / '+fmt(r.max);totalCells[1].textContent=fmt(r.bonus);totalCells[2].textContent=fmt(r.average);};
       for(const a of avs){const cell=node('td'),input=node('input'),saved=data.scores[student.id]?.[a.id];input.setAttribute('aria-label',a.nome+' — '+student.nome);input.dataset.gbStudent=student.id;input.dataset.gbActivity=a.id;
-        input.type=a.checklist?'checkbox':'number';if(a.checklist)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step='0.1';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
+        input.type=a.checklist?'checkbox':'number';if(a.checklist)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step='0.01';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
         input.addEventListener(a.checklist?'change':'input',async()=>{const raw=a.checklist?(input.checked?1:0):(input.value===''?null:Number(input.value));
           if(raw!==null&&(!Number.isFinite(raw)||raw<0||(!a.checklist&&raw>a.valorMax))){input.setCustomValidity('Digite uma pontuação entre 0 e '+a.valorMax+'.');input.reportValidity();return;}input.setCustomValidity('');
           const ok=await update(d=>{d.scores[student.id]??={};if(raw===null)delete d.scores[student.id][a.id];else d.scores[student.id][a.id]=raw;});if(ok)paint();else{const old=data.scores[student.id]?.[a.id];if(a.checklist)input.checked=Number(old)>0;else input.value=old==null?'':String(old);}});cell.append(input);row.append(cell);
@@ -255,6 +257,49 @@
       if(ok)fields.forEach(([period],i)=>line.children[i].querySelector('strong').textContent=fmt(values[period]));return ok;
     }catch(e){message(e.message,true);return false;}});box.append(node('p','Alterações salvas automaticamente.','gb-help'));section.append(editor);
   }
+  blockFile.addEventListener('change',async()=>{
+    const sourceFile=blockFile.files?.[0];
+    if(!sourceFile)return;
+    try{
+      if(sourceFile.size>200*1024)throw Error('O arquivo de notas excede o limite de 200 KB.');
+      const source=JSON.parse(await sourceFile.text());
+      if(!window.MaluGradebookCloud?.canImport?.())throw Error('Entre com a conta Google autorizada e aguarde “Salvo na nuvem” antes de importar.');
+      if(!await flushEditors())return;
+      await writes;
+      await window.MaluGradebookCloud.refresh();
+      const proposal=P.plan(source,data);
+      content.replaceChildren(node('h3','Avaliação Bloco II · 2ª série B'),
+        node('p','Arquivo privado: '+proposal.matched+' estudantes corrigidos · 2 disciplinas · '+proposal.entries.length+' notas verificadas.','gb-help'),
+        node('p',proposal.pending.length+' estudantes aguardam cartão; nenhum zero será lançado por ausência de cartão.','gb-help'));
+      if(proposal.issues.length){
+        const problems=node('div',null,'gb-error');
+        problems.append(node('p','Importação interrompida: resolva as divergências abaixo. Nenhuma nota foi alterada.'));
+        for(const issue of proposal.issues)problems.append(node('p',issue));
+        content.append(problems,button('Voltar às notas',render));return;
+      }
+      content.append(node('p',proposal.toSave+' notas novas · '+proposal.alreadySaved+' já conferidas no aplicativo. Registros anteriores de outras avaliações serão preservados.','gb-help'));
+      content.append(button('Confirmar importação de '+proposal.toSave+' notas',async()=>{
+        if(!window.MaluGradebookCloud?.canImport?.()){message('Conecte a conta Google e atualize os dados antes de continuar.',true);return;}
+        if(!confirm('Aplicar '+proposal.toSave+' notas da Avaliação Bloco II nas turmas 2ª B de História e Geografia? As notas existentes diferentes não serão substituídas.'))return;
+        try{
+          await window.MaluGradebookCloud.refresh();
+          const latest=P.plan(source,data);
+          if(latest.issues.length)throw Error('A conferência mudou: '+latest.issues.join('; '));
+          const ok=await update(d=>P.apply(source,d));
+          if(!ok)return;
+          try{
+            await window.MaluGradebookCloud.waitForSync();
+            selected=latest.courses['História'].turmaId;view='notes';refreshClasses();render();
+            message('Bloco II: 28 estudantes conferidos, História e Geografia. Sincronização com a nuvem confirmada.');
+          }catch(syncError){
+            selected=latest.courses['História'].turmaId;view='notes';refreshClasses();render();
+            message('As notas foram salvas neste aparelho, mas a nuvem ainda não confirmou o envio: '+syncError.message,true);
+          }
+        }catch(e){message(e.message,true);}
+      }),button('Cancelar',render));
+    }catch(e){message(e.message,true);}
+    finally{blockFile.value='';}
+  });
   bulletinFile.addEventListener('change',async()=>{const f=bulletinFile.files[0];if(!f)return;try{if(f.size>5*1024*1024)throw Error('Arquivo grande demais.');const source=JSON.parse(await f.text());const preview=B.importBulletin(source,data);content.replaceChildren(node('h3','Conferir importação do boletim'),node('p',preview.imported+' registros de notas anteriores · '+preview.marked+' acompanhamentos · '+preview.checks+' conferências de lançamento · '+preview.pending.length+' pendências.'));
       for(const issue of preview.pending)content.append(node('p',issue,'gb-help'));
       content.append(button('Aplicar notas e marcações',async()=>{try{let applied;const ok=await update(d=>{applied=B.importBulletin(source,d);Object.assign(d,applied.next);});if(ok){view='monitoring';render();message(applied.imported+' boletins importados. '+applied.pending.length+' pendências preservadas para conferência.');}}catch(e){message(e.message,true);}}),button('Cancelar',render));
