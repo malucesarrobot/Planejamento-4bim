@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>História — 9º ano | Percursos de Aprendizagem</title>
+<meta name="theme-color" content="#20473f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:light;--ink:#172e2c;--muted:#50655f;--dark:#20473f;--line:#d9e5df;--surface:#fff;--bg:#f6f7ef;--accent:#c7e3ba;--warm:#fbf0d7;--error:#a23232;--ok:#135c48}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,textarea{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #c48530;outline-offset:3px}
+a{color:#185b4d}h1,h2,h3,p{margin-top:0}h1{font-size:clamp(1.35rem,3vw,2rem);line-height:1.18;margin:0}h2{font-size:1.45rem;line-height:1.25}h3{font-size:1.06rem}
+header{background:var(--dark);color:#fff;padding:20px max(18px,calc((100vw - 1200px)/2));border-bottom:5px solid #a0c393}
+header p{margin:5px 0 0;color:#dbebdf}.label{font-size:.76rem;letter-spacing:.11em;text-transform:uppercase;font-weight:800}
+.container{max-width:1200px;margin:0 auto;padding:20px 18px 45px;display:grid;grid-template-columns:minmax(225px,280px) minmax(0,1fr);gap:22px;align-items:start}
+aside{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;position:sticky;top:14px}
+aside p{font-size:.9rem;color:var(--muted)}.progress{height:9px;border-radius:20px;background:#e4e9de;overflow:hidden;margin:12px 0 8px}.progress span{display:block;height:100%;background:#42836b;transition:width .2s}
+nav{display:grid;gap:6px;margin-top:15px}.week-btn{width:100%;text-align:left;border:1px solid transparent;border-radius:10px;background:#f3f7f0;padding:10px 12px;color:var(--ink)}
+.week-btn.active{background:#e0efe3;border-color:#74a78e;font-weight:750}.week-btn small{display:block;color:var(--muted);font-size:.75rem}.week-btn .done{color:var(--ok);font-weight:800}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,34px);box-shadow:0 5px 24px #18332a0a}
+.kicker{display:inline-block;background:var(--warm);padding:4px 11px;border-radius:20px;font-size:.78rem;font-weight:800;margin-bottom:12px}
+.sub{color:var(--muted)}.problem{background:#eef5e6;border-left:4px solid #4e9076;padding:15px 18px;border-radius:8px;margin:20px 0}.problem strong{display:block}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 23px}.tags span{border:1px solid #ccd9cd;border-radius:20px;padding:3px 9px;font-size:.79rem}
+section.unit{border-top:1px solid var(--line);padding-top:22px;margin-top:23px}.reading{font-size:1rem;white-space:pre-line;line-height:1.72}
+.source-list{padding-left:20px}.source-list li{margin:7px 0}.source-list a{overflow-wrap:anywhere}
+.question{border:1px solid #dce4df;border-radius:13px;padding:16px;margin:15px 0}.question legend{font-weight:800;padding:0 4px}.choice{display:flex;gap:10px;align-items:flex-start;padding:8px 5px;margin:4px 0;border-radius:8px;cursor:pointer}
+.choice:hover{background:#f1f5ec}.choice input{width:18px;height:18px;margin:3px 0 0;flex:0 0 auto;accent-color:#25644e}
+.feedback{margin:12px 0 0;padding:11px 13px;border-radius:8px;display:none;font-size:.94rem}.feedback.show{display:block}.feedback.correct{background:#e4f2e7;color:#124e39}.feedback.wrong{background:#fff0ec;color:#89372a}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}.btn{border:1px solid #b7cfc1;border-radius:10px;padding:10px 16px;background:#fff;color:var(--ink);font-weight:720}
+.btn.primary{background:var(--dark);color:white;border-color:var(--dark)}.btn:hover{filter:brightness(.96)}.status{color:var(--muted);min-height:24px;font-size:.91rem}
+textarea{resize:vertical;width:100%;min-height:150px;border:1px solid #9caf9e;border-radius:10px;padding:13px;background:#fff;color:var(--ink);line-height:1.6}
+.criteria{background:#f6f8f4;border:1px solid var(--line);border-radius:10px;padding:10px 15px;margin:13px 0}.criteria summary{cursor:pointer;font-weight:700}
+.mission{background:#fdf4de;padding:17px 20px;border-radius:12px;border-left:4px solid #c18b33}.mission p{margin:0}
+footer{max-width:1200px;margin:0 auto 30px;padding:0 18px;color:var(--muted);font-size:.84rem}
+footer a{white-space:nowrap} .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){.container{grid-template-columns:1fr;padding-top:12px}aside{position:static;padding:13px}nav{grid-template-columns:repeat(3,minmax(0,1fr))}.week-btn{font-size:.8rem;padding:9px}.week-btn small{font-size:.69rem} .sheet{padding:17px}}
+@media(max-width:430px){nav{grid-template-columns:repeat(2,minmax(0,1fr))}.actions .btn{width:100%}}
+@media print{header{color:#000;background:#fff}aside,.actions,.feedback,.status,footer{display:none!important}.container{display:block}.sheet{box-shadow:none;border:0}.choice{padding:2px}}
+</style>
+</head>
+<body>
+<header>
+<div class="label">Percursos de Aprendizagem · CEPI Marajó</div>
+<h1>História — 9º ano</h1>
+<p>4º bimestre de 2026 · Atividades autorais da Prof. Malu</p>
+</header>
+<main class="container">
+<aside aria-label="Navegação das trilhas">
+<strong>Minhas trilhas</strong>
+<div class="progress" aria-hidden="true"><span id="progressbar" style="width:0%"></span></div>
+<p id="progresslabel" aria-live="polite">0 de 6 percursos finalizados para estudo.</p>
+<nav id="weeks" aria-label="Semanas de estudo"></nav>
+<p style="margin-top:18px">As respostas ficam apenas neste aparelho. Este módulo ainda não envia notas ou frequência para o SIAP nem ao painel docente.</p>
+</aside>
+<article id="content" class="sheet" aria-live="polite"><p>Carregando as trilhas de História...</p></article>
+</main>
+<footer>Material de aprendizagem e revisão. As questões objetivas recebem devolutiva automática; produções escritas exigem leitura e avaliação docente. Fontes indicadas em cada semana.</footer>
+<script src="historia-9ano-data.js?v=20261104"></script>
+<script>
+(function(){
+'use strict';
+var bank=window.PERCURSOS_H9, storeKey='percursos-h9-2026-v1';
+var state={week:0,records:{}};
+var $=function(id){return document.getElementById(id)};
+var create=function(tag,cls,text){var x=document.createElement(tag);if(cls)x.className=cls;if(text!=null)x.textContent=text;return x};
+if(!bank||!Array.isArray(bank.weeks)||bank.weeks.length!==6){$('content').textContent='Não foi possível carregar o conteúdo. Atualize a página.';return}
+try{var old=JSON.parse(localStorage.getItem(storeKey)||'{}');if(old&&old.records&&typeof old.records==='object')state.records=old.records;if(Number.isInteger(old.week)&&old.week>=0&&old.week<6)state.week=old.week}catch(e){}
+function record(id){if(!state.records[id]||typeof state.records[id]!=='object')state.records[id]={answers:[],writing:'',graded:false};return state.records[id]}
+function save(){try{localStorage.setItem(storeKey,JSON.stringify(state));return true}catch(e){return false}}
+function complete(lesson){var r=record(lesson.id);return r.answers&&r.answers.length===4&&r.answers.every(Number.isInteger)&&String(r.writing||'').trim().length>=20}
+function nav(){
+ var root=$('weeks');root.replaceChildren();var done=0;
+ bank.weeks.forEach(function(w,i){
+  if(complete(w))done++;
+  var b=create('button','week-btn'+(i===state.week?' active':''));b.type='button';b.setAttribute('aria-current',i===state.week?'step':'false');
+  b.appendChild(create('span','', 'Semana '+w.week+' '+(complete(w)?'✓':'')));
+  b.appendChild(create('small','',w.title));b.onclick=function(){state.week=i;save();render();window.scrollTo({top:0,behavior:'auto'})};root.appendChild(b)
+ });
+ $('progresslabel').textContent=done+' de 6 percursos finalizados para estudo.';
+ $('progressbar').style.width=(done/6*100)+'%';
+}
+function render(){
+ var w=bank.weeks[state.week],r=record(w.id),root=$('content');root.replaceChildren();
+ root.appendChild(create('div','kicker','Semana '+w.week+' · '+w.time));
+ root.appendChild(create('h2','',w.title));
+ root.appendChild(create('p','sub',w.phase+' · BNCC mencionada no planejamento: '+w.codes.join(', ')+' (a conferir na matriz escolar).'));
+ var prob=create('div','problem');prob.appendChild(create('strong','', 'Pergunta central'));prob.appendChild(create('span','',w.problem));root.appendChild(prob);
+ var tags=create('div','tags');w.concepts.forEach(function(c){tags.appendChild(create('span','',c))});root.appendChild(tags);
+ var reading=create('section','unit');reading.appendChild(create('h3','','1. Compreender o contexto'));reading.appendChild(create('p','reading',w.reading));root.appendChild(reading);
+ var sourceSec=create('section','unit');sourceSec.appendChild(create('h3','','Fontes para investigar'));var links=create('ul','source-list');
+ w.sources.forEach(function(s){var li=create('li');var a=create('a','',s.label);a.href=s.url;a.target='_blank';a.rel='noopener noreferrer';li.appendChild(a);links.appendChild(li)});sourceSec.appendChild(links);root.appendChild(sourceSec);
+ var qSec=create('section','unit');qSec.appendChild(create('h3','','2. Interpretar e responder'));qSec.appendChild(create('p','sub','Assinale uma alternativa para cada questão. Em seguida, clique em Conferir respostas. É possível rever as escolhas e tentar novamente.'));
+ w.questions.forEach(function(q,i){
+  var f=create('fieldset','question');var legend=create('legend','',String(i+1)+'. '+q.p);f.appendChild(legend);
+  q.o.forEach(function(opt,j){
+   var label=create('label','choice'),input=create('input');input.type='radio';input.name='q'+i;input.value=String(j);input.checked=r.answers[i]===j;input.onchange=function(){r.answers[i]=j;r.graded=false;save();feedback(false);nav()};label.appendChild(input);label.appendChild(create('span','',opt));f.appendChild(label)
+  });
+  var fb=create('div','feedback');fb.id='fb'+i;fb.setAttribute('role','status');f.appendChild(fb);qSec.appendChild(f)
+ });
+ var actions=create('div','actions');var check=create('button','btn primary','Conferir respostas');check.type='button';check.onclick=function(){
+  if(!r.answers||r.answers.length!==4||!r.answers.every(Number.isInteger)){$('scorestatus').textContent='Responda às quatro questões antes de conferir.';return}
+  r.graded=true;save();feedback(true);nav()
+ };
+ actions.appendChild(check);var status=create('span','status');status.id='scorestatus';status.setAttribute('role','status');actions.appendChild(status);qSec.appendChild(actions);root.appendChild(qSec);
+ var writing=create('section','unit');writing.appendChild(create('h3','','3. Argumentar por escrito'));writing.appendChild(create('p','',w.writing));var field=create('textarea');field.id='writing';field.placeholder='Escreva sua resposta aqui. O texto é salvo neste aparelho.';field.value=r.writing||'';field.setAttribute('aria-label','Resposta escrita');
+ var saved=create('p','status');saved.id='writestatus';saved.textContent='A produção escrita não recebe nota automática.';
+ field.oninput=function(){r.writing=field.value;var ok=save();saved.textContent=ok?'Resposta salva neste aparelho.':'Sem espaço para salvar neste aparelho; copie sua resposta.';nav()};
+ writing.appendChild(field);writing.appendChild(saved);
+ var details=create('details','criteria');details.appendChild(create('summary','','O que observar na minha resposta?'));var ul=create('ul');w.criteria.forEach(function(c){ul.appendChild(create('li','',c))});details.appendChild(ul);writing.appendChild(details);root.appendChild(writing);
+ var mission=create('section','unit');mission.appendChild(create('h3','','4. Desafio de aprofundamento (opcional)'));var callout=create('div','mission');callout.appendChild(create('p','',w.mission));mission.appendChild(callout);root.appendChild(mission);
+ var finalActions=create('div','actions');
+ var copy=create('button','btn','Copiar minhas respostas');copy.type='button';copy.onclick=function(){
+  var text=['Percursos · História 9º ano · Semana '+w.week,w.title,'','Respostas objetivas:'];
+  w.questions.forEach(function(q,i){text.push((i+1)+'. '+(Number.isInteger(r.answers[i])?q.o[r.answers[i]]:'Não respondida'))});
+  text.push('','Produção escrita:',r.writing||'Não respondida');
+  var output=text.join('\n');var done=function(){copy.textContent='Respostas copiadas';setTimeout(function(){copy.textContent='Copiar minhas respostas'},2200)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(output).then(done,function(){fallbackCopy(output,done)});else fallbackCopy(output,done)
+ };
+ finalActions.appendChild(copy);
+ var next=create('button','btn primary',state.week===5?'Voltar à primeira trilha':'Próxima trilha');next.type='button';next.onclick=function(){state.week=(state.week+1)%6;save();render();window.scrollTo({top:0,behavior:'auto'})};finalActions.appendChild(next);
+ root.appendChild(finalActions);feedback(!!r.graded);nav()
+}
+function fallbackCopy(text,done){
+ var x=create('textarea');x.value=text;x.style.position='fixed';x.style.left='-9999px';document.body.appendChild(x);x.select();
+ try{if(document.execCommand('copy'))done();else alert('Não foi possível copiar. Selecione a resposta escrita e copie manualmente.')}catch(e){alert('Não foi possível copiar automaticamente.')}finally{x.remove()}
+}
+function feedback(show){
+ var w=bank.weeks[state.week],r=record(w.id),hits=0;
+ w.questions.forEach(function(q,i){
+  var fb=$('fb'+i);if(!fb)return;
+  var yes=r.answers[i]===q.a;if(yes)hits++;
+  fb.className='feedback'+(show?' show '+(yes?'correct':'wrong'):'');
+  fb.textContent=show?(yes?'Resposta correta. ':'Reveja esta resposta. ')+q.e:''
+ });
+ if($('scorestatus'))$('scorestatus').textContent=show?'Acertos: '+hits+' de 4 · Você pode rever as questões e conferir novamente.':''
+}
+render();
+})();
+</script>
+</body>
+</html>
