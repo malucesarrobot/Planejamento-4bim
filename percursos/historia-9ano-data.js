@@ -280,7 +280,7 @@ window.PERCURSOS_H9 = {
       "sources": [
         {
           "label": "Museu do Muro de Berlim — História",
-          "url": "https://www.berlin.de/mauer/en/history/"
+          "url": "https://www.stiftung-berliner-mauer.de/en/topics/berlin-wall"
         },
         {
           "label": "Acervo das Nações Unidas — Biblioteca Digital",
@@ -448,7 +448,7 @@ window.PERCURSOS_H9 = {
         },
         {
           "label": "ONU — Descolonização",
-          "url": "https://www.un.org/dppa/decolonization/en"
+          "url": "https://www.un.org/en/global-issues/decolonization"
         }
       ],
       "questions": [
