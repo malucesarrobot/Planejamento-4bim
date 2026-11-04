@@ -75,4 +75,35 @@ assert.equal(existingGeo.issues.length,0);
 assert.equal(existingGeo.courses['Geografia'].createCourse,undefined);
 helper.apply(source,both);
 assert.equal(Object.values(both.turmas).filter(c=>c.disciplina==='Geografia').length,1);
-console.log('Bloco II: 56 notas, Geografia separada, preservação, idempotência e conflito validados.');
+
+const enem=structuredClone(source);
+enem.schema='malu-simulado-enem-2b-v1';
+enem.atividade='Simulado ENEM — 4º bimestre';
+enem.valorMax=6;
+enem.data='2026-10-26';
+enem.records=records.slice(0,15).map(x=>({...x,notas:{História:3,Geografia:6}}));
+enem.pendentesConferencia=Array.from({length:15},(_,i)=>({nomeNaPlanilha:'NOME INCERTO '+i}));
+enem.turmaAlunosConfirmados=records.map(x=>x.nome).concat(
+  ['ESTUDANTE TESTE PENDENTE A','ESTUDANTE TESTE PENDENTE B','ESTUDANTE TESTE PENDENTE C']
+);
+let sim=helper.plan(enem,original);
+assert.equal(sim.issues.length,0,sim.issues.join('; '));
+assert.equal(sim.toSave,30);
+assert.equal(sim.pendingReview.length,15);
+const simData=structuredClone(original);
+helper.apply(enem,simData);
+const histSim=simData.activities.find(a=>a.nome===enem.atividade&&a.turmaId==='h');
+const geoSim=simData.activities.find(a=>a.nome===enem.atividade&&simData.turmas[a.turmaId].disciplina==='Geografia');
+assert.ok(histSim&&geoSim);
+assert.equal(histSim.valorMax,6);
+assert.equal(geoSim.valorMax,6);
+assert.equal(simData.scores.h0[histSim.id],3);
+const geoS=Object.values(simData.alunos).find(a=>a.turmaId===geoSim.turmaId&&a.nome===records[0].nome);
+assert.equal(simData.scores[geoS.id][geoSim.id],6);
+assert.equal(Object.values(simData.alunos).filter(a=>a.turmaId===geoSim.turmaId).length,31);
+assert.equal(simData.scores.h20?.[histSim.id],undefined);
+assert.equal(helper.plan(enem,simData).toSave,0);
+helper.apply(enem,simData);
+assert.equal(simData.activities.filter(a=>a.nome===enem.atividade).length,2);
+console.log('Bloco II e Simulado ENEM: vínculos exatos, 6 pontos, sem duplicar nem sobrescrever.');
+
