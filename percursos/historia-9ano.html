@@ -138,7 +138,7 @@ function feedback(show){
  });
  if($('scorestatus'))$('scorestatus').textContent=show?'Acertos: '+hits+' de 4 · Você pode rever as questões e conferir novamente.':''
 }
-window.PercursosH9Bridge={currentLesson:function(){return bank.weeks[state.week]},allLessons:function(){return bank.weeks},getRecord:record,save:save,render:render};
+window.PercursosH9Bridge={currentLesson:function(){return bank.weeks[state.week]},allLessons:function(){return bank.weeks},getRecord:record,save:save,render:render,switchProfile:function(uid){if(!/^[A-Za-z0-9_-]{8,160}$/.test(uid))return;storeKey='percursos-h9-2026-v1-'+uid;state={week:0,records:{}};try{var saved=JSON.parse(localStorage.getItem(storeKey)||'{}');if(saved.records&&typeof saved.records==='object')state.records=saved.records;if(Number.isInteger(saved.week)&&saved.week>=0&&saved.week<6)state.week=saved.week}catch(e){}render()}};
 render();
 })();
 </script>
