@@ -84,7 +84,7 @@ function render(){
 }
 function attach(code,token){
  unlisten();activeToken=token;activeClass=code;
- const u=new URL('historia-9ano.html',location.href);u.hash=new URLSearchParams({turma:token}).toString();linkInput.value=u.href;linkWrap.hidden=false;
+ const u=new URL('index.html',location.href);if(!token.startsWith('n9_'))u.searchParams.set('etapa','9');u.hash=new URLSearchParams({turma:token}).toString();linkInput.value=u.href;linkWrap.hidden=false;
  const ref=firebase.database().ref('ninthClasses/'+token+'/students');activeRef=ref;
  activeCb=ss=>{
   if(select.value!==code)return;
@@ -99,7 +99,7 @@ async function readExisting(){
  try{
   const code=select.value,snap=await firebase.database().ref('ninthClassKeys/'+code).once('value'),token=snap.val();
   if(!token){setMessage('Sem link criado para '+classes.find(x=>x[0]===code)[1]+'. Clique em Obter link da turma.');return}
-  if(!/^[a-f0-9]{32}$/.test(token))throw Error('Token da turma inválido.');
+  if(!/^(?:n9_[a-f0-9]{32}|[a-f0-9]{32})$/.test(token))throw Error('Token da turma inválido.');
   attach(code,token)
  }catch(e){setMessage(e?.code==='PERMISSION_DENIED'?'As regras do 9º ano ainda não foram publicadas no Firebase.':'Falha ao consultar a turma: '+(e?.message||'erro'),true)}
 }
@@ -108,9 +108,9 @@ async function createLink(){
  linkButton.disabled=true;setMessage('Criando link…');
  try{
   const code=select.value,label=classes.find(x=>x[0]===code)[1];
-  const random=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(x=>x.toString(16).padStart(2,'0')).join('');
+  const random='n9_'+Array.from(crypto.getRandomValues(new Uint8Array(16))).map(x=>x.toString(16).padStart(2,'0')).join('');
   const res=await firebase.database().ref('ninthClassKeys/'+code).transaction(current=>current||random),token=res.snapshot.val();
-  if(!/^[a-f0-9]{32}$/.test(token))throw Error('Token inválido');
+  if(!/^(?:n9_[a-f0-9]{32}|[a-f0-9]{32})$/.test(token))throw Error('Token inválido');
   const ref=firebase.database().ref('ninthClasses/'+token+'/config'),snap=await ref.once('value');
   if(!snap.exists())await ref.set({label,code});
   attach(code,token)
