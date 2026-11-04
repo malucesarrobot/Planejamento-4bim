@@ -9,6 +9,14 @@
 - Regras do banco: `percursos/database.rules.json`.
 - Teste automático sem dados reais: `tests/percursos-h9.mjs`.
 
+## Acesso unificado
+
+O endereço de entrada para estudantes do 9º ano e do Ensino Médio é o mesmo: `https://malucesarrobot.github.io/Planejamento-4bim/percursos/`. As atividades do 9º ano continuam em uma página pedagógica interna própria, mas são acessadas pelo mesmo portal e monitoradas no mesmo painel docente.
+
+O painel docente gera novos links do 9º ano no formato `percursos/index.html#turma=n9_<TOKEN_ALEATORIO>`, específico por 9º A, B e C. O portal encaminha automaticamente cada turma ao conteúdo correspondente, sem autenticar outra conta Google. Links antigos do Ensino Médio no formato `index.html#turma=<32_hex>` continuam válidos. Links legados do 9º ano, quando já registrados, podem ser redirecionados com `index.html?etapa=9#turma=<32_hex>`. Não criar tokens manualmente: gerá-los no painel após ativar as regras.
+
+**Atenção: o link da turma ainda depende de as regras atualizadas serem publicadas no Firebase.** Um deploy bem-sucedido do GitHub Pages não significa que o banco foi atualizado.
+
 ## Ativação no Firebase
 
 O push do GitHub **não publica as regras do Realtime Database**. No projeto **percursos-754d6**, acessar Firebase Console → Realtime Database → Regras. Antes de publicar, guardar backup das regras atualmente ativas e comparar com `percursos/database.rules.json`. Publicar o JSON completo, preservando as permissões anteriores, e reabrir a aba para conferir. Não substituir regras de outros projetos Firebase.
