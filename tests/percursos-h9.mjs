@@ -45,7 +45,7 @@ async function visit(mock,withToken){
   return route.abort();
  });
  await page.route('https://www.gstatic.com/**',route=>route.fulfill({contentType:'text/javascript',body:mock&&route.request().url().includes('firebase-app-compat')?fakeFirebase:''}));
- await page.goto('http://percursos.test/historia-9ano.html'+(withToken?'#turma='+token:''));
+ await page.goto('http://percursos.test/historia-9ano.html'+(withToken?'?mode=class#turma='+token:''));
  await page.locator('fieldset.question').first().waitFor();
 }
 try{
