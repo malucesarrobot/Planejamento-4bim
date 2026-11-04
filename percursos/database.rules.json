@@ -70,7 +70,7 @@
       "$classToken": {
         ".validate": "$classToken.matches(/^(n9_[a-f0-9]{32}|[a-f0-9]{32})$/)",
         "config": {
-          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && $classToken.matches(/^[a-f0-9]{32}$/)",
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && $classToken.matches(/^(n9_[a-f0-9]{32}|[a-f0-9]{32})$/)",
           ".validate": "newData.hasChildren(['label','code'])",
           "label": {
             ".validate": "newData.isString() && newData.val().matches(/^9º [ABC]$/)"
