@@ -77,6 +77,7 @@ async function restoreSubmissions(){
  }catch(e){say('Entrada confirmada; não foi possível consultar as entregas anteriores. Tente atualizar a página.',true)}
 }
 function showIdentity(){
+ window.PercursosH9Bridge?.switchProfile(user.uid);
  input.hidden=true;enter.hidden=true;change.hidden=false;
  classroom.textContent='Turma: '+config.label+' · '+profile.name;
  say('Identificação confirmada. Para registrar uma atividade, responda às questões e clique em Enviar à professora.');
@@ -148,6 +149,7 @@ change.onclick=async()=>{
  if(!yes)return;
  try{
   await auth.signOut();user=null;profile=null;started.clear();
+  window.PercursosH9Bridge?.switchProfile('guest-anon');
   input.value='';input.hidden=false;enter.hidden=false;change.hidden=true;
   await signIn();say('Informe o nome do próximo estudante. Cada estudante terá um registro separado.');
  }catch(e){say('Não foi possível trocar de estudante agora.',true)}
