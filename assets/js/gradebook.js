@@ -1,7 +1,7 @@
 (async () => {
   'use strict';
   await import('./gradebook-bulletin-core.js?v=20261021boletim');
-  await import('./gradebook-batch-import.js?v=20261104efg2ab');
+  await import('./gradebook-batch-import.js?v=20261104efggeo');
   const B=window.MaluBulletinCore, P=window.MaluBlocoImport;
   const C=window.MaluGradebookCore, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
