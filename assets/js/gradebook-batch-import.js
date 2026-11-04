@@ -1,7 +1,19 @@
 (() => {
   'use strict';
   const normalize = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim().replace(/\s+/g, ' ');
-  const classLetter = turma => normalize(turma.letra || String(turma.nome || '').match(/[A-Z]$/i)?.[0] || '');
+  // A EFG mantém 2º AB como agrupamento administrativo das turmas A e B.
+  // A importação do Bloco II - 2B só pode usar essa turma se TODOS os 28 nomes
+  // do arquivo estiverem vinculados univocamente ao diário da disciplina.
+  const classLetter = turma => normalize(turma.letra || String(turma.nome || '').match(/[A-Z]+$/i)?.[0] || '');
+  const isTargetGroup = turma => {
+    const letter=classLetter(turma);
+    const unit=normalize(turma.unidade);
+    const name=normalize(turma.nome);
+    return Number.parseInt(turma.serie || turma.nome) === 2 &&
+      (letter === 'B' || letter === 'AB' || /2\s*[º°ª]?\s*AB\b/.test(name)) &&
+      (unit === 'EFG' || unit.includes('ESCOLA DO FUTURO') || /\bEFG\b/.test(unit)) &&
+      turma.ativo !== false;
+  };
   const activityMatches = title => /\bBLOCO\s*(?:II|2)\b/.test(normalize(title));
   function plan(source, data) {
     if (source?.schema !== 'malu-avaliacao-bloco-ii-v1' || source.year !== 2026 || source.bimestre !== 4 ||
@@ -15,15 +27,27 @@
     const issues=[], courses={}, entries=[], seen=new Set();
     for (const discipline of ['História','Geografia']) {
       const candidates = Object.values(data.turmas).filter(t =>
-        Number.parseInt(t.serie || t.nome) === 2 && classLetter(t) === 'B' &&
-        normalize(t.disciplina) === normalize(discipline) &&
-        normalize(t.unidade).includes('MARAJO') && t.ativo !== false
+        isTargetGroup(t) && normalize(t.disciplina) === normalize(discipline)
       );
-      if (candidates.length !== 1) {
-        issues.push(discipline + ': turma 2ª B do CEPI Marajó não localizada de forma única (' + candidates.length + ').');
+      // Escolhe o diário exclusivamente pela correspondência integral dos
+      // estudantes. Isso impede misturar a turma B com a A no agrupamento AB.
+      const rosters=candidates.map(t => ({
+        turma:t,
+        pupils:Object.values(data.alunos).filter(a => a.turmaId === t.id && a.ativo !== false)
+      }));
+      const complete=rosters.filter(({pupils}) => source.records.every(r =>
+        pupils.filter(a => normalize(a.nome) === normalize(r.nome)).length === 1
+      ));
+      if (complete.length !== 1) {
+        const detail=rosters.map(({turma,pupils}) => {
+          const count=source.records.filter(r => pupils.some(a => normalize(a.nome) === normalize(r.nome))).length;
+          return turma.nome + ': ' + count + '/28 nomes encontrados';
+        }).join('; ');
+        issues.push(discipline + ': não foi identificado um único diário da 2ª B/2º AB na EFG contendo os 28 estudantes. ' +
+          (detail || 'Nenhum diário da disciplina foi localizado. Confira se a turma e os alunos foram importados do Leciona.'));
         continue;
       }
-      const turma=candidates[0];
+      const {turma,pupils}=complete[0];
       const possibles = data.activities.filter(a => a.turmaId === turma.id && activityMatches(a.nome));
       if (possibles.length > 1) {
         issues.push(discipline + ': há mais de uma atividade Bloco II; escolha/corrija antes de importar.');
@@ -34,7 +58,6 @@
         issues.push(discipline + ': a atividade existente não é uma avaliação numérica de 10 pontos.');
         continue;
       }
-      const pupils=Object.values(data.alunos).filter(a => a.turmaId === turma.id && a.ativo !== false);
       courses[discipline]={turmaId:turma.id,activityId:activity?.id || null,pupils};
     }
     for (const record of source.records) {
