@@ -57,6 +57,18 @@
   }
   window.addEventListener?.('online',()=>flush());
   if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')flush();});
-  window.MaluGradebookCloud={start,save,login,refresh,importSource,diff,wire,unwire};
+  function canImport(){return !!(auth?.currentUser && ['prof.malufc@gmail.com','malu.cesar@gmail.com'].includes(auth.currentUser.email) && ready && connected && !stopped);}
+  async function waitForSync(limitMs=12000){
+    if(!canImport())throw Error('A conexão autorizada com a nuvem está indisponível.');
+    const until=Date.now()+limitMs;
+    while(Date.now()<until){
+      if(!canImport())throw Error('A conexão com a nuvem foi interrompida.');
+      await flush();
+      if(!sending && !Object.keys(pending).length)return true;
+      await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    throw Error('O envio permanece pendente; confira o indicador de sincronização.');
+  }
+  window.MaluGradebookCloud={start,save,login,refresh,importSource,diff,wire,unwire,canImport,waitForSync};
 })();
 
