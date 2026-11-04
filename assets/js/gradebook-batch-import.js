@@ -14,12 +14,24 @@
       (unit === 'EFG' || unit.includes('ESCOLA DO FUTURO') || /\bEFG\b/.test(unit)) &&
       turma.ativo !== false;
   };
-  const activityMatches = title => /\bBLOCO\s*(?:II|2)\b/.test(normalize(title));
+  const isEnem = source => source?.schema === 'malu-simulado-enem-2b-v1';
+  const activityMatches = (title, source) => isEnem(source)
+    ? /\bSIMULADO\b.*\bENEM\b|\bENEM\b.*\bSIMULADO\b/.test(normalize(title))
+    : /\bBLOCO\s*(?:II|2)\b/.test(normalize(title));
   function plan(source, data) {
-    if (source?.schema !== 'malu-avaliacao-bloco-ii-v1' || source.year !== 2026 || source.bimestre !== 4 ||
-        source.serie !== 2 || normalize(source.turma) !== 'B' || !Array.isArray(source.records) ||
-        source.records.length !== 28 || source.valorMax !== 10) {
-      throw Error('Arquivo de notas incompatível. Utilize o lote validado da 2ª série B, Bloco II de 2026.');
+    const enem=isEnem(source);
+    const validRecords=Array.isArray(source?.records) && (enem
+      ? source.records.length > 0 && source.records.length <= 30 &&
+        Array.isArray(source.pendentesConferencia) &&
+        source.records.length + source.pendentesConferencia.length === 30 &&
+        Array.isArray(source.turmaAlunosConfirmados) &&
+        source.turmaAlunosConfirmados.length === 31
+      : source.records.length === 28);
+    if (!['malu-avaliacao-bloco-ii-v1','malu-simulado-enem-2b-v1'].includes(source?.schema) ||
+        source.year !== 2026 || source.bimestre !== 4 || source.serie !== 2 ||
+        normalize(source.turma) !== 'B' || !validRecords ||
+        source.valorMax !== (enem ? 6 : 10)) {
+      throw Error('Arquivo de notas incompatível. Utilize o lote validado da 2ª série B (Bloco II ou Simulado ENEM de 2026).');
     }
     if (!data?.turmas || !data?.alunos || !Array.isArray(data.activities) || !data?.scores) {
       throw Error('Os dados das turmas ainda não foram carregados no Planejamento.');
@@ -39,8 +51,8 @@
         pupils.filter(a => normalize(a.nome) === normalize(r.nome)).length === 1
       ));
       if (complete.length === 0 && !candidates.length && discipline === 'Geografia' && courses['História']) {
-        // Geografia não existia na lista histórica do Leciona. Criá-la
-        // separadamente somente quando há diário único de História com 28/28.
+        // Geografia pode não existir no Leciona. Criá-la somente quando
+        // os estudantes do arquivo estão vinculados ao diário único de História.
         const history=courses['História'];
         courses[discipline]={turmaId:null,activityId:null,sourceTurmaId:history.turmaId,
           pupils:history.pupils,createCourse:true};
@@ -49,21 +61,21 @@
       if (complete.length !== 1) {
         const detail=rosters.map(({turma,pupils}) => {
           const count=source.records.filter(r => pupils.some(a => normalize(a.nome) === normalize(r.nome))).length;
-          return turma.nome + ': ' + count + '/28 nomes encontrados';
+          return turma.nome + ': ' + count + '/' + source.records.length + ' nomes encontrados';
         }).join('; ');
-        issues.push(discipline + ': não foi identificado um único diário da 2ª B/2º AB na EFG contendo os 28 estudantes. ' +
+        issues.push(discipline + ': não foi identificado um único diário da 2ª B/2º AB na EFG contendo os ' + source.records.length + ' estudantes confirmados. ' +
           (detail || 'Nenhum diário da disciplina foi localizado. Confira se a turma e os alunos foram importados do Leciona.'));
         continue;
       }
       const {turma,pupils}=complete[0];
-      const possibles = data.activities.filter(a => a.turmaId === turma.id && activityMatches(a.nome));
+      const possibles = data.activities.filter(a => a.turmaId === turma.id && activityMatches(a.nome,source));
       if (possibles.length > 1) {
-        issues.push(discipline + ': há mais de uma atividade Bloco II; escolha/corrija antes de importar.');
+        issues.push(discipline + ': há mais de uma atividade correspondente ao arquivo; escolha/corrija antes de importar.');
         continue;
       }
       const activity=possibles[0] || null;
-      if (activity && (activity.checklist || activity.extra || Number(activity.valorMax) !== 10)) {
-        issues.push(discipline + ': a atividade existente não é uma avaliação numérica de 10 pontos.');
+      if (activity && (activity.checklist || activity.extra || Number(activity.valorMax) !== source.valorMax)) {
+        issues.push(discipline + ': a atividade existente tem tipo ou valor máximo incompatível (' + source.valorMax + ' pontos).');
         continue;
       }
       courses[discipline]={turmaId:turma.id,activityId:activity?.id || null,pupils};
@@ -77,7 +89,7 @@
       seen.add(normalized);
       for (const discipline of ['História','Geografia']) {
         const grade=record?.notas?.[discipline],course=courses[discipline];
-        if (typeof grade !== 'number' || !Number.isFinite(grade) || grade < 0 || grade > 10 ||
+        if (typeof grade !== 'number' || !Number.isFinite(grade) || grade < 0 || grade > source.valorMax ||
             Math.round(grade * 100) !== grade * 100 && Math.abs(Math.round(grade * 100) - grade * 100) > 1e-8) {
           issues.push(record.nome + ': nota inválida em ' + discipline);
           continue;
@@ -97,9 +109,11 @@
         entries.push({discipline,studentId:pupil.id,grade,alreadySaved:existing !== undefined && existing !== null});
       }
     }
-    if (entries.length !== source.records.length*2 && !issues.length) issues.push('O total de notas não corresponde aos 28 estudantes em duas disciplinas.');
+    if (entries.length !== source.records.length*2 && !issues.length) issues.push('O total de notas não corresponde aos estudantes confirmados em duas disciplinas.');
     return {issues,courses,entries,matched:source.records.length,alreadySaved:entries.filter(e=>e.alreadySaved).length,
-      toSave:entries.filter(e=>!e.alreadySaved).length, pending:Array.isArray(source.pendentes)?source.pendentes:[]};
+      toSave:entries.filter(e=>!e.alreadySaved).length, pending:Array.isArray(source.pendentes)?source.pendentes:[],
+      pendingReview:Array.isArray(source.pendentesConferencia)?source.pendentesConferencia:[],
+      activityName:source.atividade || (enem?'Simulado ENEM':'Avaliação Bloco II')};
   }
   function apply(source, data) {
     const checked=plan(source,data);
@@ -109,11 +123,13 @@
     const geography=checked.courses['Geografia'];
     if (geography.createCourse) {
       const oldClass=data.turmas[geography.sourceTurmaId],newClassId=crypto.randomUUID();
-      // Apenas a turma B documentada: 28 avaliações e 3 pendências.
-      // Não copiar a eventual turma A do agrupamento administrativo 2º AB.
-      const wanted=new Set([...source.records.map(r=>normalize(r.nome)),
-        ...(source.pendentes||[]).map(p=>normalize(typeof p==='string'?p:p?.nome))]);
+      // Não copiar alunos de outra turma em um agrupamento administrativo.
+      const verified=Array.isArray(source.turmaAlunosConfirmados)
+        ? source.turmaAlunosConfirmados
+        : [...source.records.map(r=>r.nome),...(source.pendentes||[]).map(p=>typeof p==='string'?p:p?.nome)];
+      const wanted=new Set(verified.map(normalize));
       const students=geography.pupils.filter(p=>wanted.has(normalize(p.nome)));
+      if(students.length !== wanted.size)throw Error('O cadastro da nova turma de Geografia não coincide com a lista conferida; nada será alterado.');
       data.turmas[newClassId]={...oldClass,id:newClassId,nome:'2ªB',letra:'B',
         unidade:oldClass.unidade,disciplina:'Geografia',ativo:true};
       for (const pupil of students) {
@@ -129,7 +145,7 @@
       if (!id) {
         id=crypto.randomUUID();
         data.activities.push({id,turmaId:target.turmaId,bimestre:4,nome:source.atividade || 'Avaliação Bloco II',
-          tipo:'Avaliação',data:source.data || '2026-11-04',valorMax:10,peso:1,checklist:false,extra:false,origem:null});
+          tipo:'Avaliação',data:source.data || '2026-11-04',valorMax:source.valorMax,peso:1,checklist:false,extra:false,origem:null});
       }
       activityId[discipline]=id;
     }
