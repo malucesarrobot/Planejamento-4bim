@@ -278,6 +278,9 @@
         content.append(problems,button('Voltar às notas',render));return;
       }
       content.append(node('p',proposal.toSave+' notas novas · '+proposal.alreadySaved+' já conferidas no aplicativo. Registros anteriores de outras avaliações serão preservados.','gb-help'));
+      if(proposal.courses['Geografia']?.createCourse) {
+        content.append(node('p','Geografia ainda não está cadastrada: será criado um diário separado da 2ª B · EFG apenas para os estudantes identificados. Nenhuma nota anterior será alterada.','gb-help'));
+      }
       content.append(button('Confirmar importação de '+proposal.toSave+' notas',async()=>{
         if(!window.MaluGradebookCloud?.canImport?.()){message('Conecte a conta Google e atualize os dados antes de continuar.',true);return;}
         if(!confirm('Aplicar '+proposal.toSave+' notas da Avaliação Bloco II nas turmas 2ª B de História e Geografia? As notas existentes diferentes não serão substituídas.'))return;
