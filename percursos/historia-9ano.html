@@ -23,7 +23,8 @@ nav{display:grid;gap:6px;margin-top:15px}.week-btn{width:100%;text-align:left;bo
 .kicker{display:inline-block;background:var(--warm);padding:4px 11px;border-radius:20px;font-size:.78rem;font-weight:800;margin-bottom:12px}
 .sub{color:var(--muted)}.problem{background:#eef5e6;border-left:4px solid #4e9076;padding:15px 18px;border-radius:8px;margin:20px 0}.problem strong{display:block}
 .tags{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 23px}.tags span{border:1px solid #ccd9cd;border-radius:20px;padding:3px 9px;font-size:.79rem}
-section.unit{border-top:1px solid var(--line);padding-top:22px;margin-top:23px}.reading{font-size:1rem;white-space:pre-line;line-height:1.72}
+section.unit{border-top:1px solid var(--line);padding-top:22px;margin-top:23px}
+.h9-identify{background:#edf6e9;border:1px solid #c3dac9;border-radius:13px;padding:12px;margin-bottom:16px}.h9-identify h3{margin-bottom:7px}.h9-identify p{font-size:.86rem}.h9-identify input{width:100%;padding:10px;border:1px solid #8ba497;border-radius:8px;margin-bottom:9px}.h9-identify button{margin:4px 3px 5px 0;max-width:100%;font-size:.85rem}.h9-identify button[hidden],.h9-identify input[hidden]{display:none}.h9-identify .status{font-weight:620}.reading{font-size:1rem;white-space:pre-line;line-height:1.72}
 .source-list{padding-left:20px}.source-list li{margin:7px 0}.source-list a{overflow-wrap:anywhere}
 .question{border:1px solid #dce4df;border-radius:13px;padding:16px;margin:15px 0}.question legend{font-weight:800;padding:0 4px}.choice{display:flex;gap:10px;align-items:flex-start;padding:8px 5px;margin:4px 0;border-radius:8px;cursor:pointer}
 .choice:hover{background:#f1f5ec}.choice input{width:18px;height:18px;margin:3px 0 0;flex:0 0 auto;accent-color:#25644e}
@@ -52,7 +53,7 @@ footer a{white-space:nowrap} .sr-only{position:absolute;width:1px;height:1px;pad
 <div class="progress" aria-hidden="true"><span id="progressbar" style="width:0%"></span></div>
 <p id="progresslabel" aria-live="polite">0 de 6 percursos finalizados para estudo.</p>
 <nav id="weeks" aria-label="Semanas de estudo"></nav>
-<p style="margin-top:18px">As respostas ficam apenas neste aparelho. Este módulo ainda não envia notas ou frequência para o SIAP nem ao painel docente.</p>
+<p style="margin-top:18px">O registro das atividades no painel docente exige o link de sua turma e conexão. Não lança notas ou frequência no SIAP.</p>
 </aside>
 <article id="content" class="sheet" aria-live="polite"><p>Carregando as trilhas de História...</p></article>
 </main>
@@ -95,7 +96,7 @@ function render(){
  w.questions.forEach(function(q,i){
   var f=create('fieldset','question');var legend=create('legend','',String(i+1)+'. '+q.p);f.appendChild(legend);
   q.o.forEach(function(opt,j){
-   var label=create('label','choice'),input=create('input');input.type='radio';input.name='q'+i;input.value=String(j);input.checked=r.answers[i]===j;input.onchange=function(){r.answers[i]=j;r.graded=false;save();feedback(false);nav()};label.appendChild(input);label.appendChild(create('span','',opt));f.appendChild(label)
+   var label=create('label','choice'),input=create('input');input.type='radio';input.name='q'+i;input.value=String(j);input.checked=r.answers[i]===j;input.onchange=function(){r.answers[i]=j;r.graded=false;save();feedback(false);nav();window.PercursosH9Cloud?.markStarted(w.id)};label.appendChild(input);label.appendChild(create('span','',opt));f.appendChild(label)
   });
   var fb=create('div','feedback');fb.id='fb'+i;fb.setAttribute('role','status');f.appendChild(fb);qSec.appendChild(f)
  });
@@ -106,7 +107,7 @@ function render(){
  actions.appendChild(check);var status=create('span','status');status.id='scorestatus';status.setAttribute('role','status');actions.appendChild(status);qSec.appendChild(actions);root.appendChild(qSec);
  var writing=create('section','unit');writing.appendChild(create('h3','','3. Argumentar por escrito'));writing.appendChild(create('p','',w.writing));var field=create('textarea');field.id='writing';field.placeholder='Escreva sua resposta aqui. O texto é salvo neste aparelho.';field.value=r.writing||'';field.setAttribute('aria-label','Resposta escrita');
  var saved=create('p','status');saved.id='writestatus';saved.textContent='A produção escrita não recebe nota automática.';
- field.oninput=function(){r.writing=field.value;var ok=save();saved.textContent=ok?'Resposta salva neste aparelho.':'Sem espaço para salvar neste aparelho; copie sua resposta.';nav()};
+ field.oninput=function(){r.writing=field.value;var ok=save();saved.textContent=ok?'Resposta salva neste aparelho.':'Sem espaço para salvar neste aparelho; copie sua resposta.';nav();window.PercursosH9Cloud?.markStarted(w.id)};
  writing.appendChild(field);writing.appendChild(saved);
  var details=create('details','criteria');details.appendChild(create('summary','','O que observar na minha resposta?'));var ul=create('ul');w.criteria.forEach(function(c){ul.appendChild(create('li','',c))});details.appendChild(ul);writing.appendChild(details);root.appendChild(writing);
  var mission=create('section','unit');mission.appendChild(create('h3','','4. Desafio de aprofundamento (opcional)'));var callout=create('div','mission');callout.appendChild(create('p','',w.mission));mission.appendChild(callout);root.appendChild(mission);
@@ -119,8 +120,9 @@ function render(){
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(output).then(done,function(){fallbackCopy(output,done)});else fallbackCopy(output,done)
  };
  finalActions.appendChild(copy);
+ var send=create('button','btn primary','Enviar à professora');send.type='button';send.id='cloudSubmit';send.onclick=function(){window.PercursosH9Cloud?.submit(w.id)};finalActions.appendChild(send);
  var next=create('button','btn primary',state.week===5?'Voltar à primeira trilha':'Próxima trilha');next.type='button';next.onclick=function(){state.week=(state.week+1)%6;save();render();window.scrollTo({top:0,behavior:'auto'})};finalActions.appendChild(next);
- root.appendChild(finalActions);feedback(!!r.graded);nav()
+ root.appendChild(finalActions);feedback(!!r.graded);nav();document.dispatchEvent(new Event('h9render'))
 }
 function fallbackCopy(text,done){
  var x=create('textarea');x.value=text;x.style.position='fixed';x.style.left='-9999px';document.body.appendChild(x);x.select();
@@ -136,8 +138,13 @@ function feedback(show){
  });
  if($('scorestatus'))$('scorestatus').textContent=show?'Acertos: '+hits+' de 4 · Você pode rever as questões e conferir novamente.':''
 }
+window.PercursosH9Bridge={currentLesson:function(){return bank.weeks[state.week]},allLessons:function(){return bank.weeks},getRecord:record,save:save,render:render};
 render();
 })();
 </script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="historia-9ano-sync.js?v=20261104-1"></script>
 </body>
 </html>
