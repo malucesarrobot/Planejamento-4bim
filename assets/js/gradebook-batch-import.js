@@ -38,6 +38,14 @@
       const complete=rosters.filter(({pupils}) => source.records.every(r =>
         pupils.filter(a => normalize(a.nome) === normalize(r.nome)).length === 1
       ));
+      if (complete.length === 0 && !candidates.length && discipline === 'Geografia' && courses['História']) {
+        // Geografia não existia na lista histórica do Leciona. Criá-la
+        // separadamente somente quando há diário único de História com 28/28.
+        const history=courses['História'];
+        courses[discipline]={turmaId:null,activityId:null,sourceTurmaId:history.turmaId,
+          pupils:history.pupils,createCourse:true};
+        continue;
+      }
       if (complete.length !== 1) {
         const detail=rosters.map(({turma,pupils}) => {
           const count=source.records.filter(r => pupils.some(a => normalize(a.nome) === normalize(r.nome))).length;
@@ -97,6 +105,24 @@
     const checked=plan(source,data);
     if (checked.issues.length) throw Error(checked.issues.join('\n'));
     const activityId={};
+    const cloneMap={};
+    const geography=checked.courses['Geografia'];
+    if (geography.createCourse) {
+      const oldClass=data.turmas[geography.sourceTurmaId],newClassId=crypto.randomUUID();
+      // Apenas a turma B documentada: 28 avaliações e 3 pendências.
+      // Não copiar a eventual turma A do agrupamento administrativo 2º AB.
+      const wanted=new Set([...source.records.map(r=>normalize(r.nome)),
+        ...(source.pendentes||[]).map(p=>normalize(typeof p==='string'?p:p?.nome))]);
+      const students=geography.pupils.filter(p=>wanted.has(normalize(p.nome)));
+      data.turmas[newClassId]={...oldClass,id:newClassId,nome:'2ªB',letra:'B',
+        unidade:oldClass.unidade,disciplina:'Geografia',ativo:true};
+      for (const pupil of students) {
+        const newId=crypto.randomUUID();
+        data.alunos[newId]={...pupil,id:newId,turmaId:newClassId};
+        cloneMap[pupil.id]=newId;
+      }
+      geography.turmaId=newClassId;
+    }
     for (const discipline of ['História','Geografia']) {
       const target=checked.courses[discipline];
       let id=target.activityId;
@@ -108,8 +134,11 @@
       activityId[discipline]=id;
     }
     for (const entry of checked.entries) {
-      data.scores[entry.studentId] ??= {};
-      if (!entry.alreadySaved) data.scores[entry.studentId][activityId[entry.discipline]]=entry.grade;
+      const id=entry.discipline==='Geografia' && geography.createCourse
+        ?cloneMap[entry.studentId] : entry.studentId;
+      if (!id)throw Error('Não foi possível vincular o estudante à Geografia.');
+      data.scores[id] ??= {};
+      if (!entry.alreadySaved) data.scores[id][activityId[entry.discipline]]=entry.grade;
     }
     return checked;
   }
