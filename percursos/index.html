@@ -14,12 +14,30 @@ a.teacher{font-size:.91rem;color:#276b53}
 </style></head>
 <body>
 <main><small>Prof. Malu · CEPI Marajó</small><h1>Percursos de Aprendizagem</h1>
-<p>Escolha sua etapa de ensino para abrir as atividades.</p>
+<p>Escolha sua etapa de ensino ou abra o link da turma enviado pela professora. O acompanhamento é feito no mesmo Percursos.</p>
 <nav aria-label="Etapas de ensino">
 <a class="card" href="historia-9ano.html"><strong>9º ano — História</strong><span>Seis trilhas do 4º bimestre: Brasil, Guerra Fria e descolonizações afro-asiáticas.</span></a>
 <a class="card" href="aluno.html?v=20261006-1618"><strong>Ensino Médio</strong><span>História, Filosofia e Sociologia · atividades e progresso das turmas.</span></a>
 </nav>
-<a class="teacher" href="professora.html">Acesso ao painel docente do Ensino Médio</a>
+<a class="teacher" href="professora.html">Painel docente — 9º ano e Ensino Médio</a>
 </main>
-<script>if(/^#turma=[a-f0-9]{32}$/.test(location.hash)){location.replace('aluno.html?v=20261006-1618'+location.hash)}</script>
+<script>
+(function(){
+ 'use strict';
+ // Mesmo ponto de entrada para o 9º ano e o Ensino Médio, sem alterar links antigos.
+ var args=new URLSearchParams(location.hash.slice(1));
+ var token=args.get('turma');
+ if(!token||args.keys().next().value!=='turma')return;
+ if(/^n9_[a-f0-9]{32}$/.test(token)){
+   location.replace('historia-9ano.html#turma='+token);return
+ }
+ if(/^[a-f0-9]{32}$/.test(token)){
+   if(new URLSearchParams(location.search).get('etapa')==='9'){
+     location.replace('historia-9ano.html#turma='+token)
+   }else{
+     location.replace('aluno.html?v=20261006-1618#turma='+token)
+   }
+ }
+})();
+</script>
 </body></html>
