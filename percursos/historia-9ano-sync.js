@@ -11,7 +11,7 @@ const appConfig={
  appId:"1:304874200719:web:e05949c4c71d40a542dafa"
 };
 const token=new URLSearchParams(location.hash.slice(1)).get('turma');
-const valid=typeof token==='string'&&/^[a-f0-9]{32}$/.test(token);
+const valid=typeof token==='string'&&/^(?:n9_[a-f0-9]{32}|[a-f0-9]{32})$/.test(token);
 const root='ninthClasses/'+token;
 const $=id=>document.getElementById(id);
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
