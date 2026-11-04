@@ -8,10 +8,9 @@ const records=Array.from({length:28},(_,i)=>({
 const original={
   version:1,year:2026,bimestre:4,
   turmas:{
-    h:{id:'h',serie:'2',letra:'AB',nome:'2º AB',unidade:'EFG',disciplina:'História'},
-    g:{id:'g',serie:'2',letra:'AB',nome:'2º AB',unidade:'EFG',disciplina:'Geografia'}
+    h:{id:'h',serie:'2',letra:'AB',nome:'2º AB',unidade:'EFG',disciplina:'História'}
   },
-  alunos:Object.fromEntries(records.flatMap((r,i)=>[['h'+i,{id:'h'+i,turmaId:'h',nome:r.nome,ativo:true}],['g'+i,{id:'g'+i,turmaId:'g',nome:r.nome,ativo:true}]])),
+  alunos:Object.fromEntries(records.map((r,i)=>['h'+i,{id:'h'+i,turmaId:'h',nome:r.nome,ativo:true}])),
   activities:[{id:'outra',turmaId:'h',nome:'Outra atividade',tipo:'Avaliação',data:'2026-10-20',valorMax:10,peso:1,checklist:false,extra:false}],
   scores:{h0:{outra:7.5}},
   attendance:{},importLog:{},reportCards:{},monitoring:{},mediaModo:{}
@@ -23,6 +22,7 @@ let planned=helper.plan(source,original);
 assert.equal(planned.issues.length,0,planned.issues.join('; '));
 assert.equal(planned.toSave,56);
 assert.equal(planned.entries.length,56);
+assert.equal(planned.courses['Geografia'].createCourse,true);
 const missing=structuredClone(original);
 delete missing.alunos.h0;
 assert.ok(helper.plan(source,missing).issues.some(x=>x.includes('27/28 nomes encontrados')),
@@ -34,10 +34,14 @@ assert.ok(helper.plan(source,mistakenSchool).issues.some(x=>x.includes('Nenhum d
 const data=structuredClone(original);
 helper.apply(source,data);
 const history=data.activities.find(a=>a.turmaId==='h'&&a.nome==='Avaliação Bloco II');
-const geography=data.activities.find(a=>a.turmaId==='g'&&a.nome==='Avaliação Bloco II');
+const geography=data.activities.find(a=>data.turmas[a.turmaId]?.disciplina==='Geografia'&&a.nome==='Avaliação Bloco II');
 assert.ok(history && geography);
 assert.equal(data.scores.h0[history.id],9.33);
-assert.equal(data.scores.g0[geography.id],6.67);
+const geoPupil=Object.values(data.alunos).find(a=>a.turmaId===geography.turmaId&&a.nome===records[0].nome);
+assert.ok(geoPupil);
+assert.equal(data.scores[geoPupil.id][geography.id],6.67);
+assert.equal(Object.values(data.alunos).filter(a=>a.turmaId===geography.turmaId).length,28);
+assert.equal(Object.values(data.turmas).filter(c=>c.disciplina==='Geografia').length,1);
 assert.equal(data.scores.h0.outra,7.5);
 assert.equal(Object.keys(data.scores).length,56);
 assert.equal(Object.keys(data.scores).filter(k=>k.startsWith('pending')).length,0);
@@ -47,8 +51,19 @@ assert.equal(planned.alreadySaved,56);
 assert.equal(planned.toSave,0);
 helper.apply(source,data);
 assert.equal(data.activities.length,3,'Idempotência: nenhuma atividade duplicada');
+assert.equal(Object.values(data.turmas).filter(c=>c.disciplina==='Geografia').length,1,'Sem turma duplicada');
 data.scores.h0[history.id]=7;
 const conflict=helper.plan(source,data);
 assert.ok(conflict.issues.some(x=>x.includes('já existe nota diferente')));
 assert.throws(()=>helper.apply(source,data));
-console.log('Bloco II: 56 notas, duas disciplinas, preservação, idempotência e conflito validados.');
+
+// Com diário de Geografia já existente, o importador deve reutilizá-lo.
+const both=structuredClone(original);
+both.turmas.g={...both.turmas.h,id:'g',disciplina:'Geografia'};
+for(let i=0;i<records.length;i++)both.alunos['g'+i]={...both.alunos['h'+i],id:'g'+i,turmaId:'g'};
+const existingGeo=helper.plan(source,both);
+assert.equal(existingGeo.issues.length,0);
+assert.equal(existingGeo.courses['Geografia'].createCourse,undefined);
+helper.apply(source,both);
+assert.equal(Object.values(both.turmas).filter(c=>c.disciplina==='Geografia').length,1);
+console.log('Bloco II: 56 notas, Geografia separada, preservação, idempotência e conflito validados.');
