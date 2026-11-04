@@ -10,7 +10,12 @@ const original={
   turmas:{
     h:{id:'h',serie:'2',letra:'AB',nome:'2º AB',unidade:'EFG',disciplina:'História'}
   },
-  alunos:Object.fromEntries(records.map((r,i)=>['h'+i,{id:'h'+i,turmaId:'h',nome:r.nome,ativo:true}])),
+  alunos:Object.fromEntries([
+    ...records.map((r,i)=>['h'+i,{id:'h'+i,turmaId:'h',nome:r.nome,ativo:true}]),
+    ...['ESTUDANTE TESTE PENDENTE A','ESTUDANTE TESTE PENDENTE B','ESTUDANTE TESTE PENDENTE C'].map((nome,i)=>
+      ['p'+i,{id:'p'+i,turmaId:'h',nome,ativo:true}]),
+    ['h99',{id:'h99',turmaId:'h',nome:'OUTRA TURMA A',ativo:true}]
+  ]),
   activities:[{id:'outra',turmaId:'h',nome:'Outra atividade',tipo:'Avaliação',data:'2026-10-20',valorMax:10,peso:1,checklist:false,extra:false}],
   scores:{h0:{outra:7.5}},
   attendance:{},importLog:{},reportCards:{},monitoring:{},mediaModo:{}
@@ -40,7 +45,11 @@ assert.equal(data.scores.h0[history.id],9.33);
 const geoPupil=Object.values(data.alunos).find(a=>a.turmaId===geography.turmaId&&a.nome===records[0].nome);
 assert.ok(geoPupil);
 assert.equal(data.scores[geoPupil.id][geography.id],6.67);
-assert.equal(Object.values(data.alunos).filter(a=>a.turmaId===geography.turmaId).length,28);
+assert.equal(Object.values(data.alunos).filter(a=>a.turmaId===geography.turmaId).length,31);
+assert.equal(Object.values(data.alunos).some(a=>a.turmaId===geography.turmaId && a.nome==='OUTRA TURMA A'),false);
+assert.equal(Object.values(data.alunos).filter(a=>a.turmaId===geography.turmaId && a.nome.includes('PENDENTE')).length,3);
+assert.equal(Object.values(data.alunos).filter(a=>a.turmaId===geography.turmaId && a.nome.includes('PENDENTE') &&
+  data.scores[a.id]?.[geography.id] !== undefined).length,0,'Pendentes sem nota automática');
 assert.equal(Object.values(data.turmas).filter(c=>c.disciplina==='Geografia').length,1);
 assert.equal(data.scores.h0.outra,7.5);
 assert.equal(Object.keys(data.scores).length,56);
