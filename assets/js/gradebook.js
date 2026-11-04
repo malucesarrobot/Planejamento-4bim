@@ -1,7 +1,7 @@
 (async () => {
   'use strict';
   await import('./gradebook-bulletin-core.js?v=20261021boletim');
-  await import('./gradebook-batch-import.js?v=20261104efggeo');
+  await import('./gradebook-batch-import.js?v=20261104enem2b');
   const B=window.MaluBulletinCore, P=window.MaluBlocoImport;
   const C=window.MaluGradebookCore, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
@@ -36,7 +36,7 @@
   });refreshList.setAttribute('aria-label','Atualizar notas e atividades da nuvem');refreshList.title='Atualizar notas e atividades da nuvem';
   controls.append(select,pupilsMenu,refreshList);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
-  settingsActions.append(button('Importar notas Bloco II · 2ª B',()=>blockFile.click()),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
+  settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
   info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudInfo,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
@@ -120,7 +120,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II · 2ª B',()=>blockFile.click()),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -268,9 +268,18 @@
       await writes;
       await window.MaluGradebookCloud.refresh();
       const proposal=P.plan(source,data);
-      content.replaceChildren(node('h3','Avaliação Bloco II · 2ª série B'),
-        node('p','Arquivo privado: '+proposal.matched+' estudantes corrigidos · 2 disciplinas · '+proposal.entries.length+' notas verificadas.','gb-help'),
-        node('p',proposal.pending.length+' estudantes aguardam cartão; nenhum zero será lançado por ausência de cartão.','gb-help'));
+      const simulado=source.schema==='malu-simulado-enem-2b-v1';
+      content.replaceChildren(node('h3',proposal.activityName+' · 2ª série B · EFG'),
+        node('p','Arquivo privado: '+proposal.matched+' estudantes identificados com segurança · 2 disciplinas · '+proposal.entries.length+' notas verificadas.','gb-help'),
+        node('p',simulado
+          ? proposal.pendingReview.length+' estudantes aguardam conferência do nome. As respectivas notas não serão importadas neste lote.'
+          : proposal.pending.length+' estudantes aguardam cartão; nenhum zero será lançado por ausência de cartão.','gb-help'));
+      if(simulado && proposal.pendingReview.length){
+        const review=node('details',null,'gb-calculation');
+        review.append(node('summary','Nomes pendentes de conferência ('+proposal.pendingReview.length+')'));
+        for(const item of proposal.pendingReview)review.append(node('p',item.nomeNaPlanilha,'gb-help'));
+        content.append(review);
+      }
       if(proposal.issues.length){
         const problems=node('div',null,'gb-error');
         problems.append(node('p','Importação interrompida: resolva as divergências abaixo. Nenhuma nota foi alterada.'));
@@ -279,11 +288,11 @@
       }
       content.append(node('p',proposal.toSave+' notas novas · '+proposal.alreadySaved+' já conferidas no aplicativo. Registros anteriores de outras avaliações serão preservados.','gb-help'));
       if(proposal.courses['Geografia']?.createCourse) {
-        content.append(node('p','Geografia ainda não está cadastrada: será criado um diário separado da 2ª B · EFG apenas para os estudantes identificados. Nenhuma nota anterior será alterada.','gb-help'));
+        content.append(node('p','Geografia ainda não está cadastrada: será criado um diário separado da 2ª B · EFG apenas com os estudantes da lista conferida. Nenhuma nota anterior será alterada.','gb-help'));
       }
       content.append(button('Confirmar importação de '+proposal.toSave+' notas',async()=>{
         if(!window.MaluGradebookCloud?.canImport?.()){message('Conecte a conta Google e atualize os dados antes de continuar.',true);return;}
-        if(!confirm('Aplicar '+proposal.toSave+' notas da Avaliação Bloco II nas turmas 2ª B de História e Geografia? As notas existentes diferentes não serão substituídas.'))return;
+        if(!confirm('Aplicar '+proposal.toSave+' notas de '+proposal.activityName+' na 2ª B, História e Geografia? As notas com nomes pendentes e notas existentes diferentes não serão substituídas.'))return;
         try{
           await window.MaluGradebookCloud.refresh();
           const latest=P.plan(source,data);
@@ -293,7 +302,7 @@
           try{
             await window.MaluGradebookCloud.waitForSync();
             selected=latest.courses['História'].turmaId;view='notes';refreshClasses();render();
-            message('Bloco II: 28 estudantes conferidos, História e Geografia. Sincronização com a nuvem confirmada.');
+            message(proposal.activityName+': '+proposal.matched+' estudantes conferidos em História e Geografia. Sincronização com a nuvem confirmada. '+proposal.pendingReview.length+' estudantes permanecem pendentes de identificação.');
           }catch(syncError){
             selected=latest.courses['História'].turmaId;view='notes';refreshClasses();render();
             message('As notas foram salvas neste aparelho, mas a nuvem ainda não confirmou o envio: '+syncError.message,true);
