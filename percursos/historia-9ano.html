@@ -69,7 +69,7 @@ if(!bank||!Array.isArray(bank.weeks)||bank.weeks.length!==6){$('content').textCo
 try{var old=JSON.parse(localStorage.getItem(storeKey)||'{}');if(old&&old.records&&typeof old.records==='object')state.records=old.records;if(Number.isInteger(old.week)&&old.week>=0&&old.week<6)state.week=old.week}catch(e){}
 function record(id){if(!state.records[id]||typeof state.records[id]!=='object')state.records[id]={answers:[],writing:'',graded:false};return state.records[id]}
 function save(){try{localStorage.setItem(storeKey,JSON.stringify(state));return true}catch(e){return false}}
-function complete(lesson){var r=record(lesson.id);return r.answers&&r.answers.length===4&&r.answers.every(Number.isInteger)&&String(r.writing||'').trim().length>=20}
+function complete(lesson){var r=record(lesson.id);return r.answers&&r.answers.length===4&&lesson.questions.every(function(_,i){return Number.isInteger(r.answers[i])})&&String(r.writing||'').trim().length>=20}
 function nav(){
  var root=$('weeks');root.replaceChildren();var done=0;
  bank.weeks.forEach(function(w,i){
@@ -100,7 +100,7 @@ function render(){
   var fb=create('div','feedback');fb.id='fb'+i;fb.setAttribute('role','status');f.appendChild(fb);qSec.appendChild(f)
  });
  var actions=create('div','actions');var check=create('button','btn primary','Conferir respostas');check.type='button';check.onclick=function(){
-  if(!r.answers||r.answers.length!==4||!r.answers.every(Number.isInteger)){$('scorestatus').textContent='Responda às quatro questões antes de conferir.';return}
+  if(!r.answers||r.answers.length!==4||!w.questions.every(function(_,i){return Number.isInteger(r.answers[i])})){$('scorestatus').textContent='Responda às quatro questões antes de conferir.';return}
   r.graded=true;save();feedback(true);nav()
  };
  actions.appendChild(check);var status=create('span','status');status.id='scorestatus';status.setAttribute('role','status');actions.appendChild(status);qSec.appendChild(actions);root.appendChild(qSec);
