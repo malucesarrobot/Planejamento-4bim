@@ -61,14 +61,14 @@
       ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
       ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
       "$classId": {
-        ".validate": "$classId.matches(/^9[abc]$/) && newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+        ".validate": "$classId.matches(/^9[abc]$/) && newData.isString() && newData.val().matches(/^(n9_[a-f0-9]{32}|[a-f0-9]{32})$/)"
       }
     },
     "ninthClasses": {
       ".read": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
       ".write": "auth != null && auth.token.email != null && (auth.token.email === 'malu.cesar@gmail.com' || auth.token.email === 'prof.malufc@gmail.com' || auth.token.email === 'patriciacunhaoliveira39@gmail.com')",
       "$classToken": {
-        ".validate": "$classToken.matches(/^[a-f0-9]{32}$/)",
+        ".validate": "$classToken.matches(/^(n9_[a-f0-9]{32}|[a-f0-9]{32})$/)",
         "config": {
           ".read": "auth != null && auth.token.firebase.sign_in_provider === 'anonymous' && $classToken.matches(/^[a-f0-9]{32}$/)",
           ".validate": "newData.hasChildren(['label','code'])",
