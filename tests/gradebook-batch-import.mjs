@@ -8,8 +8,8 @@ const records=Array.from({length:28},(_,i)=>({
 const original={
   version:1,year:2026,bimestre:4,
   turmas:{
-    h:{id:'h',serie:'2',letra:'B',nome:'2ª série B',unidade:'CEPI Marajó',disciplina:'História'},
-    g:{id:'g',serie:'2',letra:'B',nome:'2ª série B',unidade:'CEPI Marajó',disciplina:'Geografia'}
+    h:{id:'h',serie:'2',letra:'AB',nome:'2º AB',unidade:'EFG',disciplina:'História'},
+    g:{id:'g',serie:'2',letra:'AB',nome:'2º AB',unidade:'EFG',disciplina:'Geografia'}
   },
   alunos:Object.fromEntries(records.flatMap((r,i)=>[['h'+i,{id:'h'+i,turmaId:'h',nome:r.nome,ativo:true}],['g'+i,{id:'g'+i,turmaId:'g',nome:r.nome,ativo:true}]])),
   activities:[{id:'outra',turmaId:'h',nome:'Outra atividade',tipo:'Avaliação',data:'2026-10-20',valorMax:10,peso:1,checklist:false,extra:false}],
@@ -23,6 +23,14 @@ let planned=helper.plan(source,original);
 assert.equal(planned.issues.length,0,planned.issues.join('; '));
 assert.equal(planned.toSave,56);
 assert.equal(planned.entries.length,56);
+const missing=structuredClone(original);
+delete missing.alunos.h0;
+assert.ok(helper.plan(source,missing).issues.some(x=>x.includes('27/28 nomes encontrados')),
+  'Não deve importar para um diário com nome ausente');
+const mistakenSchool=structuredClone(original);
+mistakenSchool.turmas.h.unidade='CEPI Marajó';
+assert.ok(helper.plan(source,mistakenSchool).issues.some(x=>x.includes('Nenhum diário')),
+  'Não deve importar a nota da EFG no CEPI Marajó');
 const data=structuredClone(original);
 helper.apply(source,data);
 const history=data.activities.find(a=>a.turmaId==='h'&&a.nome==='Avaliação Bloco II');
