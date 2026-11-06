@@ -18,5 +18,6 @@
   window.MaluPublishedContent = Object.freeze({clone: function () {const t=document.createElement("template");t.innerHTML=content.html;identifyNotebooks(t.content);return t.content;}});
   main.innerHTML = content.html;
   identifyNotebooks(main);
+  window.MaluChecklistPrimeiraSerie?.render(main);
   delete window.PlannerContent;
 })();
