@@ -3,6 +3,8 @@
   function result(activities, scores, mode='ponderada') {
     let sum=0,max=0,weighted=0,weights=0,bonus=0;
     for(const a of activities){
+      // Execução de caderno/livro é acompanhamento, nunca componente da média.
+      if(a.registroExecucao)continue;
       const raw=scores[a.id];
       // Conferência do caderno: campos ainda não corrigidos não reduzem a média.
       if(a.rascunho && (raw===undefined||raw===null))continue;
