@@ -7,7 +7,7 @@
   const sets=[
     {serie:2,school:'EFG',subject:'História',book:'Livro didático',tasks:[
       {key:'hist-textos1e2',weeks:[1,2],name:'Caderno · Crise do Império, abolição e Primeira República',
-       work:'Textos unificados das semanas 1 e 2; quadro histórico, três questões e debate sobre pós-abolição.',pages:['236–241','239','273–274']},
+       work:'Textos unificados das semanas 1 e 2; quadro histórico, três questões e debate sobre pós-abolição.',pages:['236–241','273–274']},
       {key:'hist-republica3',weeks:[3],name:'Caderno · Primeira República: oligarquias, voto e coronelismo',
        work:'Texto, quadro dos mecanismos políticos e três questões.',pages:['274–276']},
       {key:'hist-revoltas4',weeks:[4],name:'Caderno · República contestada e movimentos populares',
@@ -15,7 +15,7 @@
       {key:'hist-crise5',weeks:[5],name:'Caderno · Tenentismo e crise oligárquica',
        work:'Texto, esquema dos acontecimentos e três questões.',pages:['277','287']},
       {key:'hist-vargas6',weeks:[6],name:'Caderno · Era Vargas: Estado, trabalho e autoritarismo',
-       work:'Texto, quadro das fases do período, perguntas e debate.',pages:['288–289','294–296']},
+       work:'Texto, quadro das fases do período, perguntas e debate.',pages:['288–289','295']},
       {key:'hist-pesquisa-guerras',weeks:[6],name:'Pesquisa · Guerras brasileiras',
        work:'Pesquisa orientada sobre conflitos e guerras na história do Brasil: contexto, sujeitos, consequências e fontes; incluir QR code de acesso à orientação quando disponível.',pages:[]}
     ]},
@@ -81,7 +81,7 @@
       {key:'soc-proposta6',weeks:[6],name:'Caderno · Diagnóstico e proposta para a comunidade',
        work:'Síntese e proposta coletiva sobre questão da comunidade escolar.',pages:[]}
     ]},
-    {serie:9,school:'CEPI',subject:'História',book:'Revisa Goiás',tasks:[
+    {serie:9,school:'CEPI',subject:'História',book:'Revisa Goiás (material de referência 2025)',tasks:[
       {key:'hist-textos1e2',weeks:[1,2],name:'Caderno · Redemocratização, Constituição e Nova República',
        work:'Textos unificados das semanas 1 e 2; linha do tempo e três questões.',pages:['10–13']},
       {key:'hist-guerra3',weeks:[3],name:'Caderno · Guerra Fria: bipolaridade e conflitos',
@@ -152,7 +152,7 @@
         box.append(heading,list);
         const pages=[...new Set(tasks.flatMap(t=>t.pages))];
         const p=document.createElement('p');p.className='malu-checklist-paginas';
-        p.textContent=pages.length?set.book+' — páginas: '+pages.map(v=>'p. '+v).join(' · '):set.book+' — sem páginas adicionais confirmadas neste checklist';
+        p.textContent=pages.length?set.book+' — páginas: '+pages.join(' · '):set.book+' — sem páginas adicionais confirmadas neste checklist';
         box.append(p);
         const plan=card.querySelector('.plan-grid');if(plan)card.insertBefore(box,plan);else card.append(box);
       }
