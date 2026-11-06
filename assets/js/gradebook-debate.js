@@ -74,7 +74,7 @@
     if(!d?.activities||!d?.scores||!d?.alunos)return {updated:0};
     // Primeiro História: caso uma nota antiga tenha sido lançada apenas nessa disciplina.
     const ordered=d.activities.filter(a=>isDebate(d,a)).sort((a,b)=>{
-      const rank=t=>['HISTORIA','FILOSOFIA','SOCIOLOGIA'].indexOf(norm(d.turmas[a===t?a.turmaId:t.turmaId]?.disciplina));
+      const rank=t=>['HISTORIA','FILOSOFIA','SOCIOLOGIA'].indexOf(norm(d.turmas[t.turmaId]?.disciplina));
       return rank(a)-rank(b);
     });
     for(const a of ordered)for(const p of Object.values(d.alunos)){
