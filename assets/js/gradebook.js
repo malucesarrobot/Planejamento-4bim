@@ -2,7 +2,7 @@
   'use strict';
   await import('./gradebook-bulletin-core.js?v=20261021boletim');
   await import('./gradebook-batch-import.js?v=20261104enem2b');
-  const B=window.MaluBulletinCore, P=window.MaluBlocoImport, CL=window.MaluChecklistPrimeiraSerie;
+  const B=window.MaluBulletinCore, P=window.MaluBlocoImport, CL=window.MaluChecklistPrimeiraSerie, OC=window.MaluChecklistOutrasTurmas;
   const C=window.MaluGradebookCore, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
   let data=empty(),broken=false,selected='',view='notes',reportStudentId='';
@@ -36,7 +36,7 @@
   });refreshList.setAttribute('aria-label','Atualizar notas e atividades da nuvem');refreshList.title='Atualizar notas e atividades da nuvem';
   controls.append(select,pupilsMenu,refreshList);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
-  settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
+  settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
   info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudInfo,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
@@ -120,7 +120,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero, exceto conferências de caderno ainda não avaliadas. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Atividade sem nota vale zero, exceto conferências de caderno ainda não avaliadas. Extras somam bônus, até 10.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
@@ -405,9 +405,34 @@
       message(result.added+' atividades da 1ª série sincronizadas. Nenhuma nota anterior foi alterada; os novos campos estão vazios.');
     }catch(e){message('Não foi possível confirmar a sincronização: '+e.message,true);}
   }
+  async function syncChecklistOther(){
+    if(!OC){message('Checklists não carregados; atualize a página.',true);return;}
+    if(!window.MaluGradebookCloud?.canImport?.()){
+      const proposed=OC.plan(data);
+      message('Entre com Google e aguarde “Salvo na nuvem” para sincronizar. '+proposed.toAdd.length+
+        ' campos novos aguardam cadastro; todas as notas anteriores serão preservadas.',true);
+      return;
+    }
+    try{
+      if(!await flushEditors())return;
+      await writes;
+      await window.MaluGradebookCloud.refresh();
+      const proposed=OC.plan(data);
+      if(!proposed.classes){message('Nenhuma turma da 2ª, 3ª série ou 9º ano foi localizada no cadastro. Confira o Leciona.',true);return;}
+      if(!proposed.toAdd.length){message('Todos os campos das outras turmas já estão cadastrados. '+proposed.existing+
+        ' atividades preservadas.');refreshClasses();render();return;}
+      let result;
+      const ok=await update(next=>{result=OC.apply(next);});
+      if(!ok)return;
+      await window.MaluGradebookCloud.waitForSync();
+      refreshClasses();render();
+      message(result.added+' campos novos de História, Filosofia e Sociologia sincronizados nas turmas existentes.'+
+        ' As notas anteriores foram preservadas; campos novos vazios até a conferência dos cadernos.');
+    }catch(e){message('Sincronização não confirmada: '+e.message,true);}
+  }
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
   if(!broken&&(data.activities.some(a=>removedActivityIds.has(a.id))||Object.values(data.scores).some(scores=>[...removedActivityIds].some(id=>Object.hasOwn(scores,id)))))await update(removeRequestedActivities);
-  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next),seeded=CL?.apply(next)||{added:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed||seeded.added)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed||seeded.added||seededOthers.added)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
   function applyRemoteView(){
     // Buttons and the dialog itself are not editors: ranking must repaint on every snapshot.
     // Keep draft forms and focused fields intact until editing ends.
