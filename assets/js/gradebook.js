@@ -3,7 +3,7 @@
   await import('./gradebook-bulletin-core.js?v=20261021boletim');
   await import('./gradebook-batch-import.js?v=20261104enem2b');
   const B=window.MaluBulletinCore, P=window.MaluBlocoImport, CL=window.MaluChecklistPrimeiraSerie, OC=window.MaluChecklistOutrasTurmas;
-  const C=window.MaluGradebookCore, key='malu-gradebook-2026-b4-v1';
+  const C=window.MaluGradebookCore, D=window.MaluDebateGrades, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
   let data=empty(),broken=false,selected='',view='notes',reportStudentId='';
   try{const saved=await window.MaluGradebookStorage.read(key);if(saved){data=JSON.parse(saved);if(data.version!==1||data.bimestre!==4||!Array.isArray(data.activities)||!data.turmas||!data.alunos||!data.scores||!data.attendance||!data.mediaModo)throw Error();}}
@@ -146,6 +146,8 @@
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
     const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Caderno e páginas do livro são registros de execução e não entram na média. Pesquisas e projetos aguardam nota para entrar no cálculo; outras atividades preservam as regras originais.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
+    if(Number.parseInt(data.turmas[selected]?.serie||data.turmas[selected]?.nome,10)===3&&avs.some(a=>D?.isDebate(data,a)))
+      content.append(node('p','Ciclo de debates: a nota é compartilhada entre História, Filosofia e Sociologia da turma. Notas pré-existentes divergentes são preservadas para conferência.','gb-help'));
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
     const list=node('div',null,'gb-activities');
@@ -170,7 +172,25 @@
         input.type=(a.checklist||a.registroExecucao)?'checkbox':'number';if(a.checklist||a.registroExecucao)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step='0.01';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
         input.addEventListener((a.checklist||a.registroExecucao)?'change':'input',async()=>{const raw=(a.checklist||a.registroExecucao)?(input.checked?1:0):(input.value===''?null:Number(input.value));
           if(raw!==null&&(!Number.isFinite(raw)||raw<0||(!a.checklist&&raw>a.valorMax))){input.setCustomValidity('Digite uma pontuação entre 0 e '+a.valorMax+'.');input.reportValidity();return;}input.setCustomValidity('');
-          const ok=await update(d=>{d.scores[student.id]??={};if(raw===null)delete d.scores[student.id][a.id];else d.scores[student.id][a.id]=raw;});if(ok)paint();else{const old=data.scores[student.id]?.[a.id];if(a.checklist||a.registroExecucao)input.checked=Number(old)>0;else input.value=old==null?'':String(old);}});cell.append(input);row.append(cell);
+          let debateResult=null;
+          const isDebate=D?.isDebate(data,a);
+          const ok=await update(d=>{
+            const previous=d.scores[student.id]?.[a.id];
+            d.scores[student.id]??={};
+            if(raw===null)delete d.scores[student.id][a.id];else d.scores[student.id][a.id]=raw;
+            if(isDebate)debateResult=D.propagate(d,a.id,student.id,raw,{previous});
+          });
+          if(ok){
+            paint();
+            if(isDebate&&debateResult){
+              const unresolved=[...debateResult.conflicts,...debateResult.missing];
+              if(unresolved.length)message('Debate registrado. Vinculadas: '+debateResult.updated.length+' disciplinas. Conferir: '+unresolved.join('; ')+'.',true);
+              else message('Nota do debate compartilhada entre História, Filosofia e Sociologia.');
+            }
+          }else{
+            const old=data.scores[student.id]?.[a.id];
+            if(a.checklist||a.registroExecucao)input.checked=Number(old)>0;else input.value=old==null?'':String(old);
+          }});cell.append(input);row.append(cell);
       }row.append(...totalCells);paint();table.append(row);
     }wrap.append(table);content.append(wrap);
   }
@@ -466,7 +486,7 @@
   }
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
   if(!broken&&(data.activities.some(a=>removedActivityIds.has(a.id))||Object.values(data.scores).some(scores=>[...removedActivityIds].some(id=>Object.hasOwn(scores,id)))))await update(removeRequestedActivities);
-  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed||seeded.added||seeded.updated||seededOthers.added||seededOthers.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0},debates=D?.backfill(next)||{updated:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed||seeded.added||seeded.updated||seededOthers.added||seededOthers.updated||debates.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
   function applyRemoteView(){
     // Buttons and the dialog itself are not editors: ranking must repaint on every snapshot.
     // Keep draft forms and focused fields intact until editing ends.
