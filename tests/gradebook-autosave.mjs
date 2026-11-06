@@ -12,7 +12,9 @@ try{
   await page.addInitScript(seed=>{localStorage.setItem('malu-gradebook-2026-b4-v1',JSON.stringify(seed));localStorage.setItem('malu-gradebook-2026-b4-v1-class','t');},seed);
   await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('body.ux-ready');
   const open=async()=>{await page.locator('#navTools>summary').click();await page.getByRole('button',{name:'Notas e atividades',exact:true}).click();await page.getByRole('combobox',{name:'Turma, escola e disciplina'}).selectOption('t');};
-  await open();assert.equal(await page.locator('#gradebook > .gb-info').isVisible(),true);
+  await open();assert.equal(await page.locator('#gradebook .gb-cloud-row > .gb-info').isVisible(),true);
+  assert.equal(await page.getByRole('button',{name:'Recarregar conexão Google e notas'}).isVisible(),true);
+  assert.equal(await page.getByRole('button',{name:'Entrar novamente com Google'}).isVisible(),true);
   await page.locator('input[data-gb-activity="a"]').fill('7.5');
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('malu-gradebook-2026-b4-v1')).scores.p?.a===7.5);
   await page.getByRole('button',{name:'Pontos extras',exact:true}).click();
