@@ -15,9 +15,10 @@
     }
   }
   // Retain the published source for clean sharing, before restoring any personal state.
-  window.MaluPublishedContent = Object.freeze({clone: function () {const t=document.createElement("template");t.innerHTML=content.html;identifyNotebooks(t.content);window.MaluChecklistPrimeiraSerie?.render(t.content);return t.content;}});
+  window.MaluPublishedContent = Object.freeze({clone: function () {const t=document.createElement("template");t.innerHTML=content.html;identifyNotebooks(t.content);window.MaluChecklistPrimeiraSerie?.render(t.content);window.MaluChecklistOutrasTurmas?.render(t.content);return t.content;}});
   main.innerHTML = content.html;
   identifyNotebooks(main);
   window.MaluChecklistPrimeiraSerie?.render(main);
+  window.MaluChecklistOutrasTurmas?.render(main);
   delete window.PlannerContent;
 })();
