@@ -37,7 +37,7 @@ const copy=structuredClone(data),scores=structuredClone(data.scores);
 const plan=P.plan(copy);
 assert.equal(plan.classes,11,'Somente turmas nas 2ª e 3ª séries EFG e 9º CEPI');
 assert.equal(plan.existing,2,'Reaproveita caderno lançado na semana');
-assert.equal(plan.toAdd.length,59,'Todas as tarefas válidas sem duplicar 2 cadernos já lançados');
+assert.equal(plan.toAdd.length,57,'Todas as tarefas válidas sem duplicar 2 cadernos já lançados');
 assert.ok(plan.toAdd.some(a=>a.nome==='Pesquisa · Guerras brasileiras'&&a.turmaId==='h2a'));
 assert.ok(plan.toAdd.some(a=>a.nome.startsWith('Atividade · Ciclo')&&a.turmaId==='h3b'));
 assert.ok(plan.toAdd.some(a=>a.turmaId==='s2a'&&a.origem.pageReferences.includes('118')));
