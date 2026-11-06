@@ -59,3 +59,11 @@
 /* Mantém a identificação das atividades visível ao percorrer as notas. */
 .gb-table-wrap .gb-column-head>th{position:sticky;top:0;z-index:2;background:#ebe2f3;box-shadow:0 1px 0 #c9bdd5}
 .gb-table-wrap .gb-column-head>th:first-child{left:0;z-index:3}
+
+/* Controles de reconexão sempre visíveis, inclusive no celular. */
+.gb-cloud-row{display:flex;align-items:center;gap:6px;min-width:0;margin-top:6px}
+.gb-cloud-row .gb-info{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;margin:0}
+.gb-dialog .gb-cloud-row>button{flex:0 0 auto;min-height:34px;padding:5px 9px;font-size:.78rem;font-weight:700;border-radius:9px;line-height:1.1}
+.gb-dialog .gb-cloud-row>.gb-cloud-reload{min-width:36px;font-size:1.12rem}
+.gb-dialog .gb-cloud-row>.gb-cloud-relogin{font-size:.72rem}
+.gb-dialog .gb-cloud-row>button:focus-visible{outline:3px solid #b7833f;outline-offset:2px}
