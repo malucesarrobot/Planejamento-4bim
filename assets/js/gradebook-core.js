@@ -3,7 +3,10 @@
   function result(activities, scores, mode='ponderada') {
     let sum=0,max=0,weighted=0,weights=0,bonus=0;
     for(const a of activities){
-      const raw=scores[a.id], value=raw==null?0:Number(raw);
+      const raw=scores[a.id];
+      // Conferência do caderno: campos ainda não corrigidos não reduzem a média.
+      if(a.rascunho && (raw===undefined||raw===null))continue;
+      const value=raw==null?0:Number(raw);
       if(!Number.isFinite(value)||value<0||(!a.checklist&&value>a.valorMax))throw Error('Pontuação fora do intervalo da atividade.');
       if(a.extra){bonus+=a.checklist?(value>0?a.peso:0):value;continue;}
       const points=a.checklist?(value>0?a.valorMax:0):value;
