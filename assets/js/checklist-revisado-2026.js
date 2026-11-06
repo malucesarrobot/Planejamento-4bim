@@ -62,14 +62,14 @@
       'Colonialidade e natureza: território e crítica de Krenak',
       'Achille Mbembe',
       'Sociedade e natureza: modelos socioeconômicos e limites éticos'
-    ]},
+    ],project:{title:'Projeto · Ciclo de debates',description:'Avaliação integrada: a mesma nota vale para História, Filosofia e Sociologia da turma.',url:'https://www.google.com/search?q=como+preparar+argumentos+para+debate+escolar+fontes+confi%C3%A1veis'}},
     {serie:3,subject:'Sociologia',pages:['281','293'],topics:[
       'Cidadania, direitos humanos e enfrentamento do racismo',
       'Gênero, identidade e reconhecimento',
       'Povos indígenas e território',
       'Movimentos sociais contemporâneos',
       'Direitos humanos na escola e na comunidade'
-    ]}
+    ],project:{title:'Projeto · Ciclo de debates',description:'Avaliação integrada: a mesma nota vale para História, Filosofia e Sociologia da turma.',url:'https://www.google.com/search?q=como+preparar+argumentos+para+debate+escolar+fontes+confi%C3%A1veis'}}
   ];
   const weeks=[[1,2],[3],[4],[5],[6]];
   const periodLabels=['S1+2','S3','S4','S5','S6'];
@@ -91,7 +91,7 @@
     });
     if(group.project){
       const oldProject=(old?.tasks||[]).find(t=>/^(Pesquisa|Atividade · Ciclo)/i.test(t.name));
-      tasks.push({key:'project',kind:'assessment',weeks:[6],label:'Projeto / pesquisa',
+      tasks.push({key:'project',kind:'assessment',weeks:[6],label:group.serie===3?'Projeto integrado / debate':'Projeto / pesquisa',
         title:group.project.title,name:group.project.title,description:group.project.description,url:group.project.url,
         aliases:[oldProject?.key].filter(Boolean),legacyNames:[oldProject?.name].filter(Boolean)});
     }
@@ -118,7 +118,8 @@
   function origin(g,e,old){
     return {...(old||{}),weekId:weekId(g,e),title:e.title,
       panel:'notebook',kind:'unit',checklistKey:e.key,
-      pageReferences:g.pages.slice(),...(e.url?{url:e.url}:{})};
+      pageReferences:g.pages.slice(),...(e.url?{url:e.url}:{}),
+      ...(g.serie===3&&e.key==='project'?{sharedAssessment:'ciclo-debates-s3'}:{})};
   }
   function entryId(g,t,e){
     return 'checklist-b4-2026-'+t.id+'-s'+g.serie+'-'+slug[g.subject]+'-'+e.key;
