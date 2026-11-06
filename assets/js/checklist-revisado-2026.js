@@ -108,6 +108,7 @@
     const known=[e.key,...e.aliases];
     const key=a.origem?.checklistKey;
     if(key&&known.includes(key))return true;
+    if(e.kind==='assessment'&&normalize(e.title)==='PROJETO CICLO DE DEBATES'&&title.includes('CICLO DE DEBATES'))return true;
     return [e.name,e.title,...e.legacyNames].some(value=>normalize(value)===title);
   }
   function recorded(data,id){
