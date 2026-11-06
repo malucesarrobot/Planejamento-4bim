@@ -26,6 +26,27 @@
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
   const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');cloudInfo.tabIndex=0;cloudInfo.title='Toque para conectar ou trocar a conta Google';cloudInfo.addEventListener('click',()=>window.MaluGradebookCloud?.login());cloudInfo.addEventListener('keydown',e=>{if(e.key==='Enter')window.MaluGradebookCloud?.login();});
   const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
+  // Controles pequenos sempre visíveis junto ao estado da nuvem.
+  const cloudRow=node('div',null,'gb-cloud-row');
+  const cloudReload=button('↻',async()=>{
+    cloudReload.disabled=true;
+    try{
+      if(!await flushEditors())return;
+      await writes;
+      const ok=await window.MaluGradebookCloud?.reconnect();
+      if(ok){refreshClasses();render();message('Conexão com o Google atualizada. Notas recebidas da nuvem.');}
+      else message('Não foi possível recarregar. Toque em Google para entrar novamente.',true);
+    }catch(e){message('Não foi possível recarregar: '+e.message,true);}
+    finally{cloudReload.disabled=false;}
+  });
+  cloudReload.className='gb-cloud-reload';
+  cloudReload.title='Recarregar a conexão e as notas do Google';
+  cloudReload.setAttribute('aria-label','Recarregar conexão Google e notas');
+  const cloudRelog=button('Google',()=>window.MaluGradebookCloud?.login());
+  cloudRelog.className='gb-cloud-relogin';
+  cloudRelog.title='Entrar novamente ou trocar a conta Google';
+  cloudRelog.setAttribute('aria-label','Entrar novamente com Google');
+  cloudRow.append(cloudInfo,cloudReload,cloudRelog);
   const bulletinFile=node('input');bulletinFile.type='file';bulletinFile.accept='.json,application/json';bulletinFile.hidden=true;
   const blockFile=node('input');blockFile.type='file';blockFile.accept='.json,application/json';blockFile.hidden=true;
   const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
@@ -38,7 +59,7 @@
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
   settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
-  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudInfo,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
+  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudRow,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
