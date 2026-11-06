@@ -106,7 +106,8 @@
     const sameTitle=normalize(a.nome)===normalize(entry.name);
     const sameKey=a.origem?.checklistKey===entry.key;
     // Registro anterior explicitamente associado ao mesmo caderno da semana.
-    const sameNotebook=a.origem?.weekId===weekId(s,entry.weeks[0]) &&
+    const isSpecial=/^(Pesquisa|Atividade · Ciclo)/i.test(entry.name);
+    const sameNotebook=!isSpecial && a.origem?.weekId===weekId(s,entry.weeks[0]) &&
       (a.origem?.kind==='book'||a.origem?.panel==='notebook') &&
       /CADERNO|TEXTO UNIFICADO|ATIVIDADE DO LIVRO|PESQUISA/.test(normalize(a.nome));
     return sameTitle||sameKey||sameNotebook;
