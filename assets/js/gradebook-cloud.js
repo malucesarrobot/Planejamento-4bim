@@ -42,7 +42,50 @@
       });
     }catch(e){status('Não foi possível iniciar a nuvem: '+e.message,true);}
   }
-  async function login(){if(!auth){status('Atualize a página para carregar a conexão com Google.',true);return;}try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}catch(e){if(e.code==='auth/popup-closed-by-user'&&auth.currentUser){status('Conta conectada · '+auth.currentUser.email);return;}status(e.code==='auth/popup-closed-by-user'?'A janela do Google foi fechada. Toque em Entrar com Google para tentar novamente.':'Login não concluído: '+e.message,true);}}
+  function googleProvider(){
+    const provider=new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({prompt:'select_account'});
+    return provider;
+  }
+  async function login(){
+    if(!auth){status('Conexão Google indisponível. Recarregue a página.',true);return false;}
+    try{
+      status('Abrindo identificação do Google…');
+      await auth.signInWithPopup(googleProvider());
+      return true;
+    }catch(e){
+      if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){
+        try{
+          status('Abrindo o login do Google nesta aba…');
+          await auth.signInWithRedirect(googleProvider());
+          return true;
+        }catch(redirectError){
+          status('Login não iniciado: '+redirectError.message+'. Abra no Chrome e tente novamente.',true);
+          return false;
+        }
+      }
+      if(e.code==='auth/popup-closed-by-user'){
+        status('A janela de login foi fechada. Use o botão Google para tentar novamente.',true);
+        return false;
+      }
+      status('Login Google não concluído: '+e.message,true);
+      return false;
+    }
+  }
+  async function reconnect(){
+    if(!auth?.currentUser){
+      status('Sua sessão Google está desconectada. Toque em Google para entrar.',true);
+      return false;
+    }
+    try{
+      if(typeof auth.currentUser.getIdToken==='function')await auth.currentUser.getIdToken(true);
+      await refresh();
+      return true;
+    }catch(e){
+      status('Não foi possível atualizar a conexão: '+e.message+'. Toque em Google para autenticar novamente.',true);
+      return false;
+    }
+  }
   async function refresh(){
     await queueLoaded;
     if(!auth?.currentUser||!ready)throw Error('Entre com Google e aguarde o carregamento das turmas.');
@@ -69,6 +112,6 @@
     }
     throw Error('O envio permanece pendente; confira o indicador de sincronização.');
   }
-  window.MaluGradebookCloud={start,save,login,refresh,importSource,diff,wire,unwire,canImport,waitForSync};
+  window.MaluGradebookCloud={start,save,login,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync};
 })();
 
