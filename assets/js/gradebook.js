@@ -154,12 +154,29 @@
     for(const a of avs){const row=node('div');
       const description=a.registroExecucao?' · Execução (sem nota na média)':(' · '+a.tipo+' · máximo '+fmt(a.valorMax)+(a.extra?' · bônus':'')+' · peso '+fmt(a.peso));
       row.append(node('span',a.nome+description),button('Editar',()=>activityForm(a)),button('Excluir',async()=>{
-        if(Object.values(data.scores||{}).some(scores=>scores&&Object.prototype.hasOwnProperty.call(scores,a.id)&&scores[a.id]!=null)){
-          message('Atividade com registro de estudante: não é possível excluir nem apagar suas notas.',true);return;
+        const isMark=a.checklist||a.registroExecucao;
+        const hasProtectedValue=scores=>Object.values(scores||{}).some(studentScores=>{
+          if(!studentScores||!Object.prototype.hasOwnProperty.call(studentScores,a.id))return false;
+          const value=studentScores[a.id];
+          return value!=null&&(!isMark||Number(value)!==0);
+        });
+        if(hasProtectedValue(data.scores)){
+          message('Não é possível excluir: há notas ou marcações concluídas. Consolide primeiro os registros dos estudantes.',true);return;
         }
-        if(!confirm('Excluir apenas esta atividade sem registro de estudantes?'))return;
-        await update(d=>{if(Object.values(d.scores||{}).some(scores=>scores&&scores[a.id]!=null))throw Error('Há notas vinculadas a esta atividade.');
-          d.activities=d.activities.filter(x=>x.id!==a.id);});render();
+        if(!confirm('Excluir esta atividade? Marcações desmarcadas serão removidas. Notas e marcações concluídas permanecem protegidas.'))return;
+        await update(d=>{
+          const current=d.activities.find(x=>x.id===a.id),currentIsMark=current&&(current.checklist||current.registroExecucao);
+          const protectedRecords=Object.values(d.scores||{}).some(studentScores=>{
+            if(!studentScores||!Object.prototype.hasOwnProperty.call(studentScores,a.id))return false;
+            const value=studentScores[a.id];
+            return value!=null&&(!currentIsMark||Number(value)!==0);
+          });
+          if(protectedRecords)throw Error('Há notas ou marcações concluídas vinculadas a esta atividade.');
+          if(currentIsMark)for(const studentScores of Object.values(d.scores||{})){
+            if(studentScores&&Object.prototype.hasOwnProperty.call(studentScores,a.id)&&studentScores[a.id]!=null&&Number(studentScores[a.id])===0)delete studentScores[a.id];
+          }
+          d.activities=d.activities.filter(x=>x.id!==a.id);
+        });render();
       }));list.append(row);}content.append(list);
     if(!als.length)return;
     const wrap=node('div',null,'gb-table-wrap'),table=node('table'),head=node('tr');
