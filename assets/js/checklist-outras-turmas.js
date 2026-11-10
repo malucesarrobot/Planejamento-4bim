@@ -75,8 +75,8 @@
     return sameTitle||sameKey||sameNotebook;
   }
   function plan(data){
-    if(!data?.turmas||!Array.isArray(data.activities))return {toAdd:[],toUpdate:[],existing:0,classes:0};
-    const toAdd=[],toUpdate=[];let existing=0,classes=0;
+    if(!data?.turmas||!Array.isArray(data.activities))return {toAdd:[],toUpdate:[],toRemove:[],existing:0,classes:0};
+    const toAdd=[],toUpdate=[],toRemove=[];let existing=0,classes=0;
     for(const turma of Object.values(data.turmas)){
       for(const set of sets){
         if(set.serie===9||!matches(turma,set))continue;
@@ -94,6 +94,13 @@
             turmaId:turma.id,bimestre:4,nome:entry.name,tipo:'Outra',data:'2026-11-06',valorMax:10,peso:1,checklist:false,extra:false,rascunho:true,
             origem:{weekId:weekId(set,entry.weeks[0]),title:entry.name,panel:'notebook',kind:'unit',checklistKey:entry.key,pageReferences:entry.pages.slice()}});
         }
+        if(set.serie===2&&turma.nome==='2ªA'&&turma.disciplina==='Filosofia'){
+          const accidentalTitle='Execução · Livro: páginas 13, 59, 65, 66 e 67';
+          for(const a of data.activities.filter(a=>a.turmaId===turma.id&&a.nome===accidentalTitle&&a.tipo==='Outra'&&a.data==='2026-11-06'&&!a.checklist&&!a.registroExecucao)){
+            const linked=Object.values(data.scores||{}).some(scores=>scores&&Object.prototype.hasOwnProperty.call(scores,a.id));
+            if(!linked)toRemove.push(a.id);
+          }
+        }
         if(set.pages.length){
           const title='Execução · Livro: páginas '+pageTitle(set.pages);
           for(const a of data.activities.filter(a=>a.turmaId===turma.id&&/^Execução · Livro: páginas/i.test(a.nome||'')))
@@ -101,18 +108,22 @@
         }
       }
     }
-    return {toAdd,toUpdate,existing,classes};
+    return {toAdd,toUpdate,toRemove,existing,classes};
   }
   function apply(data){
     const proposed=plan(data);
     for(const a of proposed.toAdd)data.activities.push(a);
+    for(const id of proposed.toRemove||[]){
+      const linked=Object.values(data.scores||{}).some(scores=>scores&&Object.prototype.hasOwnProperty.call(scores,id));
+      if(!linked)data.activities=data.activities.filter(a=>a.id!==id);
+    }
     for(const change of proposed.toUpdate){
       const current=data.activities.find(a=>a.id===change.id);
       if(!current)continue;
       if(change.nome)current.nome=change.nome;
       if(change.origem)current.origem={...(current.origem||{}),...change.origem};
     }
-    return {added:proposed.toAdd.length,updated:proposed.toUpdate.length,existing:proposed.existing,classes:proposed.classes};
+    return {added:proposed.toAdd.length,updated:proposed.toUpdate.length,removed:proposed.toRemove?.length||0,existing:proposed.existing,classes:proposed.classes};
   }
   function render(root=document){
     if(!root?.querySelector)return;
