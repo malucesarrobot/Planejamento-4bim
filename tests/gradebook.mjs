@@ -9,7 +9,7 @@ assert.equal(C.result(activities,{text:5,questions:5},'aritmetica').average,7.5)
 assert.equal(C.result(activities,{text:5},'ponderada').average,2.5);
 assert.equal(C.result(activities,{text:5,questions:5}).sum,10);
 assert.equal(C.result([...activities,{id:'bonus',extra:true,checklist:true,peso:.2,valorMax:1}],{text:5,questions:5,bonus:1}).average,6.45);
-assert.equal(C.result([{id:'check',checklist:true,valorMax:2,peso:1}],{check:1}).sum,2);
+assert.equal(C.result([{id:'check',tipo:'Avaliação',checklist:true,valorMax:2,peso:1}],{check:1}).sum,2);
 assert.equal(C.result([],{}).average,null);
 assert.throws(()=>C.result(activities,{text:6}));
 const current={turmas:{},alunos:{},mediaModo:{},activities:[{id:'new'}],scores:{p:{new:2}},attendance:{'t|2026-10-08|dia':{p:'P'}}};
@@ -74,3 +74,11 @@ assert.equal(JSON.stringify({scores:rosterEdits.scores,attendance:rosterEdits.at
 const studentPatch=JSON.parse(JSON.stringify(cloud.diff({...rosterEdits,alunos:{}},rosterEdits)));
 assert.equal(studentPatch['alunos/'+newId+'/nome'],'José Silva');assert.ok(studentPatch['alunos/'+newId+'/cadastroEditadoEm']);
 console.log('PASS add/edit/remove/restore pupils, duplicate prevention, preserved grades/attendance, manual edits surviving imports and cloud patches');
+
+const dailyActivities=Array.from({length:5},(_,i)=>({id:'daily'+i,registroExecucao:true,rascunho:true,valorMax:1,peso:1}));
+const dailyScores={daily0:1,daily1:1,daily2:1,daily3:1};
+assert.equal(C.result(dailyActivities,dailyScores).dailyGrade,8);
+assert.equal(C.result(dailyActivities,{}).average,0);
+const assessment={id:'exam',tipo:'Avaliação',valorMax:10,peso:2};
+assert.equal(C.result([...dailyActivities,assessment],{...dailyScores,exam:2},'aritmetica').average,5);
+assert.equal(C.result([...dailyActivities,assessment],{...dailyScores,exam:2},'ponderada').average,4);
