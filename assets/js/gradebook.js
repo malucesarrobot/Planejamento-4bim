@@ -144,7 +144,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','Caderno e páginas do livro são registros de execução e não entram na média. Pesquisas e projetos aguardam nota para entrar no cálculo; outras atividades preservam as regras originais.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','As atividades cotidianas por execução compõem uma única nota de 0 a 10, com peso 1 na média ponderada. Cada atividade tem o mesmo valor e as não entregues contam como zero. Pesquisas e projetos aguardam nota para entrar no cálculo; outras atividades preservam as regras originais.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(Number.parseInt(data.turmas[selected]?.serie||data.turmas[selected]?.nome,10)===3&&avs.some(a=>D?.isDebate(data,a)))
       content.append(node('p','Ciclo de debates: a nota é compartilhada entre História, Filosofia e Sociologia da turma. Notas pré-existentes divergentes são preservadas para conferência.','gb-help'));
@@ -152,7 +152,7 @@
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
     const list=node('div',null,'gb-activities');
     for(const a of avs){const row=node('div');
-      const description=a.registroExecucao?' · Execução (sem nota na média)':(' · '+a.tipo+' · máximo '+fmt(a.valorMax)+(a.extra?' · bônus':'')+' · peso '+fmt(a.peso));
+      const description=C.isDailyActivity(a)?' · Compõe a nota de atividades cotidianas':(' · '+a.tipo+' · máximo '+fmt(a.valorMax)+(a.extra?' · bônus':'')+' · peso '+fmt(a.peso));
       row.append(node('span',a.nome+description),button('Editar',()=>activityForm(a)),button('Excluir',async()=>{
         const isMark=a.checklist||a.registroExecucao;
         const hasProtectedValue=scores=>Object.values(scores||{}).some(studentScores=>{
@@ -180,11 +180,13 @@
       }));list.append(row);}content.append(list);
     if(!als.length)return;
     const wrap=node('div',null,'gb-table-wrap'),table=node('table'),head=node('tr');
-    head.className='gb-column-head';for(const text of ['Aluno',...avs.map(a=>a.nome),'Atividades','Bônus','Média / 10']){const cell=node('th',text);cell.scope='col';head.append(cell);}table.append(head);
+    const hasDaily=avs.some(C.isDailyActivity);
+    head.className='gb-column-head';for(const text of ['Aluno',...avs.map(a=>a.nome),...(hasDaily?['Atividades cotidianas / 10']:[]),'Atividades','Bônus','Média / 10']){const cell=node('th',text);cell.scope='col';head.append(cell);}table.append(head);
     for(const student of als){
       const row=node('tr'),name=node('th');row.dataset.gbStudentRow=student.id;name.scope='row';const studentLink=button((student.numero?student.numero+'. ':'')+student.nome,()=>showReport(student));studentLink.className='gb-student-link';name.append(studentLink);if(data.monitoring?.[student.id]?.active){const marker=node('span',data.monitoring[student.id].kind==='conferir-lancamento'?'Conferir lançamento':'Acompanhamento','gb-monitoring-badge');name.append(marker);}row.append(name);
+      const dailyCell=hasDaily?node('td'):null;
       const totalCells=[node('td'),node('td'),node('td')];
-      const paint=()=>{const r=C.result(avs,data.scores[student.id]||{},data.mediaModo[selected]);totalCells[0].textContent=fmt(r.sum)+' / '+fmt(r.max);totalCells[1].textContent=fmt(r.bonus);totalCells[2].textContent=fmt(r.average);};
+      const paint=()=>{const r=C.result(avs,data.scores[student.id]||{},data.mediaModo[selected]);if(dailyCell)dailyCell.textContent=fmt(r.dailyGrade);totalCells[0].textContent=fmt(r.sum)+' / '+fmt(r.max);totalCells[1].textContent=fmt(r.bonus);totalCells[2].textContent=fmt(r.average);};
       for(const a of avs){const cell=node('td'),input=node('input'),saved=data.scores[student.id]?.[a.id];input.setAttribute('aria-label',a.nome+' — '+student.nome);input.dataset.gbStudent=student.id;input.dataset.gbActivity=a.id;
         input.type=(a.checklist||a.registroExecucao)?'checkbox':'number';if(a.checklist||a.registroExecucao)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step='0.01';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
         input.addEventListener((a.checklist||a.registroExecucao)?'change':'input',async()=>{const raw=(a.checklist||a.registroExecucao)?(input.checked?1:0):(input.value===''?null:Number(input.value));
@@ -208,7 +210,7 @@
             const old=data.scores[student.id]?.[a.id];
             if(a.checklist||a.registroExecucao)input.checked=Number(old)>0;else input.value=old==null?'':String(old);
           }});cell.append(input);row.append(cell);
-      }row.append(...totalCells);paint();table.append(row);
+      }if(dailyCell)row.append(dailyCell);row.append(...totalCells);paint();table.append(row);
     }wrap.append(table);content.append(wrap);
   }
   function numericExtras(){
@@ -281,6 +283,7 @@
       const section=node('section',null,'gb-report-subject'),subjectHead=node('div',null,'gb-report-subject-head');
       const subjectLink=button(t.disciplina||'Disciplina',()=>goToStudentRecord(pupil));subjectLink.className='gb-report-subject-link';subjectLink.title='Abrir os registros de '+pupil.nome+' nesta disciplina';
       subjectHead.append(subjectLink,node('span',(t.nome||'')+' · '+(t.unidade||''),'gb-help'),node('strong','4º bim.: '+fmt(totals.average),'gb-report-average'));section.append(subjectHead);
+      if(totals.dailyGrade!==null)section.append(node('p','Atividades cotidianas: '+fmt(totals.dailyGrade)+' / 10','gb-help'));
       appendBulletin(section,pupil);
       if(!avs.length)section.append(node('p','Nenhuma atividade cadastrada no 4º bimestre.','gb-help'));
       else for(const done of [false,true]){
