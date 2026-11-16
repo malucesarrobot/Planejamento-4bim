@@ -1,9 +1,16 @@
 (() => {
   'use strict';
+  function isDailyActivity(activity) {
+    return !activity.extra && (activity.registroExecucao || (activity.checklist && activity.tipo !== 'Avaliação'));
+  }
   function result(activities, scores, mode='ponderada') {
-    let sum=0,max=0,weighted=0,weights=0,bonus=0;
+    let sum=0,max=0,weighted=0,weights=0,bonus=0,dailyCount=0,dailyDone=0;
     for(const a of activities){
-      // Execução de caderno/livro é acompanhamento, nunca componente da média.
+      if(isDailyActivity(a)){
+        dailyCount++;
+        if(Number(scores[a.id])>0)dailyDone++;
+        continue;
+      }
       if(a.registroExecucao)continue;
       const raw=scores[a.id];
       // Conferência do caderno: campos ainda não corrigidos não reduzem a média.
@@ -15,7 +22,11 @@
       const weight=mode==='aritmetica'?1:a.peso;
       sum+=points;max+=a.valorMax;weighted+=(points/a.valorMax)*10*weight;weights+=weight;
     }
-    return {sum,max,bonus,average:weights||bonus?Math.min(10,(weights?weighted/weights:0)+bonus):null};
+    const dailyGrade=dailyCount?10*dailyDone/dailyCount:null;
+    if(dailyGrade!==null){
+      sum+=dailyGrade;max+=10;weighted+=dailyGrade;weights++;
+    }
+    return {sum,max,bonus,dailyGrade,average:weights||bonus?Math.min(10,(weights?weighted/weights:0)+bonus):null};
   }
   function importRoster(source, current) {
     if(!source || !source.turmas || !source.alunos)throw Error('Use o backup completo do Leciona, com turmas e alunos.');
@@ -81,5 +92,5 @@
       disciplines:disciplines.map(name=>({name,rows:order(classes.filter(r=>(r.turma.disciplina||'Sem disciplina')===name))})),
       top:order(pool).slice(0,30),schools:schools.map(name=>({name,rows:order(pool.filter(r=>r.turma.unidade===name)).slice(0,30)}))};
   }
-  globalThis.MaluGradebookCore={result,importRoster,reportStudents,completed,ranking,saveStudent,setStudentActive};
+  globalThis.MaluGradebookCore={result,isDailyActivity,importRoster,reportStudents,completed,ranking,saveStudent,setStudentActive};
 })();
