@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro em tópicos – Ciências Humanas – 9º ano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: light; --ink:#2B2118; --bg:#FBF6EC; --fs:1; --lh:1.25; --gap:1; --ff: Nunito, "Segoe UI", system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--ff); }
+  header { padding: 1.2vh 2vw 0.4vh; }
+  h1 { margin: 0; font-size: calc(clamp(18px, 2.3vw, 36px) * var(--fs)); font-weight: 800; line-height: 1.1; }
+  h1 small { display: block; font-size: .5em; font-weight: 700; opacity: .65; margin-top: 2px; }
+  main { padding: 0.6vh 2vw 2vh; display: flex; flex-direction: column; gap: calc(0.9vh * var(--gap)); }
+  .row { display: grid; grid-template-columns: clamp(18vw, calc(24vw + (var(--fs) - 1) * 12vw), 42vw) minmax(0, 1fr); gap: 1vw; align-items: stretch; }
+  .lab { min-width: 0; overflow-wrap: break-word; word-break: normal; border-radius: 14px; background: var(--c); color: var(--t, #fff); display: flex; align-items: center; gap: .7em; padding: .4em .8em; font-weight: 800; font-size: calc(clamp(15px, 1.6vw, 30px) * var(--fs)); line-height: 1.1; min-height: calc(9.7vh * var(--gap)); }
+  .num { flex: 0 0 auto; min-width: 2.3em; height: 2.3em; padding: 0 .2em; border-radius: 50%; background: rgba(255,255,255,.25); display: grid; place-items: center; font-size: .9em; }
+  .lab.dark .num { background: rgba(43,33,24,.15); }
+  .box { border-radius: 14px; border: 3px solid var(--c); background: var(--f); padding: calc(.45em * var(--gap)) .8em; display: flex; align-items: center; min-height: calc(9.7vh * var(--gap)); }
+  .chips { min-width: 0; width: 100%; display: flex; flex-wrap: wrap; gap: calc(.15em * var(--gap)) 1.3em; font-size: calc(clamp(15px, 1.4vw, 28px) * var(--fs)); font-weight: 700; line-height: var(--lh); }
+  .chips span { padding-left: 1.1em; text-indent: -1.1em; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+  .chips span::before { content: "•\00a0"; display: inline-block; width: 1.1em; text-indent: 0; font-weight: 800; }
+  body.panel-open main, body.panel-open header { padding-right: 350px; }
+  @media (max-width: 900px) { body.panel-open main, body.panel-open header { padding-right: 2vw; } }
+  /* painel de ajustes */
+  #tab { position: fixed; top: 8px; right: 10px; z-index: 5; width: 44px; height: 32px; border-radius: 10px; border: 0; background: var(--ink); color: #fff; font: 800 15px/1 system-ui, sans-serif; cursor: pointer; opacity: .2; transition: opacity .2s; }
+  #tab:hover, #tab:focus-visible, #tab[aria-expanded="true"] { opacity: 1; }
+  #panel { position: fixed; top: 46px; right: 10px; z-index: 5; width: 320px; max-width: calc(100vw - 20px); background: #fff; color: var(--ink); border: 2px solid var(--ink); border-radius: 14px; padding: 14px 16px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.18); font: 600 14px/1.3 system-ui, "Segoe UI", sans-serif; display: none; }
+  #panel.open { display: block; }
+  #panel h2 { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
+  #panel label { display: block; margin: 10px 0 4px; font-weight: 700; }
+  #panel label output { float: right; font-weight: 600; opacity: .7; }
+  #panel select, #panel input[type=range] { width: 100%; }
+  #panel select { font: inherit; padding: 6px 8px; border: 2px solid var(--ink); border-radius: 8px; background: #fff; }
+  .steps { display: flex; gap: 8px; align-items: center; }
+  .steps button, .foot button { font: inherit; font-weight: 800; background: var(--ink); color: #fff; border: 0; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .steps input { flex: 1; }
+  .foot { display: flex; gap: 8px; margin-top: 14px; }
+  .foot button.alt { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
+  .hint { margin: 10px 0 0; font-size: 12px; opacity: .65; font-weight: 600; }
+  #tab:focus-visible, #panel button:focus-visible, #panel select:focus-visible, #panel input:focus-visible { outline: 3px solid #F0B93A; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Registro no caderno <small>Ciências Humanas · História · 9º ano</small></h1>
+</header>
+<main id="rows"></main>
+
+<button id="tab" type="button" aria-expanded="false" aria-controls="panel" title="Ajustes de leitura (tecla C)">Aa</button>
+<section id="panel" aria-label="Ajustes de leitura">
+  <h2>Ajustes de leitura</h2>
+  <label for="ff">Fonte</label>
+  <select id="ff">
+    <option value="Nunito, 'Segoe UI', system-ui, sans-serif">Nunito (padrão)</option>
+    <option value="'Atkinson Hyperlegible', Arial, sans-serif">Atkinson Hyperlegible</option>
+    <option value="Lexend, Arial, sans-serif">Lexend</option>
+    <option value="Arial, Helvetica, sans-serif">Arial</option>
+    <option value="Verdana, Geneva, sans-serif">Verdana</option>
+    <option value="Georgia, 'Times New Roman', serif">Georgia (serifada)</option>
+  </select>
+  <label for="fs">Tamanho da letra <output id="fsO"></output></label>
+  <div class="steps"><button type="button" id="fsM" aria-label="Diminuir letra">A−</button><input id="fs" type="range" min="0.7" max="1.8" step="0.05"><button type="button" id="fsP" aria-label="Aumentar letra">A+</button></div>
+  <label for="lh">Entrelinhas <output id="lhO"></output></label>
+  <input id="lh" type="range" min="1" max="2.2" step="0.05">
+  <label for="gap">Espaço entre os blocos <output id="gapO"></output></label>
+  <input id="gap" type="range" min="0.5" max="2" step="0.05">
+  <div class="foot"><button type="button" id="reset" class="alt">Restaurar</button><button type="button" id="full" class="alt">Tela cheia</button><button type="button" id="close">Fechar</button></div>
+  <p class="hint">Atalhos: + / − letra · [ / ] entrelinhas · C painel · F tela cheia</p>
+</section>
+
+<script>
+  var DATA = [
+    ["1","Constituição de 1988",["Fim da ditadura (1964–1985)","“Constituição Cidadã”","Eleições livres e participação popular","Direitos sociais como dever do Estado","Art. 3º: reduzir desigualdades e promover o bem de todos, sem preconceitos"],"#B4491F","#FBE9E0",0],
+    ["2","Três tipos de direitos",["Civis: liberdade, dignidade, integridade","Políticos: voto e participação","Sociais: saúde, educação, moradia, trabalho","Cidadania plena: também cultura, lazer e bem-estar"],"#2F6B4F","#E3F1EA",0],
+    ["3","Lei × prática",["Direito garantido ≠ direito vivido","Desafio: efetivar os direitos"],"#F0B93A","#FFF4D6",1],
+    ["4","Césio-137 (1987)",["13/09/1987: cápsula aberta em ferro-velho","29/09: CNEN acionada","Limites na fiscalização, na informação e na proteção à saúde","4 mortes e 249 contaminados","Preconceito contra moradores","Memória mantém o debate"],"#1F6F8B","#E0F0F5",0],
+    ["5","Desigualdade racial",["Abolição (1888) sem inclusão","Democracia racial: ideia de harmonia, criticada","Exclusão na prática","Resistência: música, samba, carnaval, esporte"],"#7A3E6B","#F3E6F0",0],
+    ["6","Ações afirmativas",["Reparação histórica","Igualdade formal × equidade","Cotas: política pública de acesso","Lei 12.711/2012","STF, ADPF 186 (2012)"],"#C2662D","#FCEBDD",0],
+    ["7","Povos indígenas e movimentos sociais",["Art. 231: direitos sobre a terra","Cerrado: Xavante e Timbira","Agronegócio × meio ambiente","Luta coletiva amplia direitos"],"#4F5D2F","#EAEFD9",0],
+    ["Fim","Pergunta central",["Como transformar direitos escritos em direitos vividos?","Estado, políticas públicas e participação da sociedade"],"#2B2118","#EFE6D6",0]
+  ];
+  var main = document.getElementById('rows');
+  DATA.forEach(function (r) {
+    var row = document.createElement('div'); row.className = 'row';
+    row.style.setProperty('--c', r[3]); row.style.setProperty('--f', r[4]);
+    var lab = document.createElement('div'); lab.className = 'lab' + (r[5] ? ' dark' : '');
+    if (r[5]) lab.style.setProperty('--t', '#2B2118');
+    var n = document.createElement('span'); n.className = 'num'; n.textContent = r[0];
+    var t = document.createElement('span'); t.textContent = r[1];
+    lab.appendChild(n); lab.appendChild(t);
+    var box = document.createElement('div'); box.className = 'box';
+    var chips = document.createElement('div'); chips.className = 'chips';
+    r[2].forEach(function (c) { var s = document.createElement('span'); s.textContent = c; chips.appendChild(s); });
+    box.appendChild(chips); row.appendChild(lab); row.appendChild(box); main.appendChild(row);
+  });
+
+  var DEF = { ff: document.getElementById('ff').options[0].value, fs: 1, lh: 1.25, gap: 1 };
+  var S = { ff: DEF.ff, fs: DEF.fs, lh: DEF.lh, gap: DEF.gap };
+  try { var saved = JSON.parse(localStorage.getItem('regCaderno') || 'null'); if (saved) { for (var k in DEF) if (saved[k] !== undefined) S[k] = saved[k]; } } catch (e) {}
+  var el = { ff: document.getElementById('ff'), fs: document.getElementById('fs'), lh: document.getElementById('lh'), gap: document.getElementById('gap') };
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function apply() {
+    var root = document.documentElement.style;
+    root.setProperty('--ff', S.ff); root.setProperty('--fs', S.fs); root.setProperty('--lh', S.lh); root.setProperty('--gap', S.gap);
+    el.ff.value = S.ff; el.fs.value = S.fs; el.lh.value = S.lh; el.gap.value = S.gap;
+    document.getElementById('fsO').textContent = Math.round(S.fs * 100) + '%';
+    document.getElementById('lhO').textContent = Number(S.lh).toFixed(2);
+    document.getElementById('gapO').textContent = Math.round(S.gap * 100) + '%';
+    try { localStorage.setItem('regCaderno', JSON.stringify(S)); } catch (e) {}
+  }
+  el.ff.onchange = function () { S.ff = el.ff.value; apply(); };
+  el.fs.oninput = function () { S.fs = parseFloat(el.fs.value); apply(); };
+  el.lh.oninput = function () { S.lh = parseFloat(el.lh.value); apply(); };
+  el.gap.oninput = function () { S.gap = parseFloat(el.gap.value); apply(); };
+  function bump(key, d, a, b) { S[key] = Math.round(clamp(S[key] + d, a, b) * 100) / 100; apply(); }
+  document.getElementById('fsP').onclick = function () { bump('fs', 0.05, 0.7, 1.8); };
+  document.getElementById('fsM').onclick = function () { bump('fs', -0.05, 0.7, 1.8); };
+  document.getElementById('reset').onclick = function () { S = { ff: DEF.ff, fs: DEF.fs, lh: DEF.lh, gap: DEF.gap }; apply(); };
+  function fullscreen() { try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(function () {}); } catch (e) {} }
+  document.getElementById('full').onclick = fullscreen;
+  var tab = document.getElementById('tab'), panel = document.getElementById('panel');
+  function toggle(open) {
+    var o = open === undefined ? !panel.classList.contains('open') : open;
+    panel.classList.toggle('open', o); document.body.classList.toggle('panel-open', o); tab.setAttribute('aria-expanded', o ? 'true' : 'false');
+  }
+  tab.onclick = function () { toggle(); };
+  document.getElementById('close').onclick = function () { toggle(false); };
+  document.addEventListener('keydown', function (ev) {
+    var tag = (ev.target && ev.target.tagName) || '';
+    if (tag === 'SELECT' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var k = ev.key;
+    if (k === '+' || k === '=') bump('fs', 0.05, 0.7, 1.8);
+    else if (k === '-' || k === '_') bump('fs', -0.05, 0.7, 1.8);
+    else if (k === ']') bump('lh', 0.05, 1, 2.2);
+    else if (k === '[') bump('lh', -0.05, 1, 2.2);
+    else if (k === 'f' || k === 'F') fullscreen();
+    else if (k === 'c' || k === 'C') toggle();
+    else if (k === 'Escape') toggle(false);
+  });
+  apply();
+</script>
+</body>
+</html>
