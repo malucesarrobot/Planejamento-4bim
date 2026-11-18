@@ -107,7 +107,18 @@
   }
   function open(which){plannerClass();message('');view=which;document.getElementById('navTools').open=false;title.textContent=which==='notes'?'Notas e atividades':'Chamada';refreshClasses();render();dialog.showModal();if(broken)message('Não foi possível ler os dados locais. Nada foi sobrescrito.',true);}
   function students(){return Object.values(data.alunos).filter(a=>a.turmaId===selected&&a.ativo!==false).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base',numeric:true})||a.id.localeCompare(b.id));}
-  function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
+  /* Ordem das colunas (Malu, 18/11/2026): temas S1+2…S6, livro, projeto/QR Code, avaliações,
+     outras e, por último, bônus. Dentro de cada grupo, por data e nome. */
+  function columnRank(a){
+    const key=a.origem?.checklistKey||'';
+    if(a.extra)return 90;
+    if(/^week-\d$/.test(key))return Number(key.slice(5));
+    if(key==='pages')return 20;
+    if(key==='project'||a.origem?.sharedAssessment)return 30;
+    if(a.tipo==='Avaliação')return 40;
+    return 50;
+  }
+  function activities(){return data.activities.filter(a=>a.turmaId===selected).sort((a,b)=>columnRank(a)-columnRank(b)||a.data.localeCompare(b.data)||a.nome.localeCompare(b.nome,'pt-BR'));}
   const fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
   function render(){flushEditors();autoEditors.clear();content.replaceChildren();pupilsMenu.disabled=!selected;if(view==='attendance'){renderAttendance();return;}if(view==='monitoring'){renderMonitoring();return;}if(view==='report'&&data.alunos[reportStudentId]){showReport(data.alunos[reportStudentId]);return;}if(!selected){content.append(node('p',Object.keys(data.turmas).length?'Selecione uma turma para continuar.':'Importe o backup completo do Leciona para trazer turmas, alunos, horários e modo de cálculo. As notas e frequências anteriores não serão importadas.'));return;}if(view==='notes')renderNotes();else if(view==='ranking')renderRanking();else if(view==='students')renderStudents();else renderAttendance();}
   function renderStudents(){
@@ -146,8 +157,8 @@
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
     const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','As atividades cotidianas por execução compõem uma única nota de 0 a 10, com peso 1 na média ponderada. Cada atividade tem o mesmo valor e as não entregues contam como zero. Pesquisas e projetos aguardam nota para entrar no cálculo; outras atividades preservam as regras originais.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
-    if(Number.parseInt(data.turmas[selected]?.serie||data.turmas[selected]?.nome,10)===3&&avs.some(a=>D?.isDebate(data,a)))
-      content.append(node('p','Ciclo de debates: a nota é compartilhada entre História, Filosofia e Sociologia da turma. Notas pré-existentes divergentes são preservadas para conferência.','gb-help'));
+    if(avs.some(a=>D?.isDebate(data,a)))
+      content.append(node('p','QR Code: a nota é compartilhada entre Filosofia e Sociologia da turma. Notas pré-existentes divergentes são preservadas para conferência.','gb-help'));
     if(!avs.length)content.append(node('p','Nenhuma atividade cadastrada neste bimestre.'));
     if(!als.length)content.append(node('p','Esta turma ainda não possui alunos ativos importados.'));
     const list=node('div',null,'gb-activities');
@@ -188,9 +199,11 @@
       const totalCells=[node('td'),node('td'),node('td')];
       const paint=()=>{const r=C.result(avs,data.scores[student.id]||{},data.mediaModo[selected]);if(dailyCell)dailyCell.textContent=fmt(r.dailyGrade);totalCells[0].textContent=fmt(r.sum)+' / '+fmt(r.max);totalCells[1].textContent=fmt(r.bonus);totalCells[2].textContent=fmt(r.average);};
       for(const a of avs){const cell=node('td'),input=node('input'),saved=data.scores[student.id]?.[a.id];input.setAttribute('aria-label',a.nome+' — '+student.nome);input.dataset.gbStudent=student.id;input.dataset.gbActivity=a.id;
-        input.type=(a.checklist||a.registroExecucao)?'checkbox':'number';if(a.checklist||a.registroExecucao)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step='0.01';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
+        input.type=(a.checklist||a.registroExecucao)?'checkbox':'number';if(a.checklist||a.registroExecucao)input.checked=Number(saved)>0;else{input.min='0';input.max=String(a.valorMax);input.step=a.extra?'0.5':'0.01';input.value=saved==null?'':String(saved);input.inputMode='decimal';}
         input.addEventListener((a.checklist||a.registroExecucao)?'change':'input',async()=>{const raw=(a.checklist||a.registroExecucao)?(input.checked?1:0):(input.value===''?null:Number(input.value));
-          if(raw!==null&&(!Number.isFinite(raw)||raw<0||(!a.checklist&&raw>a.valorMax))){input.setCustomValidity('Digite uma pontuação entre 0 e '+a.valorMax+'.');input.reportValidity();return;}input.setCustomValidity('');
+          if(raw!==null&&(!Number.isFinite(raw)||raw<0||(!a.checklist&&raw>a.valorMax))){input.setCustomValidity('Digite uma pontuação entre 0 e '+a.valorMax+'.');input.reportValidity();return;}
+          // Bônus vai de 0,5 em 0,5 (somado direto à média).
+          if(raw!==null&&a.extra&&!a.checklist&&!a.registroExecucao&&Math.abs(raw*2-Math.round(raw*2))>1e-9){input.setCustomValidity('O bônus vai de 0,5 em 0,5.');input.reportValidity();return;}input.setCustomValidity('');
           let debateResult=null;
           const isDebate=D?.isDebate(data,a);
           const ok=await update(d=>{
@@ -203,8 +216,8 @@
             paint();
             if(isDebate&&debateResult){
               const unresolved=[...debateResult.conflicts,...debateResult.missing];
-              if(unresolved.length)message('Debate registrado. Vinculadas: '+debateResult.updated.length+' disciplinas. Conferir: '+unresolved.join('; ')+'.',true);
-              else message('Nota do debate compartilhada entre História, Filosofia e Sociologia.');
+              if(unresolved.length)message('QR Code registrado. Vinculadas: '+debateResult.updated.length+' disciplinas. Conferir: '+unresolved.join('; ')+'.',true);
+              else message('Nota do QR Code compartilhada entre Filosofia e Sociologia.');
             }
           }else{
             const old=data.scores[student.id]?.[a.id];

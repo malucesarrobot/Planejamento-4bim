@@ -13,7 +13,7 @@
       'África medieval e redes transaarianas',
       'Transformações da Baixa Idade Média',
       'Crise do século XIV e transformações do mundo medieval'
-    ],project:{title:'Pesquisa · Brinquedos autômatos',description:'Investigar mecanismos, movimento e relação entre técnica e sociedade.',url:'https://www.google.com/search?q=brinquedos+aut%C3%B4matos+hist%C3%B3ria+ci%C3%AAncia'}},
+    ],project:{title:'Pesquisa · Brinquedo medieval',formerTitles:['Pesquisa · Brinquedos autômatos'],description:'Investigar mecanismos, movimento e relação entre técnica e sociedade.',url:'https://www.google.com/search?q=brinquedos+aut%C3%B4matos+hist%C3%B3ria+ci%C3%AAncia'}},
     {serie:1,subject:'Filosofia',pages:[],topics:[
       'Cidadania, direitos humanos e diversidade',
       'Kant: dignidade, autonomia e instrumentalização',
@@ -62,18 +62,24 @@
       'Colonialidade e natureza: território e crítica de Krenak',
       'Achille Mbembe',
       'Sociedade e natureza: modelos socioeconômicos e limites éticos'
-    ],project:{title:'Projeto · Ciclo de debates',description:'Avaliação integrada: a mesma nota vale para História, Filosofia e Sociologia da turma.',url:'https://www.google.com/search?q=como+preparar+argumentos+para+debate+escolar+fontes+confi%C3%A1veis'}},
+    ]},
     {serie:3,subject:'Sociologia',pages:['281','293'],topics:[
       'Cidadania, direitos humanos e enfrentamento do racismo',
       'Gênero, identidade e reconhecimento',
       'Povos indígenas e território',
       'Movimentos sociais contemporâneos',
       'Direitos humanos na escola e na comunidade'
-    ],project:{title:'Projeto · Ciclo de debates',description:'Avaliação integrada: a mesma nota vale para História, Filosofia e Sociologia da turma.',url:'https://www.google.com/search?q=como+preparar+argumentos+para+debate+escolar+fontes+confi%C3%A1veis'}}
+    ]}
   ];
+  /* Malu (18/11/2026): projeto de cada série — 1ª História brinquedo medieval, 2ª História
+   * pesquisa, 3ª História ciclo de debates; Filosofia e Sociologia das 3 séries: QR Code com
+   * nota unificada entre as duas disciplinas da turma (ver gradebook-debate.js). */
+  const QR={title:'QR Code',description:'Avaliação por QR Code: a mesma nota vale para Filosofia e Sociologia da turma.',shared:'qrcode-filo-socio'};
+  curriculum.forEach(g=>{if(g.subject!=='História')g.project={...QR};});
   const weeks=[[1,2],[3],[4],[5],[6]];
   const periodLabels=['S1+2','S3','S4','S5','S6'];
   const slug={História:'historia',Filosofia:'filosofia',Sociologia:'sociologia'};
+  const BONUS_MAX=2;
   const normalize=x=>String(x??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleUpperCase('pt-BR').replace(/[^A-Z0-9]+/g,' ').trim();
   const legacySets=[...(previousFirst?.sets||[]).map(s=>({...s,serie:1})),...(previousOther?.sets||[])];
   function buildEntries(group) {
@@ -81,20 +87,22 @@
     const tasks=group.topics.map((title,i)=>{
       const legacy=(old?.tasks||[]).find(t=>t.weeks?.[0]===weeks[i][0]&&!/^(Pesquisa|Atividade · Ciclo)/i.test(t.name));
       return {key:'week-'+(i+1),kind:'execution',weeks:weeks[i],label:periodLabels[i],
-        title,name:'Execução · '+periodLabels[i]+' · '+title,
-        aliases:[legacy?.key].filter(Boolean),legacyNames:[legacy?.name].filter(Boolean)};
+        title,name:periodLabels[i]+' · '+title,
+        aliases:[legacy?.key].filter(Boolean),legacyNames:['Execução · '+periodLabels[i]+' · '+title,legacy?.name].filter(Boolean)};
     });
     if(group.pages.length)tasks.push({
       key:'pages',kind:'execution',weeks:[1,2,3,4,5,6],label:'Livro',
-      title:'Páginas do livro didático',name:'Execução · Livro: páginas '+group.pages.join(', '),
-      aliases:[],legacyNames:[]
+      title:'Páginas do livro didático',name:'Livro · páginas '+group.pages.join(', '),
+      aliases:[],legacyNames:['Execução · Livro: páginas '+group.pages.join(', ')]
     });
     if(group.project){
       const oldProject=(old?.tasks||[]).find(t=>/^(Pesquisa|Atividade · Ciclo)/i.test(t.name));
       tasks.push({key:'project',kind:'assessment',weeks:[6],label:group.serie===3?'Projeto integrado / debate':'Projeto / pesquisa',
-        title:group.project.title,name:group.project.title,description:group.project.description,url:group.project.url,
-        aliases:[oldProject?.key].filter(Boolean),legacyNames:[oldProject?.name].filter(Boolean)});
+        title:group.project.title,name:group.project.title,description:group.project.description,url:group.project.url,shared:group.project.shared,
+        aliases:[oldProject?.key].filter(Boolean),legacyNames:[oldProject?.name,...(group.project.formerTitles||[])].filter(Boolean)});
     }
+    // Bônus: pontos somados direto à média, de 0,5 em 0,5 (Malu, 18/11/2026).
+    tasks.push({key:'bonus',kind:'bonus',weeks:[1,2,3,4,5,6],label:'Bônus',title:'Bônus',name:'Bônus',aliases:[],legacyNames:[]});
     return tasks;
   }
   curriculum.forEach(g=>{g.entries=buildEntries(g);});
@@ -120,7 +128,7 @@
     return {...(old||{}),weekId:weekId(g,e),title:e.title,
       panel:'notebook',kind:'unit',checklistKey:e.key,
       pageReferences:g.pages.slice(),...(e.url?{url:e.url}:{}),
-      ...(g.serie===3&&e.key==='project'?{sharedAssessment:'ciclo-debates-s3'}:{})};
+      ...(e.shared?{sharedAssessment:e.shared}:{})};
   }
   function entryId(g,t,e){
     return 'checklist-b4-2026-'+t.id+'-s'+g.serie+'-'+slug[g.subject]+'-'+e.key;
@@ -135,9 +143,9 @@
         const candidates=data.activities.filter(a=>a.turmaId===t.id&&equivalent(a,e));
         if(!candidates.length){
           toAdd.push({id:entryId(g,t,e),turmaId:t.id,bimestre:4,nome:e.name,tipo:'Outra',
-            data:'2026-11-06',valorMax:e.kind==='execution'?1:10,peso:1,
+            data:'2026-11-06',valorMax:e.kind==='execution'?1:e.kind==='bonus'?BONUS_MAX:10,peso:1,
             checklist:e.kind==='execution',registroExecucao:e.kind==='execution',
-            extra:false,rascunho:true,origem:origin(g,e)});
+            extra:e.kind==='bonus',rascunho:e.kind!=='bonus',origem:origin(g,e)});
           continue;
         }
         existing++;
@@ -146,7 +154,7 @@
         const old=candidates.find(a=>(a.id||'').startsWith('caderno-')||
           (a.id||'').startsWith('checklist-b4-2026-'));
         if(!old)continue; // Nunca alterar registros manuais.
-        const next={...old,nome:e.name,checklist:e.kind==='execution',
+        const next={...old,nome:e.name,checklist:e.kind==='execution',extra:e.kind==='bonus',
           registroExecucao:e.kind==='execution',valorMax:e.kind==='execution'?1:old.valorMax,
           rascunho:true,origem:origin(g,e,old.origem)};
         if(JSON.stringify(next)!==JSON.stringify(old))toUpdate.push(next);
@@ -173,7 +181,7 @@
         const title=document.createElement('h4');
         title.textContent='Execução · '+g.serie+'ª série · '+g.subject;section.append(title);
         const list=document.createElement('ul');list.className='malu-checklist-tarefas';
-        for(const e of g.entries.filter(x=>x.kind!=='execution'||x.key!=='pages')){
+        for(const e of g.entries.filter(x=>x.kind!=='bonus'&&(x.kind!=='execution'||x.key!=='pages'))){
           if(!e.weeks.includes(w))continue;
           const li=document.createElement('li');li.textContent='☐ '+e.label+' — '+e.title;
           if(e.kind==='assessment'&&e.description)li.append(document.createTextNode(' · '+e.description));
