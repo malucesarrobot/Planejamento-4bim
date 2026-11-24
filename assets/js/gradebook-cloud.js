@@ -36,7 +36,7 @@
   async function start(cb){await queueLoaded;callbacks=cb;if(!window.firebase){status('Nuvem indisponível. Verifique a conexão e atualize a página.',true);return;}
     try{const app=firebase.apps.length?firebase.app():firebase.initializeApp(config);auth=app.auth();db=app.database();ref=db.ref('leciona/planejamento_gradebook/2026b4');
       db.ref('.info/connected').on('value',s=>{connected=s.val()===true;if(connected)flush();else if(auth.currentUser)status('Salvo neste aparelho · aguardando conexão');});
-      auth.onAuthStateChanged(user=>{ref.off();ready=false;callbacks.account(user);if(!user){status('Entre com Google para sincronizar celular e Mac.');return;}
+      auth.onAuthStateChanged(user=>{ref.off();ready=false;callbacks.account(user);if(!user){status('Entre com Google ou e-mail e senha para sincronizar.');return;}
         if(!['prof.malufc@gmail.com','malu.cesar@gmail.com'].includes(user.email)){status('Use uma das contas autorizadas no Leciona.',true);return;}
         ref.on('value',snapshot=>{let cloud=wire(unwire(snapshot.val()));for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);ready=true;callbacks.receive(unwire(cloud));if(Object.keys(pending).length)flush();else status(connected?'Salvo na nuvem · '+user.email:'Salvo neste aparelho · aguardando conexão');},error=>{ready=false;status('A nuvem recusou a leitura: '+error.message,true);});
       });
@@ -72,6 +72,14 @@
       return false;
     }
   }
+  async function passwordAccess(email,password){
+    if(!auth)throw Error('Conexão indisponível. Reabra o diário.');
+    email=email.trim().toLowerCase();
+    if(!['prof.malufc@gmail.com','malu.cesar@gmail.com'].includes(email))throw Error('Use uma conta autorizada do Leciona.');
+    if(password===undefined){await auth.sendPasswordResetEmail(email);return;}
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    await auth.signInWithEmailAndPassword(email,password);
+  }
   async function reconnect(){
     if(!auth?.currentUser){
       status('Sua sessão Google está desconectada. Toque em Google para entrar.',true);
@@ -88,7 +96,7 @@
   }
   async function refresh(){
     await queueLoaded;
-    if(!auth?.currentUser||!ready)throw Error('Entre com Google e aguarde o carregamento das turmas.');
+    if(!auth?.currentUser||!ready)throw Error('Entre e aguarde o carregamento das turmas.');
     if(!connected)throw Error('Sem conexão com a nuvem. Os lançamentos deste aparelho estão preservados.');
     const snapshot=await ref.once('value'),cloud=wire(unwire(snapshot.val()));
     for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);
@@ -112,6 +120,6 @@
     }
     throw Error('O envio permanece pendente; confira o indicador de sincronização.');
   }
-  window.MaluGradebookCloud={start,save,login,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync};
+  window.MaluGradebookCloud={start,save,login,passwordAccess,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync};
 })();
 
