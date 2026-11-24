@@ -35,7 +35,7 @@
       await writes;
       const ok=await window.MaluGradebookCloud?.reconnect();
       if(ok){refreshClasses();render();message('Conexão com o Google atualizada. Notas recebidas da nuvem.');}
-      else message('Não foi possível recarregar. Toque em Google para entrar novamente.',true);
+      else message('Não foi possível recarregar. Use Google ou E-mail e senha para entrar novamente.',true);
     }catch(e){message('Não foi possível recarregar: '+e.message,true);}
     finally{cloudReload.disabled=false;}
   });
@@ -46,7 +46,51 @@
   cloudRelog.className='gb-cloud-relogin';
   cloudRelog.title='Entrar novamente ou trocar a conta Google';
   cloudRelog.setAttribute('aria-label','Entrar novamente com Google');
-  cloudRow.append(cloudInfo,cloudReload,cloudRelog);
+  const passwordForm=node('form',null,'gb-form');
+  passwordForm.hidden=true;
+  passwordForm.style.display='none';
+  const emailLabel=node('label','E-mail'), email=node('input');
+  email.type='email';email.required=true;email.autocomplete='username';
+  emailLabel.append(email);
+  const passwordLabel=node('label','Senha'), password=node('input');
+  password.type='password';password.required=true;password.autocomplete='current-password';
+  passwordLabel.append(password);
+  const passwordStatus=node('p',null,'gb-help');passwordStatus.setAttribute('role','status');
+  const submitPassword=node('button','Entrar');submitPassword.type='submit';
+  const passwordToggle=button('E-mail e senha',()=>{
+    passwordForm.hidden=!passwordForm.hidden;
+    passwordForm.style.display=passwordForm.hidden?'none':'';
+    passwordToggle.setAttribute('aria-expanded',String(!passwordForm.hidden));
+    if(!passwordForm.hidden)email.focus();
+  });
+  passwordToggle.setAttribute('aria-expanded','false');
+  const resetPassword=button('Definir ou recuperar senha',async()=>{
+    if(!email.reportValidity())return;
+    resetPassword.disabled=true;
+    try{
+      await window.MaluGradebookCloud.passwordAccess(email.value);
+      passwordStatus.textContent='Confira sua caixa de entrada e o spam. Se a conta existir, o Firebase enviará o link para definir a senha.';
+    }catch(e){passwordStatus.textContent='Não foi possível enviar o link. '+e.message;}
+    finally{resetPassword.disabled=false;}
+  });
+  passwordForm.append(emailLabel,passwordLabel,submitPassword,resetPassword,passwordStatus);
+  passwordForm.addEventListener('submit',async e=>{
+    e.preventDefault();
+    submitPassword.disabled=true;
+    passwordStatus.textContent='Entrando…';
+    try{
+      if(!await flushEditors()){passwordStatus.textContent='Conclua os lançamentos abertos antes de trocar a sessão.';return;}
+      await writes;
+      await window.MaluGradebookCloud.passwordAccess(email.value,password.value);
+      password.value='';
+      passwordStatus.textContent='';
+      passwordForm.hidden=true;
+      passwordForm.style.display='none';
+      passwordToggle.setAttribute('aria-expanded','false');
+    }catch(e){passwordStatus.textContent='Não foi possível entrar. '+(e.code||e.message);}
+    finally{submitPassword.disabled=false;}
+  });
+  cloudRow.append(cloudInfo,cloudReload,cloudRelog,passwordToggle);
   const bulletinFile=node('input');bulletinFile.type='file';bulletinFile.accept='.json,application/json';bulletinFile.hidden=true;
   const blockFile=node('input');blockFile.type='file';blockFile.accept='.json,application/json';blockFile.hidden=true;
   const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
@@ -59,7 +103,7 @@
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
   settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
 
-  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudRow,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
+  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudRow,passwordForm,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
