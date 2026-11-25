@@ -17,7 +17,7 @@
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import {getDatabase, get, ref, runTransaction} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import {getDatabase, get, onValue, ref, runTransaction} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 const config={apiKey:'AIzaSyC89tYmSG7Fl0wv37doAiO2tmf7sCGX6Ps',authDomain:'leciona-eaa56.firebaseapp.com',databaseURL:'https://leciona-eaa56-default-rtdb.firebaseio.com',projectId:'leciona-eaa56',appId:'1:824991056615:web:3cd321e321f1a5c91dd842'};
 const app=initializeApp(config);
 const auth=getAuth(app);
@@ -92,9 +92,14 @@ byId('preview').onclick=async()=>{
 byId('apply').onclick=async()=>{
   if(!candidates||auth.currentUser?.email!==email||!auth.currentUser.emailVerified)return;
   busy=true;refreshControls();
-  let result, finalPatch;
+  let result, finalPatch, stop;
   try{
-    await get(diary);
+    await new Promise((resolve,reject)=>{
+      stop=onValue(diary,snapshot=>{
+        if(snapshot.exists())resolve();
+        else reject(Error('O diário atual está vazio ou indisponível.'));
+      },reject);
+    });
     const tx=await runTransaction(diary,live=>{
       if(!live)return;
       result=comparison(live,candidates);
@@ -115,6 +120,6 @@ byId('apply').onclick=async()=>{
     status((tx.committed?finalPatch.length:0)+' vistos incorporados · '+result.existing+' registros existentes preservados · '+result.unmatched+' sem vínculo.');
     candidates=null;
   }catch(e){status('Não foi possível concluir · '+e.message);}
-  finally{busy=false;refreshControls();}
+  finally{stop?.();busy=false;refreshControls();}
 };
 </script></body></html>
