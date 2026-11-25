@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Incorporar vistos do caderno</title>
+<style>body{font:1rem system-ui;line-height:1.5;max-width:42rem;margin:3rem auto;padding:0 1rem;color:#202629}button,input{font:inherit;margin:.5rem 0;padding:.3rem}button{cursor:pointer}[hidden]{display:none}</style></head>
+<body><main>
+<h1>Incorporar vistos do caderno</h1>
+<p>Planejamento do 4º bimestre de 2026. O Firebase recebe somente vistos ausentes de alunos e atividades já cadastrados.</p>
+<button id="login" type="button">Entrar com Google</button>
+<section id="controls" hidden>
+<label for="backup">Backup de notas e chamada</label><br>
+<input id="backup" type="file" accept=".json,application/json">
+<br><button id="preview" type="button" disabled>Conferir vistos</button>
+<button id="apply" type="button" disabled>Incorporar vistos ausentes</button>
+</section>
+<p id="status" role="status">Verificando a conta…</p>
+</main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import {getDatabase, get, ref, runTransaction} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+const config={apiKey:'AIzaSyC89tYmSG7Fl0wv37doAiO2tmf7sCGX6Ps',authDomain:'leciona-eaa56.firebaseapp.com',databaseURL:'https://leciona-eaa56-default-rtdb.firebaseio.com',projectId:'leciona-eaa56',appId:'1:824991056615:web:3cd321e321f1a5c91dd842'};
+const app=initializeApp(config);
+const auth=getAuth(app);
+const diary=ref(getDatabase(app),'leciona/planejamento_gradebook/2026b4');
+const email='malu.cesar@gmail.com';
+const byId=id=>document.getElementById(id);
+const status=s=>{byId('status').textContent=s;};
+let candidates=null, busy=false;
+function refreshControls(){
+  const allowed=auth.currentUser?.emailVerified && auth.currentUser.email===email;
+  byId('controls').hidden=!allowed;
+  byId('login').hidden=Boolean(allowed);
+  byId('backup').disabled=busy;
+  byId('preview').disabled=busy || !byId('backup').files.length;
+  byId('apply').disabled=busy || !candidates;
+}
+onAuthStateChanged(auth,u=>{
+  candidates=null;
+  refreshControls();
+  status(u?.email===email?'Conta conectada · '+email:'Entre com a conta autorizada '+email+'.');
+});
+byId('login').onclick=async()=>{
+  try{
+    const provider=new GoogleAuthProvider();
+    provider.setCustomParameters({prompt:'select_account'});
+    await signInWithPopup(auth,provider);
+  }catch(e){status('Falha no login Google · '+e.code);}
+};
+const validKey=k=>typeof k==='string'&&k.length>0&&!/[.#$\[\]/\u0000-\u001f\u007f]/.test(k)&&!['__proto__','constructor','prototype'].includes(k);
+const isVisit=a=>Boolean(a&&(a.checklist===true||a.registroExecucao===true));
+const owns=(o,k)=>Object.prototype.hasOwnProperty.call(o??{},k);
+function extract(source){
+  if(source.version!==1||source.year!==2026||source.bimestre!==4||!Array.isArray(source.activities)||!source.alunos||!source.scores)throw Error('Selecione o backup de notas e chamada do 4º bimestre de 2026.');
+  const activities=new Map(source.activities.filter(isVisit).map(a=>[a.id,a]));
+  const rows=[];
+  for(const [pupil,grades] of Object.entries(source.scores)){
+    if(!validKey(pupil)||!owns(source.alunos,pupil)||!grades||typeof grades!=='object')continue;
+    for(const [activity,value] of Object.entries(grades)){
+      const a=activities.get(activity);
+      if(!validKey(activity)||!a||a.turmaId!==source.alunos[pupil]?.turmaId||value!==1)continue;
+      rows.push({pupil,activity,turma:a.turmaId});
+    }
+  }
+  return rows;
+}
+function comparison(live, rows){
+  if(!live?.alunos||!live?.activities)throw Error('O diário atual está indisponível. Nenhum visto foi gravado.');
+  const missing=[];
+  let existing=0, unmatched=0;
+  for(const {pupil,activity,turma} of rows){
+    const student=live.alunos[pupil], item=live.activities[activity];
+    if(student?.turmaId!==turma||item?.turmaId!==turma||!isVisit(item)){unmatched++;continue;}
+    if(owns(live.scores?.[pupil],activity)){existing++;continue;}
+    missing.push({pupil,activity});
+  }
+  return {missing,existing,unmatched};
+}
+byId('backup').onchange=()=>{candidates=null;refreshControls();status('Arquivo selecionado. Confira os vistos antes de incorporar.');};
+byId('preview').onclick=async()=>{
+  busy=true;candidates=null;refreshControls();
+  try{
+    const file=byId('backup').files[0];
+    if(file.size>33554432)throw Error('O backup excede 32 MB.');
+    const rows=extract(JSON.parse(await file.text()));
+    const live=(await get(diary)).val();
+    const result=comparison(live,rows);
+    candidates=result.missing.length?rows:null;
+    status(result.missing.length+' vistos ausentes · '+result.existing+' registros existentes preservados · '+result.unmatched+' sem vínculo no diário.');
+  }catch(e){status(e.message);}
+  finally{busy=false;refreshControls();}
+};
+byId('apply').onclick=async()=>{
+  if(!candidates||auth.currentUser?.email!==email||!auth.currentUser.emailVerified)return;
+  busy=true;refreshControls();
+  let result, finalPatch;
+  try{
+    await get(diary);
+    const tx=await runTransaction(diary,live=>{
+      if(!live)return;
+      result=comparison(live,candidates);
+      finalPatch=result.missing;
+      if(!finalPatch.length)return;
+      live.scores??={};
+      for(const {pupil,activity} of finalPatch){
+        live.scores[pupil]??={};
+        live.scores[pupil][activity]=1;
+      }
+      return live;
+    },{applyLocally:false});
+    if(!result)throw Error('O diário não retornou dados para confirmar a operação.');
+    if(tx.committed){
+      const actual=tx.snapshot.val();
+      if(!finalPatch.every(x=>actual.scores?.[x.pupil]?.[x.activity]===1))throw Error('A gravação retornou sem confirmação de todos os vistos.');
+    }
+    status((tx.committed?finalPatch.length:0)+' vistos incorporados · '+result.existing+' registros existentes preservados · '+result.unmatched+' sem vínculo.');
+    candidates=null;
+  }catch(e){status('Não foi possível concluir · '+e.message);}
+  finally{busy=false;refreshControls();}
+};
+</script></body></html>
