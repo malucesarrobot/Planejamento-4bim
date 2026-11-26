@@ -102,7 +102,21 @@
     }catch(e){passwordStatus.textContent='Não foi possível entrar. '+(e.code||e.message);}
     finally{submitPassword.disabled=false;}
   });
-  cloudRow.append(cloudInfo,cloudReload,cloudRelog,passwordToggle);
+  let signedInUser=null;
+  const pairing=button('Vincular aparelho',async()=>{
+    try{
+      if(signedInUser?.email==='malu.cesar@gmail.com'){
+        const code=prompt('Cole o código mostrado no aparelho que você quer vincular.');
+        if(code===null)return;
+        await window.MaluGradebookCloud.authorizeDevice(code);
+        message('Aparelho autorizado.');
+      }else{
+        const code=await window.MaluGradebookCloud.deviceCode();
+        prompt('Copie o código e use Vincular aparelho no navegador conectado à conta da Malu.',code);
+      }
+    }catch(e){message(e.message,true);}
+  });
+  cloudRow.append(cloudInfo,cloudReload,pairing,cloudRelog,passwordToggle);
   const bulletinFile=node('input');bulletinFile.type='file';bulletinFile.accept='.json,application/json';bulletinFile.hidden=true;
   const blockFile=node('input');blockFile.type='file';blockFile.accept='.json,application/json';blockFile.hidden=true;
   const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
@@ -567,7 +581,7 @@
     }catch(e){message('Sincronização não confirmada: '+e.message,true);}
   }
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
-  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:next=>{const task=writes.then(async()=>{next=await window.MaluGradebookCloud.restoreLocal(next);const previous=JSON.parse(JSON.stringify(next)),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0},debates=D?.backfill(next)||{updated:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(seeded.added||seeded.updated||seededOthers.added||seededOthers.updated||debates.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');});writes=task.catch(e=>message('Não foi possível incorporar os dados da nuvem. '+e.message,true));return writes;}});
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:(user,paired)=>{signedInUser=user;login.hidden=paired;cloudRelog.hidden=paired;passwordToggle.hidden=paired;pairing.hidden=paired;login.textContent=user&&!user.isAnonymous?'Trocar conta Google':'Entrar com Google';},receive:next=>{const task=writes.then(async()=>{next=await window.MaluGradebookCloud.restoreLocal(next);const previous=JSON.parse(JSON.stringify(next)),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0},debates=D?.backfill(next)||{updated:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(seeded.added||seeded.updated||seededOthers.added||seededOthers.updated||debates.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');});writes=task.catch(e=>message('Não foi possível incorporar os dados da nuvem. '+e.message,true));return writes;}});
   function applyRemoteView(){
     // Buttons and the dialog itself are not editors: ranking must repaint on every snapshot.
     // Keep draft forms and focused fields intact until editing ends.

@@ -8,6 +8,9 @@
   window.MaluGradebookStorage=storage;
   const queueKey='malu-gradebook-2026-b4-pending';
   const config={apiKey:'AIzaSyC89tYmSG7Fl0wv37doAiO2tmf7sCGX6Ps',authDomain:'leciona-eaa56.firebaseapp.com',databaseURL:'https://leciona-eaa56-default-rtdb.firebaseio.com',projectId:'leciona-eaa56',appId:'1:824991056615:web:3cd321e321f1a5c91dd842'};
+  const devicePath='leciona/planejamento_dispositivos';
+  const ownerEmail='malu.cesar@gmail.com';
+  let deviceRef, paired=false;
   let pending={},auth,db,ref,connected=false,ready=false,sending=false,callbacks,stopped=false;
   const queueLoaded=storage.read(queueKey).then(raw=>{pending=JSON.parse(raw||'{}');}).catch(()=>{stopped=true;});
   let queueWrites=Promise.resolve();
@@ -45,7 +48,7 @@
     sending=true;const batch={...pending};status('Sincronizando com a nuvem…');
     try{await ref.update(Object.fromEntries(Object.entries(batch).map(([k,v])=>[k,v.value])));
       await editQueue(next=>{for(const [k,v] of Object.entries(batch))if(next[k]?.revision===v.revision)delete next[k];});
-      if(!Object.keys(pending).length)status('Salvo na nuvem · '+auth.currentUser.email);}
+      if(!Object.keys(pending).length)status('Salvo na nuvem · '+(auth.currentUser.email||'aparelho vinculado'));}
     catch(e){status('Salvo neste aparelho · nuvem recusou o envio: '+e.message,true);}
     finally{sending=false;if(Object.keys(pending).length&&connected)setTimeout(flush,3000);}
   }
@@ -61,9 +64,24 @@
   async function start(cb){await queueLoaded;callbacks=cb;if(!window.firebase){status('Nuvem indisponível. Verifique a conexão e atualize a página.',true);return;}
     try{const app=firebase.apps.length?firebase.app():firebase.initializeApp(config);auth=app.auth();db=app.database();ref=db.ref('leciona/planejamento_gradebook/2026b4');
       db.ref('.info/connected').on('value',s=>{connected=s.val()===true;if(connected)flush();else if(auth.currentUser)status('Salvo neste aparelho · aguardando conexão');});
-      auth.onAuthStateChanged(user=>{ref.off();ready=false;callbacks.account(user);if(!user){status(Object.keys(pending).length?'Pendências guardadas neste aparelho · entre com Google para sincronizar.':'Entre com Google ou e-mail e senha para sincronizar.');return;}
-        if(!['prof.malufc@gmail.com','malu.cesar@gmail.com'].includes(user.email)){status('Use uma das contas autorizadas no Leciona.',true);return;}
-        ref.on('value',snapshot=>{let cloud=wire(unwire(snapshot.val()));for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);ready=true;callbacks.receive(unwire(cloud));if(Object.keys(pending).length)flush();else status(connected?'Salvo na nuvem · '+user.email:'Salvo neste aparelho · aguardando conexão');},error=>{ready=false;status('A nuvem recusou a leitura: '+error.message,true);});
+      auth.onAuthStateChanged(user=>{ref.off();deviceRef?.off();deviceRef=null;ready=false;paired=false;callbacks.account(user,false);if(!user){status(Object.keys(pending).length?'Pendências guardadas neste aparelho · entre com Google para sincronizar.':'Entre com Google ou e-mail e senha para sincronizar.');return;}
+        const listen=()=>ref.on('value',snapshot=>{let cloud=wire(unwire(snapshot.val()));for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);ready=true;callbacks.receive(unwire(cloud));if(Object.keys(pending).length)flush();else status(connected?'Salvo na nuvem · '+(user.email||'aparelho vinculado'):'Salvo neste aparelho · aguardando conexão');},error=>{ready=false;status('A nuvem recusou a leitura: '+error.message,true);});
+        if(user.isAnonymous){
+          deviceRef=db.ref(devicePath).child(user.uid);
+          deviceRef.on('value',snapshot=>{
+            if(auth.currentUser?.uid!==user.uid)return;
+            const wasPaired=paired;
+            paired=snapshot.val()===true;
+            callbacks.account(user,paired);
+            if(paired && !wasPaired)listen();
+            if(!paired){
+              ref.off();
+              ready=false;
+              status('Aparelho aguardando autorização.');
+            }
+          },error=>status('Falha ao verificar o vínculo: '+error.message,true));
+        }else if([ownerEmail,'prof.malufc@gmail.com'].includes(user.email))listen();
+        else status('Use uma das contas autorizadas no Leciona.',true);
       });
     }catch(e){status('Não foi possível iniciar a nuvem: '+e.message,true);}
   }
@@ -90,6 +108,22 @@
       status('Login Google não concluído: '+e.message,true);
       return false;
     }
+  }
+  async function deviceCode(){
+    if(!auth)throw Error('A conexão ainda está iniciando.');
+    if(auth.currentUser&&!auth.currentUser.isAnonymous)throw Error('Gere o código no outro aparelho.');
+    if(!auth.currentUser){
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      const session=await auth.signInAnonymously();
+      return session.user.uid;
+    }
+    return auth.currentUser.uid;
+  }
+  async function authorizeDevice(code){
+    if(auth?.currentUser?.email!==ownerEmail||!auth.currentUser.emailVerified)throw Error('Autorize pelo navegador conectado à conta da Malu.');
+    const uid=String(code).trim();
+    if(!/^[A-Za-z0-9_-]{20,128}$/.test(uid))throw Error('Cole o código completo mostrado no outro aparelho.');
+    await db.ref(devicePath).child(uid).set(true);
   }
   async function passwordAccess(email,password){
     if(!auth)throw Error('Conexão indisponível. Reabra o diário.');
@@ -120,14 +154,14 @@
     const snapshot=await ref.once('value'),cloud=wire(unwire(snapshot.val()));
     for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);
     await callbacks.receive(unwire(cloud));
-    if(Object.keys(pending).length)flush();else status('Salvo na nuvem · '+auth.currentUser.email);
+    if(Object.keys(pending).length)flush();else status('Salvo na nuvem · '+(auth.currentUser.email||'aparelho vinculado'));
   }
   async function importSource(){if(!auth?.currentUser||!ready)throw Error('Entre com a conta do Leciona e aguarde a conexão com a nuvem.');
     const paths=['turmas','alunos','media_modo'];const snapshots=await Promise.all(paths.map(k=>db.ref('leciona/'+k).once('value')));return {turmas:snapshots[0].val()||{},alunos:snapshots[1].val()||{},mediaModo:snapshots[2].val()||{}};
   }
   window.addEventListener?.('online',()=>flush());
   if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')flush();});
-  function canImport(){return !!(auth?.currentUser && ['prof.malufc@gmail.com','malu.cesar@gmail.com'].includes(auth.currentUser.email) && ready && connected && !stopped);}
+  function canImport(){return !!(auth?.currentUser && ready && connected && !stopped);}
   async function waitForSync(limitMs=12000){
     if(!canImport())throw Error('A conexão autorizada com a nuvem está indisponível.');
     const until=Date.now()+limitMs;
@@ -139,6 +173,6 @@
     }
     throw Error('O envio permanece pendente; confira o indicador de sincronização.');
   }
-  window.MaluGradebookCloud={start,save,login,passwordAccess,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync,restoreLocal};
+  window.MaluGradebookCloud={start,save,login,passwordAccess,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync,restoreLocal,deviceCode,authorizeDevice};
 })();
 
