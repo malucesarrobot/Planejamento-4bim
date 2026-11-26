@@ -1,24 +1,23 @@
 (async () => {
   'use strict';
   await import('./gradebook-bulletin-core.js?v=20261021boletim');
-  const B=window.MaluBulletinCore, CL=window.MaluChecklistPrimeiraSerie, OC=window.MaluChecklistOutrasTurmas;
+  await import('./gradebook-batch-import.js?v=20261104enem2b');
+  const B=window.MaluBulletinCore, P=window.MaluBlocoImport, CL=window.MaluChecklistPrimeiraSerie, OC=window.MaluChecklistOutrasTurmas;
   const C=window.MaluGradebookCore, D=window.MaluDebateGrades, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
   const recoveryKey=key+'-copia-antes-da-sincronizacao';
+  const localModeBackupKey=key+'-copia-modo-local';
   let data=empty(),broken=false,selected='',view='notes',reportStudentId='';
   try{const saved=await window.MaluGradebookStorage.read(key);if(saved){data=JSON.parse(saved);if(data.version!==1||data.bimestre!==4||!Array.isArray(data.activities)||!data.turmas||!data.alunos||!data.scores||!data.attendance||!data.mediaModo)throw Error();}}
   catch(e){broken=true;data=empty();}
   if(!broken){
     try{
       const raw=await window.MaluGradebookStorage.read(key);
-      if(raw && !await window.MaluGradebookStorage.read(recoveryKey))await window.MaluGradebookStorage.write(recoveryKey,raw);
-      if(!data.localQueueMigrated){
-        data=await window.MaluGradebookCloud.restoreLocal(data);
-        if(raw||data.activities.length||Object.keys(data.scores).length){
-          data.localQueueMigrated=true;
-          await window.MaluGradebookStorage.write(key,JSON.stringify(data));
-        }
+      if(raw && data.localQueueMigrated===true && !await window.MaluGradebookStorage.read(localModeBackupKey)){
+        await window.MaluGradebookStorage.write(localModeBackupKey,raw);
       }
+      if(raw && !await window.MaluGradebookStorage.read(recoveryKey))await window.MaluGradebookStorage.write(recoveryKey,raw);
+      data=await window.MaluGradebookCloud?.restoreLocal(data)??data;
     }catch(e){broken=true;}
   }
   try{selected=await window.MaluGradebookStorage.read(key+'-class')||'';}catch(e){}
@@ -37,23 +36,97 @@
   select.addEventListener('change',()=>{selected=select.value;view='notes';rememberClass(data.turmas[selected]);window.MaluGradebookStorage.write(key+'-class',selected).catch(()=>{});render();if(draftOrigin&&selected)activityForm();});
   const content=node('div',null,'gb-content');
   const file=node('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
-  const localInfo=node('p','As notas e atividades são salvas neste navegador.','gb-info');
+  const cloudInfo=node('p','Conectando à nuvem…','gb-info');cloudInfo.setAttribute('role','status');cloudInfo.tabIndex=0;cloudInfo.title='Toque para conectar ou trocar a conta Google';cloudInfo.addEventListener('click',()=>window.MaluGradebookCloud?.login());cloudInfo.addEventListener('keydown',e=>{if(e.key==='Enter')window.MaluGradebookCloud?.login();});
+  const login=button('Entrar com Google',()=>window.MaluGradebookCloud?.login());
+  // Controles pequenos sempre visíveis junto ao estado da nuvem.
+  const cloudRow=node('div',null,'gb-cloud-row');
+  const cloudReload=button('↻',async()=>{
+    cloudReload.disabled=true;
+    try{
+      if(!await flushEditors())return;
+      await writes;
+      const ok=await window.MaluGradebookCloud?.reconnect();
+      if(ok){refreshClasses();render();message('Conexão com o Google atualizada. Notas recebidas da nuvem.');}
+      else message('Não foi possível recarregar. Use Google ou E-mail e senha para entrar novamente.',true);
+    }catch(e){message('Não foi possível recarregar: '+e.message,true);}
+    finally{cloudReload.disabled=false;}
+  });
+  cloudReload.className='gb-cloud-reload';
+  cloudReload.title='Recarregar a conexão e as notas do Google';
+  cloudReload.setAttribute('aria-label','Recarregar conexão Google e notas');
+  const cloudRelog=button('Google',()=>window.MaluGradebookCloud?.login());
+  cloudRelog.className='gb-cloud-relogin';
+  cloudRelog.title='Entrar novamente ou trocar a conta Google';
+  cloudRelog.setAttribute('aria-label','Entrar novamente com Google');
+  const passwordForm=node('form',null,'gb-form');
+  passwordForm.hidden=true;
+  passwordForm.style.display='none';
+  const emailLabel=node('label','E-mail'), email=node('input');
+  email.type='email';email.required=true;email.autocomplete='username';
+  emailLabel.append(email);
+  const passwordLabel=node('label','Senha'), password=node('input');
+  password.type='password';password.required=true;password.autocomplete='current-password';
+  passwordLabel.append(password);
+  const passwordStatus=node('p',null,'gb-help');passwordStatus.setAttribute('role','status');
+  const submitPassword=node('button','Entrar');submitPassword.type='submit';
+  const passwordToggle=button('E-mail e senha',()=>{
+    passwordForm.hidden=!passwordForm.hidden;
+    passwordForm.style.display=passwordForm.hidden?'none':'';
+    passwordToggle.setAttribute('aria-expanded',String(!passwordForm.hidden));
+    if(!passwordForm.hidden)email.focus();
+  });
+  passwordToggle.setAttribute('aria-expanded','false');
+  const resetPassword=button('Definir ou recuperar senha',async()=>{
+    if(!email.reportValidity())return;
+    resetPassword.disabled=true;
+    try{
+      await window.MaluGradebookCloud.passwordAccess(email.value);
+      passwordStatus.textContent='Confira sua caixa de entrada e o spam. Se a conta existir, o Firebase enviará o link para definir a senha.';
+    }catch(e){passwordStatus.textContent='Não foi possível enviar o link. '+e.message;}
+    finally{resetPassword.disabled=false;}
+  });
+  passwordForm.append(emailLabel,passwordLabel,submitPassword,resetPassword,passwordStatus);
+  passwordForm.addEventListener('submit',async e=>{
+    e.preventDefault();
+    submitPassword.disabled=true;
+    passwordStatus.textContent='Entrando…';
+    try{
+      if(!await flushEditors()){passwordStatus.textContent='Conclua os lançamentos abertos antes de trocar a sessão.';return;}
+      await writes;
+      await window.MaluGradebookCloud.passwordAccess(email.value,password.value);
+      password.value='';
+      passwordStatus.textContent='';
+      passwordForm.hidden=true;
+      passwordForm.style.display='none';
+      passwordToggle.setAttribute('aria-expanded','false');
+    }catch(e){passwordStatus.textContent='Não foi possível entrar. '+(e.code||e.message);}
+    finally{submitPassword.disabled=false;}
+  });
+  cloudRow.append(cloudInfo,cloudReload,cloudRelog,passwordToggle);
   const bulletinFile=node('input');bulletinFile.type='file';bulletinFile.accept='.json,application/json';bulletinFile.hidden=true;
+  const blockFile=node('input');blockFile.type='file';blockFile.accept='.json,application/json';blockFile.hidden=true;
   const pupilsMenu=button('Alunos',()=>{view='students';message('');render();});
-  controls.append(select,pupilsMenu);
+  const refreshList=button('↻',async()=>{
+    refreshList.disabled=true;
+    try{if(!await flushEditors())return;await writes;await window.MaluGradebookCloud.refresh();refreshClasses();render();message('Lista atualizada da nuvem.');}
+    catch(e){message(e.message,true);}finally{refreshList.disabled=false;}
+  });refreshList.setAttribute('aria-label','Atualizar notas e atividades da nuvem');refreshList.title='Atualizar notas e atividades da nuvem';
+  controls.append(select,pupilsMenu,refreshList);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
-  settingsActions.append(button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),button('Importar backup de notas e chamada',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup),button('Baixar cópia local anterior à sincronização',()=>exportBackup(true)));settings.append(summary,settingsActions);
+  settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup),button('Baixar cópia local anterior à sincronização',()=>exportBackup(true)));settings.append(summary,settingsActions);
 
-  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,localInfo,status,content,settings,file,bulletinFile);document.body.append(dialog);
+  info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudRow,passwordForm,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
   const notesMenu=button('Notas e atividades',()=>open('notes')),attendanceMenu=button('Chamada',()=>open('attendance'));notesMenu.className='gb-menu-notes';attendanceMenu.className='gb-menu-attendance';actions.prepend(notesMenu,attendanceMenu);
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
   async function save(next){
     if(broken){message('Os dados salvos não puderam ser lidos. Baixe o backup para conferência antes de substituir dados.',true);return false;}
     try{
-      await window.MaluGradebookStorage.write(key,JSON.stringify(next));
+      await window.MaluGradebookCloud.save(next,data);
       data=next;
-      message('Salvo neste aparelho.');
+      try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));}
+      catch(e){message('Lançamento guardado na fila de sincronização. A cópia local completa está indisponível.',true);return true;}
+      message('Lançamento guardado neste aparelho. Confira o indicador da nuvem.');
       return true;
     }catch(e){message('Não foi possível guardar o lançamento neste aparelho. '+e.message,true);return false;}
   }
@@ -131,7 +204,7 @@
   function renderNotes(){
     const mode=node('select');mode.setAttribute('aria-label','Modo de cálculo da média');mode.append(new Option('Média ponderada','ponderada'),new Option('Média aritmética','aritmetica'));mode.value=data.mediaModo[selected]||'ponderada';
     mode.addEventListener('change',async()=>{if(await update(d=>d.mediaModo[selected]=mode.value))render();else mode.value=data.mediaModo[selected]||'ponderada';});
-    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','As atividades cotidianas por execução compõem uma única nota de 0 a 10, com peso 1 na média ponderada. Cada atividade tem o mesmo valor e as não entregues contam como zero. Pesquisas e projetos aguardam nota para entrar no cálculo; outras atividades preservam as regras originais.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
+    const calculation=node('details',null,'gb-calculation');calculation.append(node('summary','Cálculo da média'),mode,node('p','As atividades cotidianas por execução compõem uma única nota de 0 a 10, com peso 1 na média ponderada. Cada atividade tem o mesmo valor e as não entregues contam como zero. Pesquisas e projetos aguardam nota para entrar no cálculo; outras atividades preservam as regras originais.','gb-help'));content.append(button('Ranking',()=>{view='ranking';render();}),button('Nova atividade',()=>activityForm()),button('Importar Bloco II / Simulado ENEM · 2ª B',()=>blockFile.click()),button('Atividades do caderno · 1ª série',syncChecklist1a),button('Atividades do caderno · demais turmas',syncChecklistOther),button('Pontos extras',numericExtras),button('Bônus por execução',()=>activityForm(null,'bonus')),calculation);
     const avs=activities(),als=students();
     if(avs.some(a=>D?.isDebate(data,a)))
       content.append(node('p','QR Code: a nota é compartilhada entre Filosofia e Sociologia da turma. Notas pré-existentes divergentes são preservadas para conferência.','gb-help'));
@@ -319,10 +392,67 @@
       if(ok)fields.forEach(([period],i)=>line.children[i].querySelector('strong').textContent=fmt(values[period]));return ok;
     }catch(e){message(e.message,true);return false;}});box.append(node('p','Alterações salvas automaticamente.','gb-help'));section.append(editor);
   }
+  blockFile.addEventListener('change',async()=>{
+    const sourceFile=blockFile.files?.[0];
+    if(!sourceFile)return;
+    try{
+      if(sourceFile.size>200*1024)throw Error('O arquivo de notas excede o limite de 200 KB.');
+      const source=JSON.parse(await sourceFile.text());
+      if(!window.MaluGradebookCloud?.canImport?.())throw Error('Entre com a conta Google autorizada e aguarde “Salvo na nuvem” antes de importar.');
+      if(!await flushEditors())return;
+      await writes;
+      await window.MaluGradebookCloud.refresh();
+      const proposal=P.plan(source,data);
+      const simulado=source.schema==='malu-simulado-enem-2b-v1';
+      content.replaceChildren(node('h3',proposal.activityName+' · 2ª série B · EFG'),
+        node('p','Arquivo privado: '+proposal.matched+' estudantes identificados com segurança · 2 disciplinas · '+proposal.entries.length+' notas verificadas.','gb-help'),
+        node('p',simulado
+          ? proposal.pendingReview.length+' estudantes aguardam conferência do nome. As respectivas notas não serão importadas neste lote.'
+          : proposal.pending.length+' estudantes aguardam cartão; nenhum zero será lançado por ausência de cartão.','gb-help'));
+      if(simulado && proposal.pendingReview.length){
+        const review=node('details',null,'gb-calculation');
+        review.append(node('summary','Nomes pendentes de conferência ('+proposal.pendingReview.length+')'));
+        for(const item of proposal.pendingReview)review.append(node('p',item.nomeNaPlanilha,'gb-help'));
+        content.append(review);
+      }
+      if(proposal.issues.length){
+        const problems=node('div',null,'gb-error');
+        problems.append(node('p','Importação interrompida: resolva as divergências abaixo. Nenhuma nota foi alterada.'));
+        for(const issue of proposal.issues)problems.append(node('p',issue));
+        content.append(problems,button('Voltar às notas',render));return;
+      }
+      content.append(node('p',proposal.toSave+' notas novas · '+proposal.alreadySaved+' já conferidas no aplicativo. Registros anteriores de outras avaliações serão preservados.','gb-help'));
+      if(proposal.courses['Geografia']?.createCourse) {
+        content.append(node('p','Geografia ainda não está cadastrada: será criado um diário separado da 2ª B · EFG apenas com os estudantes da lista conferida. Nenhuma nota anterior será alterada.','gb-help'));
+      }
+      content.append(button('Confirmar importação de '+proposal.toSave+' notas',async()=>{
+        if(!window.MaluGradebookCloud?.canImport?.()){message('Conecte a conta Google e atualize os dados antes de continuar.',true);return;}
+        if(!confirm('Aplicar '+proposal.toSave+' notas de '+proposal.activityName+' na 2ª B, História e Geografia? As notas com nomes pendentes e notas existentes diferentes não serão substituídas.'))return;
+        try{
+          await window.MaluGradebookCloud.refresh();
+          const latest=P.plan(source,data);
+          if(latest.issues.length)throw Error('A conferência mudou: '+latest.issues.join('; '));
+          const ok=await update(d=>P.apply(source,d));
+          if(!ok)return;
+          try{
+            await window.MaluGradebookCloud.waitForSync();
+            selected=latest.courses['História'].turmaId;view='notes';refreshClasses();render();
+            message(proposal.activityName+': '+proposal.matched+' estudantes conferidos em História e Geografia. Sincronização com a nuvem confirmada. '+proposal.pendingReview.length+' estudantes permanecem pendentes de identificação.');
+          }catch(syncError){
+            selected=latest.courses['História'].turmaId;view='notes';refreshClasses();render();
+            message('As notas foram salvas neste aparelho, mas a nuvem ainda não confirmou o envio: '+syncError.message,true);
+          }
+        }catch(e){message(e.message,true);}
+      }),button('Cancelar',render));
+    }catch(e){message(e.message,true);}
+    finally{blockFile.value='';}
+  });
   bulletinFile.addEventListener('change',async()=>{const f=bulletinFile.files[0];if(!f)return;try{if(f.size>5*1024*1024)throw Error('Arquivo grande demais.');const source=JSON.parse(await f.text());const preview=B.importBulletin(source,data);content.replaceChildren(node('h3','Conferir importação do boletim'),node('p',preview.imported+' registros de notas anteriores · '+preview.marked+' acompanhamentos · '+preview.checks+' conferências de lançamento · '+preview.pending.length+' pendências.'));
       for(const issue of preview.pending)content.append(node('p',issue,'gb-help'));
       content.append(button('Aplicar notas e marcações',async()=>{try{let applied;const ok=await update(d=>{applied=B.importBulletin(source,d);Object.assign(d,applied.next);});if(ok){view='monitoring';render();message(applied.imported+' boletins importados. '+applied.pending.length+' pendências preservadas para conferência.');}}catch(e){message(e.message,true);}}),button('Cancelar',render));
     }catch(e){message(e.message,true);}finally{bulletinFile.value='';}});
+  let linkingRegistration=false,registrationChecked=false;
+  async function enrichRegistrations(){if(linkingRegistration||registrationChecked||!Object.keys(data.alunos).length)return;linkingRegistration=true;try{const source=await window.MaluGradebookCloud.importSource();registrationChecked=true;const changes=Object.entries(source.alunos||{}).filter(([id,a])=>data.alunos[id]&&!data.alunos[id].cadastroEditadoEm&&!data.alunos[id].siapVerificadoEm&&a?.matricula&&String(data.alunos[id].matricula||'')!==String(a.matricula).trim());if(changes.length)await update(d=>{for(const [id,a]of changes)if(d.alunos[id]&&!d.alunos[id].cadastroEditadoEm)d.alunos[id].matricula=String(a.matricula).trim();});}catch(e){}finally{linkingRegistration=false;}}
   function originMatchesClass(origin,t){const match=origin?.weekId?.match(/^s(\d+)-(historia|filosofia|sociologia)-/);return !!(match&&t&&Number(match[1])===Number.parseInt(t.serie||t.nome)&&({historia:'História',filosofia:'Filosofia',sociologia:'Sociologia'})[match[2]]===t.disciplina);}
   function activityForm(existing,preset){
     const form=node('form',null,'gb-form'),field=(label,type,value)=>{const box=node('label',label),input=node('input');input.type=type;input.value=value;box.append(input);form.append(box);return input;};
@@ -388,52 +518,66 @@
       paint();
     };date.addEventListener('change',()=>{attendanceDate=date.value;attendanceSlot='';message('');periods();});periods();content.append(imports);
   }
-  file.addEventListener('change',async()=>{
-    const backup=file.files[0];
-    if(!backup)return;
-    try{
-      if(backup.size>32*1024*1024)throw Error('O arquivo excede 32 MB.');
-      const source=JSON.parse(await backup.text());
-      if(!await flushEditors())return;
-      await writes;
-      const result=window.MaluGradebookCloud.mergeBackup(data,source);
-      if(!result.added){message('O backup não tem registros novos para este aparelho.');return;}
-      if(await save(result.data)){refreshClasses();render();message(result.added+' campos incorporados. Os dados existentes foram preservados.');}
-    }catch(e){message(e.message,true);}
-    finally{file.value='';}
-  });
+  file.addEventListener('change',async()=>{const f=file.files[0];if(!f)return;try{if(f.size>32*1024*1024)throw Error('Arquivo grande demais. Use o backup JSON do Leciona.');const source=JSON.parse(await f.text());const {next,classes,students}=C.importRoster(source,data);if(!confirm('Importar '+students+' alunos e '+classes+' turmas? Notas e frequências antigas não serão trazidas. Seus lançamentos atuais serão preservados.'))return;if(await save(next)){refreshClasses();render();message(students+' alunos importados. Notas e chamada do bimestre anterior não foram copiadas.');}}catch(e){message(e.message,true);}finally{file.value='';}});
   async function syncChecklist1a(){
     if(!CL){message('Checklist não carregado; atualize a página.',true);return;}
+    if(!window.MaluGradebookCloud?.canImport?.()){
+      const preview=CL.plan(data);
+      message('Confira a conexão Google para sincronizar. '+preview.toAdd.length+' atividades prontas para a 1ª série; notas existentes preservadas.',true);
+      return;
+    }
     try{
       if(!await flushEditors())return;
       await writes;
+      await window.MaluGradebookCloud.refresh();
       const preview=CL.plan(data);
-      if(!preview.classes){message('Nenhuma turma da 1ª série da EFG cadastrada. Importe o backup do diário.',true);return;}
+      if(!preview.classes){message('Nenhuma turma da 1ª série da EFG cadastrada. Atualize as turmas do Leciona.',true);return;}
       if(!preview.toAdd.length&&!preview.toUpdate?.length){message('Execuções e projetos da 1ª série já existentes: '+preview.existing+'. Notas preservadas.');render();return;}
       let result;
       const ok=await update(next=>{result=CL.apply(next);});
       if(!ok)return;
+      await window.MaluGradebookCloud.waitForSync();
       refreshClasses();render();
       message(result.added+' registros incluídos e '+result.updated+' atualizados na 1ª série. Execuções não entram na média; notas anteriores preservadas.');
-    }catch(e){message('Não foi possível salvar as atividades: '+e.message,true);}
+    }catch(e){message('Não foi possível confirmar a sincronização: '+e.message,true);}
   }
   async function syncChecklistOther(){
     if(!OC){message('Checklists não carregados; atualize a página.',true);return;}
+    if(!window.MaluGradebookCloud?.canImport?.()){
+      const proposed=OC.plan(data);
+      message('Entre com Google e aguarde “Salvo na nuvem” para sincronizar. '+proposed.toAdd.length+
+        ' campos novos aguardam cadastro; todas as notas anteriores serão preservadas.',true);
+      return;
+    }
     try{
       if(!await flushEditors())return;
       await writes;
+      await window.MaluGradebookCloud.refresh();
       const proposed=OC.plan(data);
-      if(!proposed.classes){message('Nenhuma turma da 2ª, 3ª série ou 9º ano foi localizada no cadastro. Confira o backup do diário.',true);return;}
+      if(!proposed.classes){message('Nenhuma turma da 2ª, 3ª série ou 9º ano foi localizada no cadastro. Confira o Leciona.',true);return;}
       if(!proposed.toAdd.length&&!proposed.toUpdate?.length){message('Todos os campos das outras turmas já estão cadastrados. '+proposed.existing+
         ' atividades preservadas.');refreshClasses();render();return;}
       let result;
       const ok=await update(next=>{result=OC.apply(next);});
       if(!ok)return;
+      await window.MaluGradebookCloud.waitForSync();
       refreshClasses();render();
       message(result.added+' registros incluídos e '+result.updated+' atualizados nas turmas da 2ª e 3ª séries.'+
         ' Execuções não entram na média; notas anteriores preservadas.');
-    }catch(e){message('Não foi possível salvar as atividades: '+e.message,true);}
+    }catch(e){message('Sincronização não confirmada: '+e.message,true);}
   }
-  async function exportBackup(previous=false){const raw=previous===true?await window.MaluGradebookStorage.read(recoveryKey):broken?await window.MaluGradebookStorage.read(key):JSON.stringify(data,null,2);if(!raw){message('Este aparelho não tem uma cópia anterior à sincronização.',true);return;}const blob=new Blob([raw],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download=previous===true?'notas-chamada-copia-local-anterior-2026.json':'notas-chamada-4bimestre-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:next=>{const task=writes.then(async()=>{next=await window.MaluGradebookCloud.restoreLocal(next);const previous=JSON.parse(JSON.stringify(next)),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0},debates=D?.backfill(next)||{updated:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(seeded.added||seeded.updated||seededOthers.added||seededOthers.updated||debates.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');});writes=task.catch(e=>message('Não foi possível incorporar os dados da nuvem. '+e.message,true));return writes;}});
+  function applyRemoteView(){
+    // Buttons and the dialog itself are not editors: ranking must repaint on every snapshot.
+    // Keep draft forms and focused fields intact until editing ends.
+    if(dialog.dataset.remoteChanged!=='1'||!dialog.open||autoEditors.size||dialog.querySelector('input:focus,textarea:focus,select:focus,[contenteditable="true"]:focus'))return;
+    delete dialog.dataset.remoteChanged;
+    const top=content.scrollTop,left=content.querySelector('.gb-table-wrap')?.scrollLeft||0;
+    refreshClasses();render();
+    content.scrollTop=top;const table=content.querySelector('.gb-table-wrap');if(table)table.scrollLeft=left;
+  }
+  dialog.addEventListener('focusout',()=>{setTimeout(applyRemoteView,0);});
+  async function exportBackup(previous=false){const raw=previous===true?(await window.MaluGradebookStorage.read(localModeBackupKey)??await window.MaluGradebookStorage.read(recoveryKey)):broken?await window.MaluGradebookStorage.read(key):JSON.stringify(data,null,2);if(!raw){message('Este aparelho não tem uma cópia anterior à sincronização.',true);return;}const blob=new Blob([raw],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download=previous===true?'notas-chamada-copia-local-anterior-2026.json':'notas-chamada-4bimestre-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 })();
 
