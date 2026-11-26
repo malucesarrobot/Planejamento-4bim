@@ -8,8 +8,28 @@
   window.MaluGradebookStorage=storage;
   const queueKey='malu-gradebook-2026-b4-pending';
   const config={apiKey:'AIzaSyC89tYmSG7Fl0wv37doAiO2tmf7sCGX6Ps',authDomain:'leciona-eaa56.firebaseapp.com',databaseURL:'https://leciona-eaa56-default-rtdb.firebaseio.com',projectId:'leciona-eaa56',appId:'1:824991056615:web:3cd321e321f1a5c91dd842'};
-  let pending={},auth,db,ref,connected=false,ready=false,sending=false,revision=0,callbacks,stopped=false;
+  let pending={},auth,db,ref,connected=false,ready=false,sending=false,callbacks,stopped=false;
   const queueLoaded=storage.read(queueKey).then(raw=>{pending=JSON.parse(raw||'{}');}).catch(()=>{stopped=true;});
+  let queueWrites=Promise.resolve();
+  function editQueue(change){
+    const task=queueWrites.then(async()=>{
+      await queueLoaded;
+      if(stopped)throw Error('As pendências deste aparelho precisam de conferência.');
+      const next={...pending};
+      change(next);
+      await storage.write(queueKey,JSON.stringify(next));
+      pending=next;
+    });
+    queueWrites=task.catch(()=>{});
+    return task;
+  }
+  async function restoreLocal(data){
+    await queueLoaded;
+    if(stopped)throw Error('As pendências deste aparelho não puderam ser lidas.');
+    const copy=wire(JSON.parse(JSON.stringify(data)));
+    for(const [path,entry] of Object.entries(pending))setPath(copy,path,entry.value);
+    return unwire(copy);
+  }
   function wire(data){return {...data,activities:Object.fromEntries(data.activities.map(a=>[a.id,a]))};}
   function unwire(value){const v=value||{};return {version:1,year:2026,bimestre:4,turmas:v.turmas||{},alunos:v.alunos||{},mediaModo:v.mediaModo||{},activities:Object.values(v.activities||{}),scores:v.scores||{},attendance:v.attendance||{},importLog:v.importLog||{},reportCards:v.reportCards||{},monitoring:v.monitoring||{}};}
   function flatten(value,prefix='',out={}){
@@ -20,23 +40,28 @@
   function diff(previous,next){const a=flatten(wire(previous)),b=flatten(wire(next)),out={};for(const k of new Set([...Object.keys(a),...Object.keys(b)]))if(JSON.stringify(a[k])!==JSON.stringify(b[k]))out[k]=k in b?b[k]:null;return out;}
   function setPath(root,path,value){const keys=path.split('/');let at=root;for(const k of keys.slice(0,-1))at=at[k]??={};if(value===null)delete at[keys.at(-1)];else at[keys.at(-1)]=value;}
   function status(text,error=false){callbacks?.status(text,error);}
-  async function keepQueue(){try{await storage.write(queueKey,JSON.stringify(pending));return true;}catch(e){stopped=true;status('Falha ao guardar pendências. Baixe o backup; os dados ainda não foram enviados à nuvem.',true);return false;}}
   async function flush(){
     if(stopped||sending||!ready||!auth.currentUser||!connected||!Object.keys(pending).length)return;
     sending=true;const batch={...pending};status('Sincronizando com a nuvem…');
     try{await ref.update(Object.fromEntries(Object.entries(batch).map(([k,v])=>[k,v.value])));
-      for(const [k,v] of Object.entries(batch))if(pending[k]?.revision===v.revision)delete pending[k];await keepQueue();
+      await editQueue(next=>{for(const [k,v] of Object.entries(batch))if(next[k]?.revision===v.revision)delete next[k];});
       if(!Object.keys(pending).length)status('Salvo na nuvem · '+auth.currentUser.email);}
     catch(e){status('Salvo neste aparelho · nuvem recusou o envio: '+e.message,true);}
     finally{sending=false;if(Object.keys(pending).length&&connected)setTimeout(flush,3000);}
   }
-  async function save(next,previous){await queueLoaded;const changes=diff(previous,next);for(const [k,v] of Object.entries(changes))pending[k]={value:v,revision:Date.now()+'-'+(++revision)};
-    if(await keepQueue()){status(auth?.currentUser?(connected?'Sincronizando com a nuvem…':'Salvo neste aparelho · aguardando conexão'):'Salvo neste aparelho · entre com Google para salvar na nuvem');flush();}
+  async function save(next,previous){
+    const changes=diff(previous,next);
+    if(!Object.keys(changes).length)return;
+    await editQueue(queue=>{
+      for(const [path,value] of Object.entries(changes))queue[path]={value,revision:crypto.randomUUID()};
+    });
+    status(auth?.currentUser?(connected?'Sincronizando com a nuvem…':'Salvo neste aparelho · aguardando conexão'):'Salvo neste aparelho · entre com Google para sincronizar');
+    void flush();
   }
   async function start(cb){await queueLoaded;callbacks=cb;if(!window.firebase){status('Nuvem indisponível. Verifique a conexão e atualize a página.',true);return;}
     try{const app=firebase.apps.length?firebase.app():firebase.initializeApp(config);auth=app.auth();db=app.database();ref=db.ref('leciona/planejamento_gradebook/2026b4');
       db.ref('.info/connected').on('value',s=>{connected=s.val()===true;if(connected)flush();else if(auth.currentUser)status('Salvo neste aparelho · aguardando conexão');});
-      auth.onAuthStateChanged(user=>{ref.off();ready=false;callbacks.account(user);if(!user){status('Entre com Google ou e-mail e senha para sincronizar.');return;}
+      auth.onAuthStateChanged(user=>{ref.off();ready=false;callbacks.account(user);if(!user){status(Object.keys(pending).length?'Pendências guardadas neste aparelho · entre com Google para sincronizar.':'Entre com Google ou e-mail e senha para sincronizar.');return;}
         if(!['prof.malufc@gmail.com','malu.cesar@gmail.com'].includes(user.email)){status('Use uma das contas autorizadas no Leciona.',true);return;}
         ref.on('value',snapshot=>{let cloud=wire(unwire(snapshot.val()));for(const [path,entry]of Object.entries(pending))setPath(cloud,path,entry.value);ready=true;callbacks.receive(unwire(cloud));if(Object.keys(pending).length)flush();else status(connected?'Salvo na nuvem · '+user.email:'Salvo neste aparelho · aguardando conexão');},error=>{ready=false;status('A nuvem recusou a leitura: '+error.message,true);});
       });
@@ -54,15 +79,9 @@
       await auth.signInWithPopup(googleProvider());
       return true;
     }catch(e){
-      if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){
-        try{
-          status('Abrindo o login do Google nesta aba…');
-          await auth.signInWithRedirect(googleProvider());
-          return true;
-        }catch(redirectError){
-          status('Login não iniciado: '+redirectError.message+'. Abra no Chrome e tente novamente.',true);
-          return false;
-        }
+      if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported'].includes(e.code)){
+        status('O navegador bloqueou o login Google. Abra o Planejamento diretamente no Chrome e permita a janela de login. Os lançamentos locais ficam neste aparelho.',true);
+        return false;
       }
       if(e.code==='auth/popup-closed-by-user'){
         status('A janela de login foi fechada. Use o botão Google para tentar novamente.',true);
@@ -120,6 +139,6 @@
     }
     throw Error('O envio permanece pendente; confira o indicador de sincronização.');
   }
-  window.MaluGradebookCloud={start,save,login,passwordAccess,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync};
+  window.MaluGradebookCloud={start,save,login,passwordAccess,reconnect,refresh,importSource,diff,wire,unwire,canImport,waitForSync,restoreLocal};
 })();
 

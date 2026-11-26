@@ -5,9 +5,17 @@
   const B=window.MaluBulletinCore, P=window.MaluBlocoImport, CL=window.MaluChecklistPrimeiraSerie, OC=window.MaluChecklistOutrasTurmas;
   const C=window.MaluGradebookCore, D=window.MaluDebateGrades, key='malu-gradebook-2026-b4-v1';
   const empty=()=>({version:1,year:2026,bimestre:4,turmas:{},alunos:{},mediaModo:{},activities:[],scores:{},attendance:{},importLog:{},reportCards:{},monitoring:{}});
+  const recoveryKey=key+'-copia-antes-da-sincronizacao';
   let data=empty(),broken=false,selected='',view='notes',reportStudentId='';
   try{const saved=await window.MaluGradebookStorage.read(key);if(saved){data=JSON.parse(saved);if(data.version!==1||data.bimestre!==4||!Array.isArray(data.activities)||!data.turmas||!data.alunos||!data.scores||!data.attendance||!data.mediaModo)throw Error();}}
   catch(e){broken=true;data=empty();}
+  if(!broken){
+    try{
+      const raw=await window.MaluGradebookStorage.read(key);
+      if(raw && !await window.MaluGradebookStorage.read(recoveryKey))await window.MaluGradebookStorage.write(recoveryKey,raw);
+      data=await window.MaluGradebookCloud?.restoreLocal(data)??data;
+    }catch(e){broken=true;}
+  }
   try{selected=await window.MaluGradebookStorage.read(key+'-class')||'';}catch(e){}
   let classContext={};try{classContext=JSON.parse(await window.MaluGradebookStorage.read(key+'-context')||'{}');}catch(e){}
   function rememberClass(t){if(!t)return;const series=String(Number.parseInt(t.serie||t.nome));classContext[series]=t.letra||(t.nome||'').match(/[A-Z]$/)?.[0];window.MaluGradebookStorage.write(key+'-context',JSON.stringify(classContext)).catch(()=>{});}
@@ -101,7 +109,7 @@
   });refreshList.setAttribute('aria-label','Atualizar notas e atividades da nuvem');refreshList.title='Atualizar notas e atividades da nuvem';
   controls.append(select,pupilsMenu,refreshList);
   const settings=node('details',null,'gb-settings'),summary=node('summary','Configurações'),settingsActions=node('div',null,'gb-settings-actions');
-  settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup));settings.append(summary,settingsActions);
+  settingsActions.append(button('Importar notas Bloco II ou Simulado ENEM · 2ª B',()=>blockFile.click()),button('Conferir atividades da 1ª série',syncChecklist1a),button('Conferir atividades das demais turmas',syncChecklistOther),button('Importar boletim do SIAP',()=>bulletinFile.click()),button('Alunos em acompanhamento',()=>{view='monitoring';render();}),button('Conferir vínculos para o SIAP',auditRegistrations),login,button('Trazer alunos do Leciona pela nuvem',importCloud),button('Importar backup do Leciona',()=>file.click()),button('Baixar backup de notas e chamada',exportBackup),button('Baixar cópia local anterior à sincronização',()=>exportBackup(true)));settings.append(summary,settingsActions);
 
   info.textContent='4º bimestre · 2026';settingsActions.prepend(info);dialog.append(header,controls,cloudRow,passwordForm,status,content,settings,file,bulletinFile,blockFile);document.body.append(dialog);
   const actions=document.querySelector('#navTools .tools-actions');
@@ -109,8 +117,14 @@
   function message(text,error=false){status.textContent=text;status.classList.toggle('gb-error',error);}
   async function save(next){
     if(broken){message('Os dados salvos não puderam ser lidos. Baixe o backup para conferência antes de substituir dados.',true);return false;}
-    try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));const previous=data;data=next;await window.MaluGradebookCloud?.save(next,previous);message('Lançamento registrado.');return true;}
-    catch(e){message('Não foi possível salvar neste aparelho. O lançamento não foi aplicado; baixe uma cópia de segurança.',true);return false;}
+    try{
+      await window.MaluGradebookCloud.save(next,data);
+      data=next;
+      try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));}
+      catch(e){message('Lançamento guardado na fila de sincronização. A cópia local completa está indisponível.',true);return true;}
+      message('Lançamento guardado neste aparelho. Confira o indicador da nuvem.');
+      return true;
+    }catch(e){message('Não foi possível guardar o lançamento neste aparelho. '+e.message,true);return false;}
   }
   let writes=Promise.resolve();
   function update(fn){const task=writes.then(()=>{const next=JSON.parse(JSON.stringify(data));fn(next);return save(next);});writes=task.catch(()=>{});return task;}
@@ -130,19 +144,6 @@
   dialog.addEventListener('cancel',event=>{event.preventDefault();closeGradebook();});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushEditors();});
 
-  // Remoção solicitada após conferência do backup de 07/10/2026.
-  // IDs exatos evitam atingir outras atividades com nomes semelhantes.
-  const removedActivityIds=new Set(['2e89fe8f-9ee1-4dd1-a787-36b46c735f48','8201db89-f892-4de2-96b9-061d851ee448']);
-  function removeRequestedActivities(record){
-    const hasScore=id=>Object.values(record.scores||{}).some(scores=>scores&&Object.prototype.hasOwnProperty.call(scores,id)&&scores[id]!=null);
-    // A limpeza histórica só alcança IDs sem qualquer nota; inclusive nota zero é protegida.
-    const removable=new Set([...removedActivityIds].filter(id=>!hasScore(id)));
-    const count=record.activities.length;
-    record.activities=record.activities.filter(a=>!removable.has(a.id));
-    let changed=record.activities.length!==count;
-    for(const scores of Object.values(record.scores||{}))for(const id of removable)if(Object.hasOwn(scores,id)){delete scores[id];changed=true;}
-    return changed;
-  }
   function classLabel(t){return [t.nome||((t.serie||'')+(t.letra||'')),t.unidade,t.disciplina].filter(Boolean).join(' · ');}
   function refreshClasses(){
     select.replaceChildren();select.append(new Option('Selecione a turma',''));
@@ -562,8 +563,7 @@
     }catch(e){message('Sincronização não confirmada: '+e.message,true);}
   }
   async function importCloud(){try{const source=await window.MaluGradebookCloud.importSource();const imported=C.importRoster(source,data);if(await save(imported.next)){refreshClasses();render();message(imported.students+' alunos e '+imported.classes+' turmas importados, sem notas nem chamada anteriores.');}}catch(e){message(e.message,true);}}
-  if(!broken&&(data.activities.some(a=>removedActivityIds.has(a.id))||Object.values(data.scores).some(scores=>[...removedActivityIds].some(id=>Object.hasOwn(scores,id)))))await update(removeRequestedActivities);
-  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:async next=>{const previous=JSON.parse(JSON.stringify(next)),removed=removeRequestedActivities(next),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0},debates=D?.backfill(next)||{updated:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(removed||seeded.added||seeded.updated||seededOthers.added||seededOthers.updated||debates.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');}});
+  window.MaluGradebookCloud?.start({status:(text,error)=>{cloudInfo.textContent=text;cloudInfo.classList.toggle('gb-error',!!error);},account:user=>{login.textContent=user?'Trocar conta Google':'Entrar com Google';},receive:next=>{const task=writes.then(async()=>{next=await window.MaluGradebookCloud.restoreLocal(next);const previous=JSON.parse(JSON.stringify(next)),seeded=CL?.apply(next)||{added:0},seededOthers=OC?.apply(next)||{added:0},debates=D?.backfill(next)||{updated:0};data=next;enrichRegistrations();let cached=false;try{await window.MaluGradebookStorage.write(key,JSON.stringify(next));broken=false;cached=true;if(seeded.added||seeded.updated||seededOthers.added||seededOthers.updated||debates.updated)await window.MaluGradebookCloud?.save(next,previous);}catch(e){message('Dados carregados da nuvem. A cópia offline não pôde ser salva neste aparelho.',true);}dialog.dataset.remoteChanged='1';applyRemoteView();if(cached&&status.textContent.startsWith('Dados carregados da nuvem.'))message('Dados recebidos da nuvem.');});writes=task.catch(e=>message('Não foi possível incorporar os dados da nuvem. '+e.message,true));return writes;}});
   function applyRemoteView(){
     // Buttons and the dialog itself are not editors: ranking must repaint on every snapshot.
     // Keep draft forms and focused fields intact until editing ends.
@@ -574,6 +574,6 @@
     content.scrollTop=top;const table=content.querySelector('.gb-table-wrap');if(table)table.scrollLeft=left;
   }
   dialog.addEventListener('focusout',()=>{setTimeout(applyRemoteView,0);});
-  async function exportBackup(){const raw=broken?await window.MaluGradebookStorage.read(key):JSON.stringify(data,null,2);const blob=new Blob([raw||''],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download='notas-chamada-4bimestre-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  async function exportBackup(previous=false){const raw=previous===true?await window.MaluGradebookStorage.read(recoveryKey):broken?await window.MaluGradebookStorage.read(key):JSON.stringify(data,null,2);if(!raw){message('Este aparelho não tem uma cópia anterior à sincronização.',true);return;}const blob=new Blob([raw],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download=previous===true?'notas-chamada-copia-local-anterior-2026.json':'notas-chamada-4bimestre-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 })();
 
